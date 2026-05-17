@@ -37,8 +37,10 @@ import {
   MapPin,
   Maximize,
   MessageCircle,
+  Pencil,
   Phone,
   Star,
+  Trash2,
   X,
 } from 'lucide-react-native'
 
@@ -663,54 +665,162 @@ export default function PropertyDetail() {
                       </BlurView>
                     </LinearGradient>
 
-                    <Animated.View
-                      style={[
-                        {
-                          position: 'absolute',
-                          top: insets.top + 24,
-                          right: 24,
-                        },
-                        heartAnimatedStyle,
-                      ]}
-                    >
-                      <BlurView
-                        intensity={64}
-                        tint="dark"
-                        experimentalBlurMethod="dimezisBlurView"
-                        style={{
-                          width: 58,
-                          height: 58,
-                          borderRadius: 29,
-                          overflow: 'hidden',
-                          backgroundColor:
-                            'rgba(15,15,15,0.42)',
-                        }}
-                      >
-                        <Pressable
-                          onPress={toggleFavorite}
-                          style={{
-                            flex: 1,
-                            justifyContent:
-                              'center',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Heart
-                            size={24}
-                            color={
-                              isFavorite
-                                ? '#FF4D6D'
-                                : 'white'
-                            }
-                            fill={
-                              isFavorite
-                                ? '#FF4D6D'
-                                : 'transparent'
-                            }
-                          />
-                        </Pressable>
-                      </BlurView>
-                    </Animated.View>
+                    <View
+  style={{
+    position: 'absolute',
+    top: insets.top + 24,
+    right: 24,
+    flexDirection: 'row',
+    gap: 12,
+  }}
+>
+  {/* EDIT */}
+  <BlurView
+    intensity={64}
+    tint="dark"
+    experimentalBlurMethod="dimezisBlurView"
+    style={{
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      overflow: 'hidden',
+      backgroundColor:
+        'rgba(15,15,15,0.42)',
+    }}
+  >
+    <Pressable
+      onPress={() => {
+        haptic()
+
+        router.push(
+  `/property/edit/${property.id}`
+        )
+      }}
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Pencil
+        size={22}
+        color="#D6B07B"
+      />
+    </Pressable>
+  </BlurView>
+
+  {/* DELETE */}
+  <BlurView
+    intensity={64}
+    tint="dark"
+    experimentalBlurMethod="dimezisBlurView"
+    style={{
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      overflow: 'hidden',
+      backgroundColor:
+        'rgba(80,20,20,0.35)',
+    }}
+  >
+    <Pressable
+      onPress={() => {
+        Alert.alert(
+          'Ingatlan törlése',
+          'Biztosan törölni szeretnéd?',
+          [
+            {
+              text: 'Mégse',
+              style: 'cancel',
+            },
+            {
+              text: 'Törlés',
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await haptic(
+                    Haptics
+                      .ImpactFeedbackStyle
+                      .Heavy
+                  )
+
+                  await supabase
+                    .from('properties')
+                    .delete()
+                    .eq(
+                      'id',
+                      property.id
+                    )
+
+                  router.replace('/')
+                } catch (error) {
+                  console.log(error)
+
+                  Alert.alert(
+                    'Hiba',
+                    'Nem sikerült törölni az ingatlant.'
+                  )
+                }
+              },
+            },
+          ]
+        )
+      }}
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Trash2
+        size={22}
+        color="#FF6B6B"
+      />
+    </Pressable>
+  </BlurView>
+
+  {/* FAVORITE */}
+  <Animated.View
+    style={heartAnimatedStyle}
+  >
+    <BlurView
+      intensity={64}
+      tint="dark"
+      experimentalBlurMethod="dimezisBlurView"
+      style={{
+        width: 58,
+        height: 58,
+        borderRadius: 29,
+        overflow: 'hidden',
+        backgroundColor:
+          'rgba(15,15,15,0.42)',
+      }}
+    >
+      <Pressable
+        onPress={toggleFavorite}
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Heart
+          size={24}
+          color={
+            isFavorite
+              ? '#FF4D6D'
+              : 'white'
+          }
+          fill={
+            isFavorite
+              ? '#FF4D6D'
+              : 'transparent'
+          }
+        />
+      </Pressable>
+    </BlurView>
+  </Animated.View>
+</View>
 
                     <LinearGradient
                       colors={[
