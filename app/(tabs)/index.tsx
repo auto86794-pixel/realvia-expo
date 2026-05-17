@@ -38,8 +38,10 @@ import { useAuth } from '../../src/providers/AuthProvider'
 import {
   Colors,
   Radius,
-  Shadows
+  Shadows,
 } from '@/constants/theme'
+
+import { hu } from '@/constants/translations'
 
 export default function Home() {
   useProtectedRoute()
@@ -59,18 +61,22 @@ export default function Home() {
     useState('')
 
   const categories = [
-    'Összes',
-    'Villa',
-    'Tengerpart',
-    'Modern',
-    'Luxus',
-    'Penthouse',
+    hu.categories.all,
+    hu.categories.villas,
+    hu.categories.penthouses,
+    hu.categories.waterfront,
+    hu.categories.modern,
+    hu.categories.apartments,
+    hu.categories.investment,
+    hu.categories.exclusive,
   ]
 
   const [
     selectedCategory,
     setSelectedCategory,
-  ] = useState('Összes')
+  ] = useState(
+    hu.categories.all
+  )
 
   async function handleLogout() {
     try {
@@ -155,7 +161,7 @@ export default function Home() {
 
           const matchesCategory =
             selectedCategory ===
-              'Összes' ||
+              hu.categories.all ||
             property.category ===
               selectedCategory
 
@@ -270,7 +276,7 @@ export default function Home() {
                   maxWidth: 760,
                 }}
               >
-                Discover Luxury Living
+                {hu.home.heroTitle}
               </Text>
 
               <Text
@@ -290,10 +296,7 @@ export default function Home() {
                   lineHeight: 34,
                 }}
               >
-                Exclusive premium
-                properties for modern
-                lifestyle and elite
-                living.
+                {hu.home.heroSubtitle}
               </Text>
             </Animated.View>
 
@@ -363,7 +366,10 @@ export default function Home() {
                 letterSpacing: -2,
               }}
             >
-              Luxury Properties
+              {
+                hu.home
+                  .luxuryProperties
+              }
             </Text>
 
             <Text
@@ -376,8 +382,7 @@ export default function Home() {
                 fontSize: 16,
               }}
             >
-              Handpicked premium
-              listings
+              {hu.home.handpicked}
             </Text>
           </View>
 
@@ -394,7 +399,7 @@ export default function Home() {
             {
               filteredProperties.length
             }{' '}
-            properties
+            ingatlan
           </Text>
         </View>
 
@@ -484,7 +489,7 @@ export default function Home() {
               marginBottom: 24,
             }}
           >
-            Favorites
+            {hu.home.favorites}
           </Text>
 
           {favorites.length ===
@@ -515,8 +520,10 @@ export default function Home() {
                   lineHeight: 28,
                 }}
               >
-                You don’t have saved
-                properties yet.
+                {
+                  hu.favorites
+                    .empty
+                }
               </Text>
             </View>
           ) : (
@@ -597,7 +604,7 @@ export default function Home() {
               fontWeight: '800',
             }}
           >
-            Logout
+            {hu.home.logout}
           </Text>
         </Pressable>
       </View>

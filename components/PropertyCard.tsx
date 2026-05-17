@@ -23,6 +23,8 @@ import {
   Shadows,
 } from '@/constants/theme'
 
+import { hu } from '@/constants/translations'
+
 type Props = {
   id: string | number
 
@@ -191,9 +193,6 @@ export default function PropertyCard({
 
           borderColor:
             'rgba(255,255,255,0.18)',
-
-          backdropFilter:
-            'blur(18px)',
         }}
       >
         <Text
@@ -210,7 +209,7 @@ export default function PropertyCard({
               'uppercase',
           }}
         >
-          Luxury Estate
+          Luxus Ingatlan
         </Text>
       </View>
 
@@ -244,7 +243,7 @@ export default function PropertyCard({
             fontWeight: '600',
           }}
         >
-          {location}
+          📍 {location}
         </Text>
 
         {/* TITLE */}
@@ -328,7 +327,7 @@ export default function PropertyCard({
                 fontWeight: '700',
               }}
             >
-              View Property
+              {hu.property.view}
             </Text>
           </View>
         </View>
