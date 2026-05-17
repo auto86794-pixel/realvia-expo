@@ -24,13 +24,11 @@ export const hu = {
 
   categories: {
     all: 'Összes',
-    villas: 'Villák',
-    penthouses: 'Penthouse',
-    waterfront: 'Vízparti',
-    modern: 'Modern',
-    apartments: 'Lakások',
-    investment: 'Befektetés',
-    exclusive: 'Exkluzív',
+  apartments: 'Lakások',
+  houses: 'Családi ház',
+  villas: 'Villák',
+  penthouses: 'Penthouse',
+  newBuild: 'Új építésű',
   },
 
   dashboard: {

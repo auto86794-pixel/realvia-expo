@@ -61,14 +61,12 @@ export default function Home() {
     useState('')
 
   const categories = [
-    hu.categories.all,
-    hu.categories.villas,
-    hu.categories.penthouses,
-    hu.categories.waterfront,
-    hu.categories.modern,
-    hu.categories.apartments,
-    hu.categories.investment,
-    hu.categories.exclusive,
+  hu.categories.all,
+  hu.categories.apartments,
+  hu.categories.houses,
+  hu.categories.villas,
+  hu.categories.penthouses,
+  hu.categories.newBuild,
   ]
 
   const [
