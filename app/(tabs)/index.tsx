@@ -61,12 +61,12 @@ export default function Home() {
     useState('')
 
   const categories = [
-  hu.categories.all,
-  hu.categories.apartments,
-  hu.categories.houses,
-  hu.categories.villas,
-  hu.categories.penthouses,
-  hu.categories.newBuild,
+    hu.categories.all,
+    hu.categories.apartments,
+    hu.categories.houses,
+    hu.categories.villas,
+    hu.categories.penthouses,
+    hu.categories.newBuild,
   ]
 
   const [
@@ -176,436 +176,484 @@ export default function Home() {
     ])
 
   return (
-    <ScrollView
+    <View
       style={{
         flex: 1,
         backgroundColor:
           Colors.dark.background,
       }}
-      contentContainerStyle={{
-        paddingBottom: 140,
-      }}
-      showsVerticalScrollIndicator={
-        false
-      }
     >
-      {/* HERO */}
-      <View
+      <ScrollView
         style={{
-          height:
-            Platform.OS === 'web'
-              ? 820
-              : 620,
-
-          borderBottomLeftRadius:
-            Radius.xl,
-
-          borderBottomRightRadius:
-            Radius.xl,
-
-          overflow: 'hidden',
+          flex: 1,
+          backgroundColor:
+            Colors.dark.background,
         }}
+        contentContainerStyle={{
+          paddingBottom: 180,
+        }}
+        showsVerticalScrollIndicator={
+          false
+        }
       >
-        <Image
-          source={{
-            uri: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
-          }}
-          contentFit="cover"
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-        />
-
+        {/* HERO */}
         <View
           style={{
-            position: 'absolute',
+            height:
+              Platform.OS === 'web'
+                ? 820
+                : 620,
 
-            width: '100%',
-            height: '100%',
+            borderBottomLeftRadius:
+              Radius.xl,
 
-            backgroundColor:
-              'rgba(0,0,0,0.45)',
-          }}
-        />
+            borderBottomRightRadius:
+              Radius.xl,
 
-        <View
-          style={{
-            position: 'absolute',
-
-            width: '100%',
-            height: '100%',
-
-            justifyContent: 'center',
-
-            paddingHorizontal: 24,
+            overflow: 'hidden',
           }}
         >
+          <Image
+            source={{
+              uri: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
+            }}
+            contentFit="cover"
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+
           <View
             style={{
-              maxWidth: 1440,
+              position: 'absolute',
+
               width: '100%',
-              alignSelf: 'center',
+              height: '100%',
+
+              backgroundColor:
+                'rgba(0,0,0,0.45)',
+            }}
+          />
+
+          <View
+            style={{
+              position: 'absolute',
+
+              width: '100%',
+              height: '100%',
+
+              justifyContent: 'center',
+
+              paddingHorizontal: 24,
             }}
           >
-            <Animated.View
-              entering={FadeInDown.springify()}
+            <View
+              style={{
+                maxWidth: 1440,
+                width: '100%',
+                alignSelf: 'center',
+              }}
             >
+              <Animated.View
+                entering={FadeInDown.springify()}
+              >
+                <Text
+                  style={{
+                    color: 'white',
+
+                    fontSize:
+                      Platform.OS ===
+                      'web'
+                        ? 96
+                        : 54,
+
+                    lineHeight:
+                      Platform.OS ===
+                      'web'
+                        ? 102
+                        : 60,
+
+                    fontWeight: '900',
+
+                    letterSpacing: -4,
+
+                    maxWidth: 760,
+                  }}
+                >
+                  {hu.home.heroTitle}
+                </Text>
+
+                <Text
+                  style={{
+                    color: '#D1D5DB',
+
+                    fontSize:
+                      Platform.OS ===
+                      'web'
+                        ? 22
+                        : 18,
+
+                    marginTop: 28,
+
+                    maxWidth: 560,
+
+                    lineHeight: 34,
+                  }}
+                >
+                  {hu.home.heroSubtitle}
+                </Text>
+              </Animated.View>
+
+              <Animated.View
+                entering={FadeInDown.delay(
+                  250
+                ).springify()}
+                style={{
+                  marginTop: 42,
+                  maxWidth: 520,
+                }}
+              >
+                <SearchBar
+                  value={search}
+                  onChange={setSearch}
+                />
+              </Animated.View>
+            </View>
+          </View>
+        </View>
+
+        {/* CONTENT */}
+        <View
+          style={{
+            width: '100%',
+            maxWidth: 1440,
+            alignSelf: 'center',
+
+            paddingHorizontal: 24,
+
+            marginTop: 42,
+          }}
+        >
+          <CategoryTabs
+            categories={categories}
+            selectedCategory={
+              selectedCategory
+            }
+            onSelect={
+              setSelectedCategory
+            }
+          />
+
+          {/* SECTION HEADER */}
+          <View
+            style={{
+              marginTop: 42,
+              marginBottom: 28,
+
+              flexDirection: 'row',
+
+              justifyContent:
+                'space-between',
+
+              alignItems: 'center',
+            }}
+          >
+            <View>
               <Text
                 style={{
                   color: 'white',
 
-                  fontSize:
-                    Platform.OS ===
-                    'web'
-                      ? 96
-                      : 54,
-
-                  lineHeight:
-                    Platform.OS ===
-                    'web'
-                      ? 102
-                      : 60,
+                  fontSize: 42,
 
                   fontWeight: '900',
 
-                  letterSpacing: -4,
-
-                  maxWidth: 760,
+                  letterSpacing: -2,
                 }}
               >
-                {hu.home.heroTitle}
+                {
+                  hu.home
+                    .luxuryProperties
+                }
               </Text>
 
-              <Text
-                style={{
-                  color: '#D1D5DB',
-
-                  fontSize:
-                    Platform.OS ===
-                    'web'
-                      ? 22
-                      : 18,
-
-                  marginTop: 28,
-
-                  maxWidth: 560,
-
-                  lineHeight: 34,
-                }}
-              >
-                {hu.home.heroSubtitle}
-              </Text>
-            </Animated.View>
-
-            <Animated.View
-              entering={FadeInDown.delay(
-                250
-              ).springify()}
-              style={{
-                marginTop: 42,
-                maxWidth: 520,
-              }}
-            >
-              <SearchBar
-                value={search}
-                onChange={setSearch}
-              />
-            </Animated.View>
-          </View>
-        </View>
-      </View>
-
-      {/* CONTENT */}
-      <View
-        style={{
-          width: '100%',
-          maxWidth: 1440,
-          alignSelf: 'center',
-
-          paddingHorizontal: 24,
-
-          marginTop: 42,
-        }}
-      >
-        <CategoryTabs
-          categories={categories}
-          selectedCategory={
-            selectedCategory
-          }
-          onSelect={
-            setSelectedCategory
-          }
-        />
-
-        {/* SECTION HEADER */}
-        <View
-          style={{
-            marginTop: 42,
-            marginBottom: 28,
-
-            flexDirection: 'row',
-
-            justifyContent:
-              'space-between',
-
-            alignItems: 'center',
-          }}
-        >
-          <View>
-            <Text
-              style={{
-                color: 'white',
-
-                fontSize: 42,
-
-                fontWeight: '900',
-
-                letterSpacing: -2,
-              }}
-            >
-              {
-                hu.home
-                  .luxuryProperties
-              }
-            </Text>
-
-            <Text
-              style={{
-                color:
-                  Colors.dark.muted,
-
-                marginTop: 8,
-
-                fontSize: 16,
-              }}
-            >
-              {hu.home.handpicked}
-            </Text>
-          </View>
-
-          <Text
-            style={{
-              color:
-                Colors.dark.primary,
-
-              fontSize: 16,
-
-              fontWeight: '700',
-            }}
-          >
-            {
-              filteredProperties.length
-            }{' '}
-            ingatlan
-          </Text>
-        </View>
-
-        {/* GRID */}
-        <View
-          style={{
-            flexDirection: 'row',
-
-            flexWrap: 'wrap',
-
-            justifyContent:
-              'space-between',
-
-            rowGap: 28,
-          }}
-        >
-          {loading ? (
-            <>
-              <PropertyCardSkeleton />
-              <PropertyCardSkeleton />
-              <PropertyCardSkeleton />
-            </>
-          ) : (
-            filteredProperties.map(
-              (
-                property,
-                index
-              ) => (
-                <Animated.View
-                  key={property.id}
-                  entering={FadeInDown.delay(
-                    300 +
-                      index * 120
-                  ).springify()}
-                  style={{
-                    width:
-                      Platform.OS ===
-                      'web'
-                        ? '32%'
-                        : '100%',
-                  }}
-                >
-                  <PropertyCard
-                    id={String(
-                      property.id
-                    )}
-                    title={
-                      property.title
-                    }
-                    price={
-                      property.price
-                    }
-                    location={
-                      property.location
-                    }
-                    images={
-                      property.gallery
-                        ?.length
-                        ? property.gallery
-                        : [
-                            property.image,
-                          ]
-                    }
-                  />
-                </Animated.View>
-              )
-            )
-          )}
-        </View>
-
-        {/* FAVORITES */}
-        <View
-          style={{
-            marginTop: 72,
-          }}
-        >
-          <Text
-            style={{
-              color: 'white',
-
-              fontSize: 38,
-
-              fontWeight: '900',
-
-              letterSpacing: -2,
-
-              marginBottom: 24,
-            }}
-          >
-            {hu.home.favorites}
-          </Text>
-
-          {favorites.length ===
-          0 ? (
-            <View
-              style={{
-                backgroundColor:
-                  Colors.dark.surface,
-
-                borderRadius:
-                  Radius.lg,
-
-                padding: 32,
-
-                borderWidth: 1,
-
-                borderColor:
-                  Colors.dark.border,
-              }}
-            >
               <Text
                 style={{
                   color:
                     Colors.dark.muted,
 
-                  fontSize: 17,
+                  marginTop: 8,
 
-                  lineHeight: 28,
+                  fontSize: 16,
                 }}
               >
-                {
-                  hu.favorites
-                    .empty
-                }
+                {hu.home.handpicked}
               </Text>
             </View>
-          ) : (
-            favorites.map(
-              (favorite) => (
-                <View
-                  key={favorite.id}
-                  style={{
-                    backgroundColor:
-                      Colors.dark
-                        .surface,
 
-                    padding: 24,
+            <Text
+              style={{
+                color:
+                  Colors.dark.primary,
 
-                    borderRadius:
-                      Radius.lg,
+                fontSize: 16,
 
-                    borderWidth: 1,
+                fontWeight: '700',
+              }}
+            >
+              {
+                filteredProperties.length
+              }{' '}
+              ingatlan
+            </Text>
+          </View>
 
-                    borderColor:
-                      Colors.dark
-                        .border,
-
-                    marginBottom: 18,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: 'white',
-
-                      fontSize: 18,
-
-                      fontWeight:
-                        '700',
-                    }}
-                  >
-                    ❤️{' '}
-                    {
-                      favorite.property_id
-                    }
-                  </Text>
-                </View>
-              )
-            )
-          )}
-        </View>
-
-        {/* LOGOUT */}
-        <Pressable
-          onPress={handleLogout}
-          style={{
-            marginTop: 72,
-
-            backgroundColor:
-              Colors.dark.surface,
-
-            borderRadius:
-              Radius.full,
-
-            paddingVertical: 22,
-
-            alignItems: 'center',
-
-            borderWidth: 1,
-
-            borderColor:
-              Colors.dark.border,
-
-            ...Shadows.luxury,
-          }}
-        >
-          <Text
+          {/* GRID */}
+          <View
             style={{
-              color: 'white',
+              flexDirection: 'row',
 
-              fontSize: 17,
+              flexWrap: 'wrap',
 
-              fontWeight: '800',
+              justifyContent:
+                'space-between',
+
+              rowGap: 28,
             }}
           >
-            {hu.home.logout}
-          </Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+            {loading ? (
+              <>
+                <PropertyCardSkeleton />
+                <PropertyCardSkeleton />
+                <PropertyCardSkeleton />
+              </>
+            ) : (
+              filteredProperties.map(
+                (
+                  property,
+                  index
+                ) => (
+                  <Animated.View
+                    key={property.id}
+                    entering={FadeInDown.delay(
+                      300 +
+                        index * 120
+                    ).springify()}
+                    style={{
+                      width:
+                        Platform.OS ===
+                        'web'
+                          ? '32%'
+                          : '100%',
+                    }}
+                  >
+                    <PropertyCard
+                      id={String(
+                        property.id
+                      )}
+                      title={
+                        property.title
+                      }
+                      price={
+                        property.price
+                      }
+                      location={
+                        property.location
+                      }
+                      images={
+                        property.gallery
+                          ?.length
+                          ? property.gallery
+                          : [
+                              property.image,
+                            ]
+                      }
+                    />
+                  </Animated.View>
+                )
+              )
+            )}
+          </View>
+
+          {/* FAVORITES */}
+          <View
+            style={{
+              marginTop: 72,
+            }}
+          >
+            <Text
+              style={{
+                color: 'white',
+
+                fontSize: 38,
+
+                fontWeight: '900',
+
+                letterSpacing: -2,
+
+                marginBottom: 24,
+              }}
+            >
+              {hu.home.favorites}
+            </Text>
+
+            {favorites.length ===
+            0 ? (
+              <View
+                style={{
+                  backgroundColor:
+                    Colors.dark.surface,
+
+                  borderRadius:
+                    Radius.lg,
+
+                  padding: 32,
+
+                  borderWidth: 1,
+
+                  borderColor:
+                    Colors.dark.border,
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      Colors.dark.muted,
+
+                    fontSize: 17,
+
+                    lineHeight: 28,
+                  }}
+                >
+                  {
+                    hu.favorites
+                      .empty
+                  }
+                </Text>
+              </View>
+            ) : (
+              favorites.map(
+                (favorite) => (
+                  <View
+                    key={favorite.id}
+                    style={{
+                      backgroundColor:
+                        Colors.dark
+                          .surface,
+
+                      padding: 24,
+
+                      borderRadius:
+                        Radius.lg,
+
+                      borderWidth: 1,
+
+                      borderColor:
+                        Colors.dark
+                          .border,
+
+                      marginBottom: 18,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: 'white',
+
+                        fontSize: 18,
+
+                        fontWeight:
+                          '700',
+                      }}
+                    >
+                      ❤️{' '}
+                      {
+                        favorite.property_id
+                      }
+                    </Text>
+                  </View>
+                )
+              )
+            )}
+          </View>
+
+          {/* LOGOUT */}
+          <Pressable
+            onPress={handleLogout}
+            style={{
+              marginTop: 72,
+
+              backgroundColor:
+                Colors.dark.surface,
+
+              borderRadius:
+                Radius.full,
+
+              paddingVertical: 22,
+
+              alignItems: 'center',
+
+              borderWidth: 1,
+
+              borderColor:
+                Colors.dark.border,
+
+              ...Shadows.luxury,
+            }}
+          >
+            <Text
+              style={{
+                color: 'white',
+
+                fontSize: 17,
+
+                fontWeight: '800',
+              }}
+            >
+              {hu.home.logout}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      {/* FLOATING UPLOAD BUTTON */}
+      <Pressable
+        onPress={() =>
+          router.push('/upload')
+        }
+        style={{
+          position: 'absolute',
+
+          right: 28,
+          bottom: 34,
+
+          backgroundColor:
+            Colors.dark.primary,
+
+          paddingHorizontal: 28,
+          paddingVertical: 18,
+
+          borderRadius: Radius.full,
+
+          borderWidth: 1,
+
+          borderColor:
+            'rgba(255,255,255,0.08)',
+
+          ...Shadows.luxury,
+        }}
+      >
+        <Text
+          style={{
+            color: '#000',
+
+            fontSize: 15,
+
+            fontWeight: '900',
+          }}
+        >
+          + Új ingatlan
+        </Text>
+      </Pressable>
+    </View>
   )
 }
