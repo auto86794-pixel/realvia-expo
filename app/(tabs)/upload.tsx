@@ -46,8 +46,8 @@ export default function UploadScreen() {
   const [category, setCategory] =
     useState('Lakások')
 
-  const [image, setImage] =
-    useState<string | null>(null)
+  const [images, setImages] =
+    useState<string[]>([])
 
   const [loading, setLoading] =
     useState(false)
@@ -68,9 +68,9 @@ export default function UploadScreen() {
             mediaTypes:
               ImagePicker.MediaTypeOptions.Images,
 
-            allowsEditing: true,
+            allowsMultipleSelection: true,
 
-            aspect: [16, 9],
+            selectionLimit: 10,
 
             quality: 0.9,
 
@@ -80,54 +80,52 @@ export default function UploadScreen() {
 
       if (result.canceled) return
 
-      const asset =
-        result.assets?.[0]
+      const uploadedImages: string[] =
+        []
 
-      if (!asset) return
+      for (const asset of result.assets) {
+        const fileExt =
+          asset.uri
+            .split('.')
+            .pop() || 'jpg'
 
-      const fileExt =
-        asset.uri
-          .split('.')
-          .pop() || 'jpg'
+        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`
 
-      const fileName = `${Date.now()}.${fileExt}`
+        const filePath = `${fileName}`
 
-      const filePath = `${fileName}`
+        const { error } =
+          await supabase.storage
+            .from('properties')
+            .upload(
+              filePath,
+              decode(
+                asset.base64 || ''
+              ),
+              {
+                contentType:
+                  asset.mimeType ||
+                  'image/jpeg',
+              }
+            )
 
-      const { error } =
-        await supabase.storage
-          .from('properties')
-          .upload(
-            filePath,
-            decode(
-              asset.base64 || ''
-            ),
-            {
-              contentType:
-                asset.mimeType ||
-                'image/jpeg',
-            }
-          )
+        if (error) {
+          console.log(error)
+          continue
+        }
 
-      if (error) {
-        console.log(error)
+        const { data } =
+          supabase.storage
+            .from('properties')
+            .getPublicUrl(
+              filePath
+            )
 
-        Alert.alert(
-          'Hiba',
-          'Nem sikerült feltölteni a képet.'
+        uploadedImages.push(
+          data.publicUrl
         )
-
-        return
       }
 
-      const { data } =
-        supabase.storage
-          .from('properties')
-          .getPublicUrl(
-            filePath
-          )
-
-      setImage(data.publicUrl)
+      setImages(uploadedImages)
     } catch (error) {
       console.log(error)
 
@@ -144,7 +142,7 @@ export default function UploadScreen() {
         !title ||
         !location ||
         !price ||
-        !image
+        images.length === 0
       ) {
         Alert.alert(
           'Hiányzó mezők',
@@ -163,10 +161,10 @@ export default function UploadScreen() {
             title,
             location,
             price,
-            image,
+            image: images[0],
             description,
             category,
-            gallery: [image],
+            gallery: images,
           })
 
       if (error) {
@@ -307,7 +305,7 @@ export default function UploadScreen() {
               marginBottom: 14,
             }}
           >
-            Borítókép
+            Galéria
           </Text>
 
           <Pressable
@@ -331,24 +329,37 @@ export default function UploadScreen() {
               justifyContent:
                 'center',
 
-              height: image
-                ? 280
-                : 160,
+              minHeight: 180,
 
               ...Shadows.luxury,
             }}
           >
-            {image ? (
-              <Image
-                source={{
-                  uri: image,
+            {images.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={
+                  false
+                }
+                contentContainerStyle={{
+                  gap: 12,
+                  padding: 14,
                 }}
-                contentFit="cover"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
+              >
+                {images.map((img) => (
+                  <Image
+                    key={img}
+                    source={{
+                      uri: img,
+                    }}
+                    contentFit="cover"
+                    style={{
+                      width: 220,
+                      height: 140,
+                      borderRadius: 20,
+                    }}
+                  />
+                ))}
+              </ScrollView>
             ) : (
               <Text
                 style={{
@@ -361,7 +372,7 @@ export default function UploadScreen() {
                   fontWeight: '800',
                 }}
               >
-                + Kép kiválasztása
+                + Képek kiválasztása
               </Text>
             )}
           </Pressable>
