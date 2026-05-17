@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -27,11 +28,17 @@ import {
 } from 'expo-router'
 
 import {
+  Bath,
+  BedDouble,
   CalendarDays,
+  Car,
   Heart,
   Mail,
+  MapPin,
+  Maximize,
   MessageCircle,
   Phone,
+  Star,
   X,
 } from 'lucide-react-native'
 
@@ -72,14 +79,24 @@ const AGENT_ROLE =
 const AGENT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop'
 
+const MAP_PREVIEW_IMAGE =
+  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1600&auto=format&fit=crop'
+
 interface Property {
   id: string
   title: string
   image: string
-  gallery?: any[]
+  gallery?: any[] | string
   location: string
   price: string
   description?: string
+  bedrooms?: number | string
+  bathrooms?: number | string
+  size?: number | string
+  parking?: number | string
+  neighborhood?: string
+  latitude?: number
+  longitude?: number
 }
 
 export default function PropertyDetail() {
@@ -98,20 +115,19 @@ export default function PropertyDetail() {
   const [isFavorite, setIsFavorite] =
     useState(false)
 
-  const [
-    currentImage,
-    setCurrentImage,
-  ] = useState(0)
+  const [currentImage, setCurrentImage] =
+    useState(0)
 
-  const [
-    contactVisible,
-    setContactVisible,
-  ] = useState(false)
+  const [contactVisible, setContactVisible] =
+    useState(false)
 
   const scrollY =
     useSharedValue(0)
 
   const heartScale =
+    useSharedValue(1)
+
+  const mapScale =
     useSharedValue(1)
 
   const heroScrollRef =
@@ -316,6 +332,43 @@ export default function PropertyDetail() {
     setContactVisible(true)
   }
 
+  async function openMap() {
+    await haptic(
+      Haptics.ImpactFeedbackStyle.Medium
+    )
+
+    await trackLead('map_opened')
+
+    mapScale.value =
+      withSpring(1.12)
+
+    setTimeout(() => {
+      mapScale.value =
+        withSpring(1)
+    }, 140)
+
+    if (property?.latitude && property?.longitude) {
+      const label =
+        encodeURIComponent(property.title)
+
+      const url =
+        Platform.OS === 'ios'
+          ? `maps://?q=${label}&ll=${property.latitude},${property.longitude}`
+          : `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
+
+      Linking.openURL(url)
+      return
+    }
+
+    if (property?.location) {
+      Linking.openURL(
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          property.location
+        )}`
+      )
+    }
+  }
+
   useEffect(() => {
     loadProperty()
   }, [id])
@@ -372,6 +425,79 @@ export default function PropertyDetail() {
       ],
     }))
 
+  const mapAnimatedStyle =
+    useAnimatedStyle(() => ({
+      transform: [
+        {
+          scale: mapScale.value,
+        },
+      ],
+    }))
+
+  const galleryImages =
+    useMemo(() => {
+      if (!property) return []
+
+      try {
+        const parsedGallery =
+          Array.isArray(property.gallery)
+            ? property.gallery
+            : typeof property.gallery === 'string'
+            ? JSON.parse(property.gallery)
+            : []
+
+        return (
+          parsedGallery.length
+            ? parsedGallery
+            : [property.image]
+        )
+          .map((item: any) => {
+            if (typeof item === 'string') {
+              return item
+            }
+
+            if (item?.url) {
+              return item.url
+            }
+
+            return null
+          })
+          .filter(Boolean)
+      } catch {
+        return property.image
+          ? [property.image]
+          : []
+      }
+    }, [property])
+
+  const stats =
+    useMemo(() => {
+      return [
+        {
+          label: 'Hálószoba',
+          value: property?.bedrooms || '4',
+          icon: BedDouble,
+        },
+        {
+          label: 'Fürdő',
+          value: property?.bathrooms || '3',
+          icon: Bath,
+        },
+        {
+          label: 'Méret',
+          value: property?.size
+            ? `${property.size}m²`
+            : '320m²',
+          icon: Maximize,
+        },
+        {
+          label: 'Parkoló',
+          value: property?.parking || '2',
+          icon: Car,
+        },
+      ]
+    }, [property])
+
   if (loading) {
     return (
       <View
@@ -398,6 +524,7 @@ export default function PropertyDetail() {
           backgroundColor: '#05060A',
           justifyContent: 'center',
           alignItems: 'center',
+          paddingHorizontal: 24,
         }}
       >
         <Text
@@ -405,6 +532,7 @@ export default function PropertyDetail() {
             color: 'white',
             fontSize: 24,
             fontWeight: '700',
+            textAlign: 'center',
           }}
         >
           Az ingatlan nem található
@@ -412,42 +540,6 @@ export default function PropertyDetail() {
       </View>
     )
   }
-
-  const parsedGallery = (() => {
-    try {
-      if (Array.isArray(property.gallery)) {
-        return property.gallery
-      }
-
-      if (
-        typeof property.gallery === 'string'
-      ) {
-        return JSON.parse(property.gallery)
-      }
-
-      return []
-    } catch {
-      return []
-    }
-  })()
-
-  const galleryImages = (
-    parsedGallery.length
-      ? parsedGallery
-      : [property.image]
-  )
-    .map((item: any) => {
-      if (typeof item === 'string') {
-        return item
-      }
-
-      if (item?.url) {
-        return item.url
-      }
-
-      return null
-    })
-    .filter(Boolean)
 
   return (
     <>
@@ -483,9 +575,7 @@ export default function PropertyDetail() {
               snapToInterval={screenWidth}
               snapToAlignment="start"
               disableIntervalMomentum
-              showsHorizontalScrollIndicator={
-                false
-              }
+              showsHorizontalScrollIndicator={false}
               onMomentumScrollEnd={(event) => {
                 const index =
                   Math.round(
@@ -498,10 +588,7 @@ export default function PropertyDetail() {
               }}
             >
               {galleryImages.map(
-                (
-                  image: string,
-                  index: number
-                ) => (
+                (image: string, index: number) => (
                   <View
                     key={index}
                     style={{
@@ -600,9 +687,7 @@ export default function PropertyDetail() {
                         }}
                       >
                         <Pressable
-                          onPress={
-                            toggleFavorite
-                          }
+                          onPress={toggleFavorite}
                           style={{
                             flex: 1,
                             justifyContent:
@@ -642,29 +727,49 @@ export default function PropertyDetail() {
                         paddingTop: 160,
                       }}
                     >
-                      <Text
+                      <View
                         style={{
-                          color:
-                            'rgba(255,255,255,0.62)',
-                          fontSize: 13,
-                          fontWeight: '600',
-                          letterSpacing: 4,
-                          textTransform:
-                            'uppercase',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
                           marginBottom: 14,
                         }}
                       >
-                        Kalifornia
-                      </Text>
+                        <Star
+                          size={14}
+                          color="#F3D19C"
+                          fill="#F3D19C"
+                        />
+
+                        <Text
+                          style={{
+                            color:
+                              'rgba(255,255,255,0.62)',
+                            fontSize: 13,
+                            fontWeight: '600',
+                            letterSpacing: 4,
+                            textTransform:
+                              'uppercase',
+                          }}
+                        >
+                          Luxury Residence
+                        </Text>
+                      </View>
 
                       <Text
                         style={{
                           color: 'white',
-                          fontSize: 46,
+                          fontSize:
+                            screenWidth > 420
+                              ? 46
+                              : 40,
                           fontWeight: '800',
                           letterSpacing: -2,
-                          lineHeight: 50,
-                          maxWidth: '82%',
+                          lineHeight:
+                            screenWidth > 420
+                              ? 50
+                              : 44,
+                          maxWidth: '86%',
                         }}
                       >
                         {property.title}
@@ -703,13 +808,18 @@ export default function PropertyDetail() {
                         <Text
                           style={{
                             color: '#F3D19C',
-                            fontSize: 42,
+                            fontSize:
+                              screenWidth > 420
+                                ? 42
+                                : 36,
                             fontWeight: '200',
                             letterSpacing: -1.5,
-                            lineHeight: 46,
+                            lineHeight:
+                              screenWidth > 420
+                                ? 46
+                                : 40,
                             fontFamily:
-                              Platform.OS ===
-                              'web'
+                              Platform.OS === 'web'
                                 ? 'Didot, Baskerville, serif'
                                 : undefined,
                           }}
@@ -765,33 +875,24 @@ export default function PropertyDetail() {
         >
           <ScrollView
             horizontal
-            showsHorizontalScrollIndicator={
-              false
-            }
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               gap: 14,
               paddingRight: 24,
             }}
           >
             {galleryImages.map(
-              (
-                image: string,
-                index: number
-              ) => (
+              (image: string, index: number) => (
                 <Pressable
                   key={index}
                   onPress={() => {
                     haptic()
                     setCurrentImage(index)
 
-                    heroScrollRef.current?.scrollTo(
-                      {
-                        x:
-                          index *
-                          screenWidth,
-                        animated: true,
-                      }
-                    )
+                    heroScrollRef.current?.scrollTo({
+                      x: index * screenWidth,
+                      animated: true,
+                    })
                   }}
                   style={{
                     width: 110,
@@ -822,12 +923,76 @@ export default function PropertyDetail() {
           </ScrollView>
         </View>
 
+        {/* PROPERTY STATS */}
+        <Animated.View
+          entering={FadeInUp.duration(550)}
+          style={{
+            paddingHorizontal: 24,
+            paddingTop: 30,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor:
+                'rgba(255,255,255,0.045)',
+              borderColor:
+                'rgba(255,255,255,0.08)',
+              borderWidth: 1,
+              borderRadius: 30,
+              paddingVertical: 20,
+              paddingHorizontal: 8,
+            }}
+          >
+            {stats.map((item) => {
+              const Icon = item.icon
+
+              return (
+                <View
+                  key={item.label}
+                  style={{
+                    alignItems: 'center',
+                    flex: 1,
+                  }}
+                >
+                  <Icon
+                    size={22}
+                    color="#D6B07B"
+                  />
+
+                  <Text
+                    style={{
+                      color: 'white',
+                      fontSize: 21,
+                      fontWeight: '800',
+                      marginTop: 10,
+                    }}
+                  >
+                    {item.value}
+                  </Text>
+
+                  <Text
+                    style={{
+                      color: '#8F8F95',
+                      marginTop: 5,
+                      fontSize: 12,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
+        </Animated.View>
+
         {/* AGENT */}
         <Animated.View
           entering={FadeInUp.duration(600)}
           style={{
             paddingHorizontal: 24,
-            paddingTop: 34,
+            paddingTop: 30,
           }}
         >
           <View
@@ -875,6 +1040,26 @@ export default function PropertyDetail() {
                 {AGENT_ROLE}
               </Text>
             </View>
+
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 999,
+                backgroundColor:
+                  'rgba(214,176,123,0.14)',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#D6B07B',
+                  fontSize: 12,
+                  fontWeight: '800',
+                }}
+              >
+                Verified
+              </Text>
+            </View>
           </View>
         </Animated.View>
 
@@ -901,7 +1086,7 @@ export default function PropertyDetail() {
                 fontWeight: '800',
               }}
             >
-              Privát megtekintés foglalása
+              Privát túra foglalása
             </Text>
           </Pressable>
         </View>
@@ -911,8 +1096,6 @@ export default function PropertyDetail() {
           style={{
             paddingHorizontal: 24,
             paddingTop: 34,
-            paddingBottom:
-              insets.bottom + 180,
           }}
         >
           <Text
@@ -934,10 +1117,243 @@ export default function PropertyDetail() {
             }}
           >
             {property.description ||
-              'Kivételes prémium ingatlan modern építészettel és luxus életérzéssel.'}
+              'Kivételes prémium ingatlan modern építészettel, privát hangulattal és luxus életérzéssel. A tágas terek, a természetes fény és az elegáns anyaghasználat egy olyan otthont teremtenek, amely egyszerre nyugodt, exkluzív és inspiráló.'}
           </Text>
         </View>
+
+        {/* NEIGHBORHOOD EXPERIENCE */}
+        <Animated.View
+          entering={FadeInUp.duration(700)}
+          style={{
+            paddingHorizontal: 24,
+            paddingTop: 36,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              marginBottom: 20,
+            }}
+          >
+            <View>
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 30,
+                  fontWeight: '800',
+                }}
+              >
+                Környék
+              </Text>
+
+              <Text
+                style={{
+                  color: '#8F8F95',
+                  marginTop: 6,
+                  fontSize: 15,
+                }}
+              >
+                Lifestyle, lokáció és prémium környezet
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={openMap}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 9,
+                borderRadius: 999,
+                backgroundColor:
+                  'rgba(214,176,123,0.13)',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#D6B07B',
+                  fontWeight: '800',
+                  fontSize: 13,
+                }}
+              >
+                Térkép
+              </Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            onPress={openMap}
+            style={{
+              backgroundColor:
+                'rgba(255,255,255,0.04)',
+              borderRadius: 30,
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor:
+                'rgba(255,255,255,0.08)',
+            }}
+          >
+            <Image
+              source={{
+                uri: MAP_PREVIEW_IMAGE,
+              }}
+              contentFit="cover"
+              transition={240}
+              style={{
+                width: '100%',
+                height: 250,
+              }}
+            />
+
+            <LinearGradient
+              colors={[
+                'transparent',
+                'rgba(0,0,0,0.9)',
+              ]}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                padding: 24,
+              }}
+            >
+              <View
+                style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  backgroundColor: '#D6B07B',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 18,
+                }}
+              >
+                <MapPin
+                  size={25}
+                  color="#000"
+                />
+              </View>
+
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 24,
+                  fontWeight: '800',
+                }}
+              >
+                {property.neighborhood ||
+                  property.location}
+              </Text>
+
+              <Text
+                style={{
+                  color: '#CFCFD4',
+                  marginTop: 10,
+                  lineHeight: 26,
+                  fontSize: 15,
+                }}
+              >
+                Exkluzív éttermek, prémium üzletek, nyugodt utcák és privát lifestyle élmény néhány perc távolságra.
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        </Animated.View>
+
+        {/* LOCATION HIGHLIGHTS */}
+        <View
+          style={{
+            paddingHorizontal: 24,
+            paddingTop: 24,
+            paddingBottom: insets.bottom + 180,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            {[
+              'Fine dining',
+              'Luxury shopping',
+              'Private schools',
+              'Wellness clubs',
+            ].map((item) => (
+              <View
+                key={item}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 11,
+                  borderRadius: 999,
+                  backgroundColor:
+                    'rgba(255,255,255,0.055)',
+                  borderWidth: 1,
+                  borderColor:
+                    'rgba(255,255,255,0.07)',
+                }}
+              >
+                <Text
+                  style={{
+                    color: '#D6B07B',
+                    fontWeight: '700',
+                  }}
+                >
+                  {item}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </Animated.ScrollView>
+
+      {/* FLOATING MAP CTA */}
+      {!contactVisible && (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              right: 24,
+              bottom: insets.bottom + 96,
+              borderRadius: 33,
+              overflow: 'hidden',
+            },
+            mapAnimatedStyle,
+          ]}
+        >
+          <BlurView
+            intensity={70}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={{
+              width: 66,
+              height: 66,
+              borderRadius: 33,
+              backgroundColor:
+                'rgba(12,12,14,0.55)',
+              borderWidth: 1,
+              borderColor:
+                'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <Pressable
+              onPress={openMap}
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <MapPin
+                size={27}
+                color="#F3D19C"
+              />
+            </Pressable>
+          </BlurView>
+        </Animated.View>
+      )}
 
       {/* STICKY BOTTOM CTA */}
       {!contactVisible && (
@@ -990,7 +1406,7 @@ export default function PropertyDetail() {
                   fontWeight: '900',
                 }}
               >
-                Privát megtekintés
+                Privát túra foglalása
               </Text>
             </Pressable>
           </BlurView>
@@ -1067,7 +1483,7 @@ export default function PropertyDetail() {
                 marginBottom: 26,
               }}
             >
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text
                   style={{
                     color: 'white',
@@ -1083,6 +1499,7 @@ export default function PropertyDetail() {
                     color: '#A1A1AA',
                     marginTop: 6,
                     fontSize: 15,
+                    lineHeight: 22,
                   }}
                 >
                   {AGENT_NAME} segít a privát megtekintésben
@@ -1099,6 +1516,7 @@ export default function PropertyDetail() {
                     'rgba(255,255,255,0.06)',
                   justifyContent: 'center',
                   alignItems: 'center',
+                  marginLeft: 16,
                 }}
               >
                 <X

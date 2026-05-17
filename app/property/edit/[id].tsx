@@ -1,27 +1,40 @@
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
 
 import {
-    useEffect,
-    useState,
+  useEffect,
+  useState,
 } from 'react'
 
 import {
-    router,
-    useLocalSearchParams,
+  router,
+  useLocalSearchParams,
 } from 'expo-router'
 
 import Animated, {
-    FadeInDown,
+  FadeInDown,
 } from 'react-native-reanimated'
 
+import * as ImagePicker from 'expo-image-picker'
+
+import { Image } from 'expo-image'
+
+import { decode } from 'base64-arraybuffer'
+
 import { supabase } from '@/src/services/supabase'
+
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
 
 export default function EditProperty() {
   const { id } =
@@ -36,27 +49,29 @@ export default function EditProperty() {
   const [price, setPrice] =
     useState('')
 
-  const [image, setImage] =
-    useState('')
-
   const [description, setDescription] =
     useState('')
 
   const [category, setCategory] =
-    useState('Villa')
+    useState('Lakások')
+
+  const [images, setImages] =
+    useState<string[]>([])
 
   const [loading, setLoading] =
     useState(false)
 
-  const [initialLoading, setInitialLoading] =
-    useState(true)
+  const [
+    initialLoading,
+    setInitialLoading,
+  ] = useState(true)
 
   const categories = [
-    'Villa',
-    'Modern',
-    'Luxus',
+    'Lakások',
+    'Családi ház',
+    'Villák',
     'Penthouse',
-    'Tengerpart',
+    'Új építésű',
   ]
 
   async function loadProperty() {
@@ -75,16 +90,27 @@ export default function EditProperty() {
 
       if (data) {
         setTitle(data.title || '')
+
         setLocation(
           data.location || ''
         )
+
         setPrice(data.price || '')
-        setImage(data.image || '')
+
         setDescription(
           data.description || ''
         )
+
         setCategory(
-          data.category || 'Villa'
+          data.category ||
+            'Lakások'
+        )
+
+        setImages(
+          data.gallery ||
+            (data.image
+              ? [data.image]
+              : [])
         )
       }
     } catch (error) {
@@ -92,6 +118,96 @@ export default function EditProperty() {
     } finally {
       setInitialLoading(false)
     }
+  }
+
+  async function pickImage() {
+    try {
+      const result =
+        await ImagePicker.launchImageLibraryAsync(
+          {
+            mediaTypes:
+              ImagePicker.MediaTypeOptions.Images,
+
+            allowsMultipleSelection: true,
+
+            selectionLimit: 10,
+
+            quality: 0.9,
+
+            base64: true,
+          }
+        )
+
+      if (result.canceled) return
+
+      const uploadedImages: string[] =
+        []
+
+      for (const asset of result.assets) {
+        const fileExt =
+          asset.uri
+            .split('.')
+            .pop() || 'jpg'
+
+        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`
+
+        const filePath = `${fileName}`
+
+        const { error } =
+          await supabase.storage
+            .from('properties')
+            .upload(
+              filePath,
+              decode(
+                asset.base64 || ''
+              ),
+              {
+                contentType:
+                  asset.mimeType ||
+                  'image/jpeg',
+              }
+            )
+
+        if (error) {
+          console.log(error)
+          continue
+        }
+
+        const { data } =
+          supabase.storage
+            .from('properties')
+            .getPublicUrl(
+              filePath
+            )
+
+        uploadedImages.push(
+          data.publicUrl
+        )
+      }
+
+      setImages((prev) => [
+        ...prev,
+        ...uploadedImages,
+      ])
+    } catch (error) {
+      console.log(error)
+
+      Alert.alert(
+        'Hiba',
+        'Kép feltöltési hiba.'
+      )
+    }
+  }
+
+  function removeImage(
+    imageToRemove: string
+  ) {
+    setImages((prev) =>
+      prev.filter(
+        (img) =>
+          img !== imageToRemove
+      )
+    )
   }
 
   async function handleUpdate() {
@@ -105,10 +221,10 @@ export default function EditProperty() {
             title,
             location,
             price,
-            image,
             description,
             category,
-            gallery: [image],
+            image: images[0],
+            gallery: images,
           })
           .eq('id', id)
 
@@ -136,6 +252,57 @@ export default function EditProperty() {
     }
   }
 
+  async function handleDelete() {
+    try {
+      Alert.alert(
+        'Ingatlan törlése',
+        'Biztosan törölni szeretnéd ezt az ingatlant?',
+        [
+          {
+            text: 'Mégse',
+            style: 'cancel',
+          },
+          {
+            text: 'Törlés',
+            style: 'destructive',
+
+            onPress: async () => {
+              const { error } =
+                await supabase
+                  .from(
+                    'properties'
+                  )
+                  .delete()
+                  .eq('id', id)
+
+              if (error) {
+                console.log(error)
+
+                Alert.alert(
+                  'Hiba',
+                  'Nem sikerült törölni.'
+                )
+
+                return
+              }
+
+              Alert.alert(
+                'Sikeres törlés',
+                'Az ingatlan törölve lett.'
+              )
+
+              router.replace(
+                '/dashboard'
+              )
+            },
+          },
+        ]
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     loadProperty()
   }, [])
@@ -145,7 +312,9 @@ export default function EditProperty() {
       <View
         style={{
           flex: 1,
-          backgroundColor: '#05060A',
+          backgroundColor:
+            Colors.dark
+              .background,
         }}
       />
     )
@@ -155,25 +324,34 @@ export default function EditProperty() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: '#05060A',
+        backgroundColor:
+          Colors.dark.background,
       }}
       contentContainerStyle={{
         paddingTop: 90,
-        paddingBottom: 160,
+        paddingBottom: 180,
         paddingHorizontal: 24,
       }}
       showsVerticalScrollIndicator={
         false
       }
     >
+      {/* HEADER */}
       <Animated.View
         entering={FadeInDown.springify()}
       >
         <Text
           style={{
             color: 'white',
-            fontSize: 42,
-            fontWeight: '800',
+
+            fontSize:
+              Platform.OS ===
+              'web'
+                ? 54
+                : 42,
+
+            fontWeight: '900',
+
             letterSpacing: -2,
           }}
         >
@@ -182,19 +360,26 @@ export default function EditProperty() {
 
         <Text
           style={{
-            color: '#8A8A93',
-            marginTop: 10,
-            fontSize: 16,
+            color:
+              Colors.dark.muted,
+
+            marginTop: 12,
+
+            fontSize: 17,
+
+            lineHeight: 28,
           }}
         >
-          Módosítsd az ingatlan adatait.
+          Frissítsd az ingatlan
+          adatait és galériáját.
         </Text>
       </Animated.View>
 
+      {/* FORM */}
       <View
         style={{
           marginTop: 42,
-          gap: 22,
+          gap: 24,
         }}
       >
         <Input
@@ -216,12 +401,6 @@ export default function EditProperty() {
         />
 
         <Input
-          label="Borítókép URL"
-          value={image}
-          onChangeText={setImage}
-        />
-
-        <Input
           label="Leírás"
           value={description}
           onChangeText={
@@ -231,14 +410,154 @@ export default function EditProperty() {
           height={160}
         />
 
+        {/* GALLERY */}
+        <View>
+          <Text
+            style={{
+              color: 'white',
+
+              fontSize: 15,
+
+              fontWeight: '700',
+
+              marginBottom: 14,
+            }}
+          >
+            Galéria
+          </Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={
+              false
+            }
+            contentContainerStyle={{
+              gap: 14,
+            }}
+          >
+            {images.map((img) => (
+              <View
+                key={img}
+                style={{
+                  position:
+                    'relative',
+                }}
+              >
+                <Image
+                  source={{
+                    uri: img,
+                  }}
+                  contentFit="cover"
+                  style={{
+                    width: 220,
+                    height: 140,
+
+                    borderRadius:
+                      20,
+                  }}
+                />
+
+                <Pressable
+                  onPress={() =>
+                    removeImage(
+                      img
+                    )
+                  }
+                  style={{
+                    position:
+                      'absolute',
+
+                    top: 10,
+                    right: 10,
+
+                    backgroundColor:
+                      'rgba(0,0,0,0.7)',
+
+                    width: 34,
+                    height: 34,
+
+                    borderRadius:
+                      999,
+
+                    alignItems:
+                      'center',
+
+                    justifyContent:
+                      'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        'white',
+
+                      fontSize: 18,
+
+                      fontWeight:
+                        '900',
+                    }}
+                  >
+                    ×
+                  </Text>
+                </Pressable>
+              </View>
+            ))}
+
+            <Pressable
+              onPress={pickImage}
+              style={{
+                width: 220,
+                height: 140,
+
+                borderRadius: 20,
+
+                backgroundColor:
+                  Colors.dark
+                    .surface,
+
+                borderWidth: 1,
+
+                borderColor:
+                  Colors.dark
+                    .border,
+
+                alignItems:
+                  'center',
+
+                justifyContent:
+                  'center',
+
+                ...Shadows.luxury,
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    Colors.dark
+                      .primary,
+
+                  fontWeight: '800',
+
+                  fontSize: 16,
+                }}
+              >
+                + Képek hozzáadása
+              </Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+
         {/* CATEGORY */}
         <View>
           <Text
             style={{
               color: 'white',
+
               fontSize: 15,
+
               fontWeight: '700',
-              marginBottom: 12,
+
+              marginBottom: 14,
             }}
           >
             Kategória
@@ -263,14 +582,26 @@ export default function EditProperty() {
                   style={{
                     backgroundColor:
                       category === item
-                        ? '#D6B07B'
-                        : 'rgba(255,255,255,0.06)',
+                        ? Colors.dark
+                            .primary
+                        : Colors.dark
+                            .surface,
 
                     paddingHorizontal: 22,
 
                     paddingVertical: 14,
 
-                    borderRadius: 999,
+                    borderRadius:
+                      Radius.full,
+
+                    borderWidth: 1,
+
+                    borderColor:
+                      category === item
+                        ? Colors.dark
+                            .primary
+                        : Colors.dark
+                            .border,
                   }}
                 >
                   <Text
@@ -280,7 +611,7 @@ export default function EditProperty() {
                           ? '#000'
                           : 'white',
 
-                      fontWeight: '700',
+                      fontWeight: '800',
                     }}
                   >
                     {item}
@@ -291,28 +622,75 @@ export default function EditProperty() {
           </ScrollView>
         </View>
 
-        {/* BUTTON */}
+        {/* SAVE BUTTON */}
         <Pressable
           onPress={handleUpdate}
           disabled={loading}
           style={{
-            backgroundColor: '#D6B07B',
+            backgroundColor:
+              Colors.dark.primary,
+
             paddingVertical: 22,
-            borderRadius: 999,
+
+            borderRadius:
+              Radius.full,
+
             alignItems: 'center',
-            marginTop: 20,
+
+            marginTop: 14,
+
+            opacity: loading
+              ? 0.7
+              : 1,
+
+            ...Shadows.luxury,
           }}
         >
           <Text
             style={{
               color: '#000',
+
               fontSize: 17,
+
               fontWeight: '900',
             }}
           >
             {loading
               ? 'Mentés...'
               : 'Változtatások mentése'}
+          </Text>
+        </Pressable>
+
+        {/* DELETE BUTTON */}
+        <Pressable
+          onPress={handleDelete}
+          style={{
+            backgroundColor:
+              'rgba(255,80,80,0.12)',
+
+            paddingVertical: 22,
+
+            borderRadius:
+              Radius.full,
+
+            alignItems: 'center',
+
+            borderWidth: 1,
+
+            borderColor:
+              'rgba(255,80,80,0.18)',
+          }}
+        >
+          <Text
+            style={{
+              color: '#FF6B6B',
+
+              fontSize: 17,
+
+              fontWeight: '900',
+            }}
+          >
+            🗑️ Ingatlan törlése
           </Text>
         </Pressable>
       </View>
@@ -332,8 +710,11 @@ function Input({
       <Text
         style={{
           color: 'white',
+
           fontSize: 15,
+
           fontWeight: '700',
+
           marginBottom: 12,
         }}
       >
@@ -342,14 +723,17 @@ function Input({
 
       <TextInput
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={
+          onChangeText
+        }
         multiline={multiline}
         placeholderTextColor="#666"
         style={{
           backgroundColor:
-            'rgba(255,255,255,0.05)',
+            Colors.dark.surface,
 
-          borderRadius: 24,
+          borderRadius:
+            Radius.lg,
 
           paddingHorizontal: 20,
 
@@ -362,13 +746,15 @@ function Input({
           borderWidth: 1,
 
           borderColor:
-            'rgba(255,255,255,0.06)',
+            Colors.dark.border,
 
-          minHeight: height || 64,
+          minHeight:
+            height || 64,
 
-          textAlignVertical: multiline
-            ? 'top'
-            : 'center',
+          textAlignVertical:
+            multiline
+              ? 'top'
+              : 'center',
         }}
       />
     </View>

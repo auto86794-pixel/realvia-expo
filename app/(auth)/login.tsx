@@ -1,11 +1,14 @@
 import { useState } from 'react'
 
 import {
+  ActivityIndicator,
   Alert,
   ImageBackground,
+  Platform,
   Pressable,
   Text,
-  TextInput
+  TextInput,
+  View,
 } from 'react-native'
 
 import { LinearGradient } from 'expo-linear-gradient'
@@ -18,6 +21,12 @@ import Animated, {
 
 import { supabase } from '../../src/services/supabase'
 
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
+
 export default function LoginScreen() {
   const [email, setEmail] =
     useState('')
@@ -25,21 +34,50 @@ export default function LoginScreen() {
   const [password, setPassword] =
     useState('')
 
+  const [loading, setLoading] =
+    useState(false)
+
   async function handleLogin() {
-    const { error } =
-      await supabase.auth.signInWithPassword(
-        {
-          email,
-          password,
-        }
+    try {
+      if (!email || !password) {
+        Alert.alert(
+          'Hiányzó adatok',
+          'Add meg az email címed és a jelszavad.'
+        )
+
+        return
+      }
+
+      setLoading(true)
+
+      const { error } =
+        await supabase.auth.signInWithPassword(
+          {
+            email,
+            password,
+          }
+        )
+
+      if (error) {
+        Alert.alert(
+          'Sikertelen belépés',
+          'Ellenőrizd az email címet és a jelszót.'
+        )
+
+        return
+      }
+
+      router.replace('/(tabs)' as any)
+    } catch (error) {
+      console.log(error)
+
+      Alert.alert(
+        'Hiba',
+        'Váratlan hiba történt belépés közben.'
       )
-
-    if (error) {
-      Alert.alert(error.message)
-      return
+    } finally {
+      setLoading(false)
     }
-
-    router.replace('/(tabs)' as any)
   }
 
   return (
@@ -52,8 +90,8 @@ export default function LoginScreen() {
     >
       <LinearGradient
         colors={[
-          'rgba(0,0,0,0.30)',
-          'rgba(0,0,0,0.92)',
+          'rgba(0,0,0,0.20)',
+          'rgba(0,0,0,0.94)',
         ]}
         style={{
           flex: 1,
@@ -73,45 +111,50 @@ export default function LoginScreen() {
           style={{
             width: '100%',
 
-            maxWidth: 520,
+            maxWidth: 560,
 
             alignSelf: 'center',
 
-            marginBottom: 26,
+            marginBottom: 28,
           }}
         >
           <Text
             style={{
               color: 'white',
 
-              fontSize: 44,
+              fontSize:
+                Platform.OS === 'web'
+                  ? 62
+                  : 44,
 
-              fontWeight: '800',
+              fontWeight: '900',
 
-              letterSpacing: -1.5,
+              letterSpacing: -2.5,
 
               textAlign: 'center',
             }}
           >
-            Welcome Back
+            Üdv újra a Realviánál
           </Text>
 
           <Text
             style={{
               color: '#D4D4D8',
 
-              fontSize: 16,
+              fontSize:
+                Platform.OS === 'web'
+                  ? 18
+                  : 16,
 
-              marginTop: 12,
+              marginTop: 16,
 
-              lineHeight: 25,
+              lineHeight: 28,
 
               textAlign: 'center',
             }}
           >
-            Access curated luxury
-            properties and premium
-            living experiences.
+            Jelentkezz be, és kezeld
+            prémium ingatlan portfóliódat.
           </Text>
         </Animated.View>
 
@@ -127,126 +170,109 @@ export default function LoginScreen() {
             alignSelf: 'center',
 
             backgroundColor:
-              'rgba(20,20,20,0.70)',
+              'rgba(20,20,20,0.72)',
 
-            borderRadius: 36,
+            borderRadius:
+              Radius.xl,
 
             borderWidth: 1,
 
             borderColor:
               'rgba(255,255,255,0.08)',
 
-            padding: 24,
+            padding: 26,
 
             gap: 18,
 
             overflow: 'hidden',
+
+            ...Shadows.luxury,
           }}
         >
-          <TextInput
-            placeholder="Email"
+          <View>
+            <Text style={labelStyle}>
+              Email cím
+            </Text>
 
-            placeholderTextColor="#71717A"
+            <TextInput
+              placeholder="email@pelda.hu"
+              placeholderTextColor="#71717A"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              style={inputStyle}
+            />
+          </View>
 
-            value={email}
+          <View>
+            <Text style={labelStyle}>
+              Jelszó
+            </Text>
 
-            onChangeText={setEmail}
-
-            autoCapitalize="none"
-
-            style={{
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-
-              borderRadius: 22,
-
-              borderWidth: 1,
-
-              borderColor:
-                'rgba(255,255,255,0.05)',
-
-              paddingHorizontal: 20,
-
-              paddingVertical: 18,
-
-              color: 'white',
-
-              fontSize: 16,
-            }}
-          />
-
-          <TextInput
-            placeholder="Password"
-
-            placeholderTextColor="#71717A"
-
-            secureTextEntry
-
-            value={password}
-
-            onChangeText={setPassword}
-
-            style={{
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-
-              borderRadius: 22,
-
-              borderWidth: 1,
-
-              borderColor:
-                'rgba(255,255,255,0.05)',
-
-              paddingHorizontal: 20,
-
-              paddingVertical: 18,
-
-              color: 'white',
-
-              fontSize: 16,
-            }}
-          />
+            <TextInput
+              placeholder="••••••••"
+              placeholderTextColor="#71717A"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoComplete="password"
+              style={inputStyle}
+            />
+          </View>
 
           <Pressable
             onPress={handleLogin}
+            disabled={loading}
             style={{
               backgroundColor:
-                '#D6B07B',
+                Colors.dark.primary,
 
               paddingVertical: 20,
 
-              borderRadius: 24,
+              borderRadius:
+                Radius.full,
 
               alignItems: 'center',
 
-              marginTop: 8,
+              marginTop: 10,
+
+              opacity: loading
+                ? 0.7
+                : 1,
             }}
           >
-            <Text
-              style={{
-                color: '#000000',
+            {loading ? (
+              <ActivityIndicator
+                color="#000"
+              />
+            ) : (
+              <Text
+                style={{
+                  color: '#000000',
 
-                fontSize: 17,
+                  fontSize: 17,
 
-                fontWeight: '800',
+                  fontWeight: '900',
 
-                letterSpacing: 1,
-              }}
-            >
-              BELÉPÉS
-            </Text>
+                  letterSpacing: 0.5,
+                }}
+              >
+                Belépés
+              </Text>
+            )}
           </Pressable>
 
           <Pressable
             onPress={() =>
-              router.push(
-                '/register'
-              )
+              router.push('/register')
             }
             style={{
               paddingVertical: 18,
 
-              borderRadius: 24,
+              borderRadius:
+                Radius.full,
 
               alignItems: 'center',
 
@@ -256,7 +282,7 @@ export default function LoginScreen() {
                 'rgba(255,255,255,0.08)',
 
               backgroundColor:
-                'rgba(255,255,255,0.03)',
+                'rgba(255,255,255,0.04)',
             }}
           >
             <Text
@@ -265,16 +291,41 @@ export default function LoginScreen() {
 
                 fontSize: 16,
 
-                fontWeight: '700',
-
-                letterSpacing: 0.5,
+                fontWeight: '800',
               }}
             >
-              REGISZTRÁCIÓ
+              Fiók létrehozása
             </Text>
           </Pressable>
         </Animated.View>
       </LinearGradient>
     </ImageBackground>
   )
+}
+
+const labelStyle = {
+  color: '#D1D5DB',
+  fontSize: 14,
+  fontWeight: '700' as const,
+  marginBottom: 10,
+}
+
+const inputStyle = {
+  backgroundColor:
+    'rgba(255,255,255,0.05)',
+
+  borderRadius: 22,
+
+  borderWidth: 1,
+
+  borderColor:
+    'rgba(255,255,255,0.06)',
+
+  paddingHorizontal: 20,
+
+  paddingVertical: 18,
+
+  color: 'white',
+
+  fontSize: 16,
 }
