@@ -1,5 +1,6 @@
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -9,15 +10,25 @@ import {
 
 import { useState } from 'react'
 
-import {
-  router,
-} from 'expo-router'
+import { router } from 'expo-router'
 
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated'
 
+import * as ImagePicker from 'expo-image-picker'
+
+import { Image } from 'expo-image'
+
+import { decode } from 'base64-arraybuffer'
+
 import { supabase } from '@/src/services/supabase'
+
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
 
 export default function UploadScreen() {
   const [title, setTitle] =
@@ -29,17 +40,103 @@ export default function UploadScreen() {
   const [price, setPrice] =
     useState('')
 
-  const [image, setImage] =
-    useState('')
-
   const [description, setDescription] =
     useState('')
 
   const [category, setCategory] =
-    useState('Villa')
+    useState('Lakások')
+
+  const [image, setImage] =
+    useState<string | null>(null)
 
   const [loading, setLoading] =
     useState(false)
+
+  const categories = [
+    'Lakások',
+    'Családi ház',
+    'Villák',
+    'Penthouse',
+    'Új építésű',
+  ]
+
+  async function pickImage() {
+    try {
+      const result =
+        await ImagePicker.launchImageLibraryAsync(
+          {
+            mediaTypes:
+              ImagePicker.MediaTypeOptions.Images,
+
+            allowsEditing: true,
+
+            aspect: [16, 9],
+
+            quality: 0.9,
+
+            base64: true,
+          }
+        )
+
+      if (result.canceled) return
+
+      const asset =
+        result.assets?.[0]
+
+      if (!asset) return
+
+      const fileExt =
+        asset.uri
+          .split('.')
+          .pop() || 'jpg'
+
+      const fileName = `${Date.now()}.${fileExt}`
+
+      const filePath = `${fileName}`
+
+      const { error } =
+        await supabase.storage
+          .from('properties')
+          .upload(
+            filePath,
+            decode(
+              asset.base64 || ''
+            ),
+            {
+              contentType:
+                asset.mimeType ||
+                'image/jpeg',
+            }
+          )
+
+      if (error) {
+        console.log(error)
+
+        Alert.alert(
+          'Hiba',
+          'Nem sikerült feltölteni a képet.'
+        )
+
+        return
+      }
+
+      const { data } =
+        supabase.storage
+          .from('properties')
+          .getPublicUrl(
+            filePath
+          )
+
+      setImage(data.publicUrl)
+    } catch (error) {
+      console.log(error)
+
+      Alert.alert(
+        'Hiba',
+        'Kép feltöltési hiba.'
+      )
+    }
+  }
 
   async function handleUpload() {
     try {
@@ -77,7 +174,7 @@ export default function UploadScreen() {
 
         Alert.alert(
           'Hiba',
-          'Nem sikerült feltölteni az ingatlant.'
+          'Nem sikerült publikálni az ingatlant.'
         )
 
         return
@@ -101,37 +198,37 @@ export default function UploadScreen() {
     }
   }
 
-  const categories = [
-    'Lakások',
-  'Családi ház',
-  'Villák',
-  'Penthouse',
-  'Új építésű',
-  ]
-
   return (
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: '#05060A',
+        backgroundColor:
+          Colors.dark.background,
       }}
       contentContainerStyle={{
         paddingTop: 90,
-        paddingBottom: 140,
+        paddingBottom: 160,
         paddingHorizontal: 24,
       }}
       showsVerticalScrollIndicator={
         false
       }
     >
+      {/* HEADER */}
       <Animated.View
         entering={FadeInDown.springify()}
       >
         <Text
           style={{
             color: 'white',
-            fontSize: 42,
-            fontWeight: '800',
+
+            fontSize:
+              Platform.OS === 'web'
+                ? 54
+                : 42,
+
+            fontWeight: '900',
+
             letterSpacing: -2,
           }}
         >
@@ -140,14 +237,21 @@ export default function UploadScreen() {
 
         <Text
           style={{
-            color: '#8A8A93',
-            marginTop: 10,
-            fontSize: 16,
-            lineHeight: 24,
+            color:
+              Colors.dark.muted,
+
+            marginTop: 14,
+
+            fontSize: 17,
+
+            lineHeight: 28,
+
+            maxWidth: 540,
           }}
         >
-          Tölts fel prémium ingatlant
-          a Realvia platformra.
+          Tölts fel prémium
+          ingatlant a Realvia
+          platformra.
         </Text>
       </Animated.View>
 
@@ -155,14 +259,14 @@ export default function UploadScreen() {
       <View
         style={{
           marginTop: 42,
-          gap: 22,
+          gap: 24,
         }}
       >
         <Input
           label="Ingatlan neve"
           value={title}
           onChangeText={setTitle}
-          placeholder="Luxus villa panorámával"
+          placeholder="Panorámás luxus villa"
         />
 
         <Input
@@ -176,32 +280,103 @@ export default function UploadScreen() {
           label="Ár"
           value={price}
           onChangeText={setPrice}
-          placeholder="245 M Ft"
-        />
-
-        <Input
-          label="Borítókép URL"
-          value={image}
-          onChangeText={setImage}
-          placeholder="https://..."
+          placeholder="249 M Ft"
         />
 
         <Input
           label="Leírás"
           value={description}
-          onChangeText={setDescription}
-          placeholder="Prémium modern ingatlan..."
+          onChangeText={
+            setDescription
+          }
+          placeholder="Modern prémium ingatlan..."
           multiline
-          height={150}
+          height={160}
         />
+
+        {/* IMAGE PICKER */}
+        <View>
+          <Text
+            style={{
+              color: 'white',
+
+              fontSize: 15,
+
+              fontWeight: '700',
+
+              marginBottom: 14,
+            }}
+          >
+            Borítókép
+          </Text>
+
+          <Pressable
+            onPress={pickImage}
+            style={{
+              backgroundColor:
+                Colors.dark.surface,
+
+              borderRadius:
+                Radius.lg,
+
+              borderWidth: 1,
+
+              borderColor:
+                Colors.dark.border,
+
+              overflow: 'hidden',
+
+              alignItems: 'center',
+
+              justifyContent:
+                'center',
+
+              height: image
+                ? 280
+                : 160,
+
+              ...Shadows.luxury,
+            }}
+          >
+            {image ? (
+              <Image
+                source={{
+                  uri: image,
+                }}
+                contentFit="cover"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            ) : (
+              <Text
+                style={{
+                  color:
+                    Colors.dark
+                      .primary,
+
+                  fontSize: 16,
+
+                  fontWeight: '800',
+                }}
+              >
+                + Kép kiválasztása
+              </Text>
+            )}
+          </Pressable>
+        </View>
 
         {/* CATEGORY */}
         <View>
           <Text
             style={{
               color: 'white',
+
               fontSize: 15,
+
               fontWeight: '700',
+
               marginBottom: 14,
             }}
           >
@@ -227,21 +402,26 @@ export default function UploadScreen() {
                   style={{
                     backgroundColor:
                       category === item
-                        ? '#D6B07B'
-                        : 'rgba(255,255,255,0.06)',
+                        ? Colors.dark
+                            .primary
+                        : Colors.dark
+                            .surface,
 
                     paddingHorizontal: 22,
 
                     paddingVertical: 14,
 
-                    borderRadius: 999,
+                    borderRadius:
+                      Radius.full,
 
                     borderWidth: 1,
 
                     borderColor:
                       category === item
-                        ? '#D6B07B'
-                        : 'rgba(255,255,255,0.08)',
+                        ? Colors.dark
+                            .primary
+                        : Colors.dark
+                            .border,
                   }}
                 >
                   <Text
@@ -251,7 +431,7 @@ export default function UploadScreen() {
                           ? '#000'
                           : 'white',
 
-                      fontWeight: '700',
+                      fontWeight: '800',
                     }}
                   >
                     {item}
@@ -262,23 +442,36 @@ export default function UploadScreen() {
           </ScrollView>
         </View>
 
-        {/* BUTTON */}
+        {/* SUBMIT */}
         <Pressable
           onPress={handleUpload}
           disabled={loading}
           style={{
-            backgroundColor: '#D6B07B',
+            backgroundColor:
+              Colors.dark.primary,
+
             paddingVertical: 22,
-            borderRadius: 999,
+
+            borderRadius:
+              Radius.full,
+
             alignItems: 'center',
-            marginTop: 20,
-            opacity: loading ? 0.7 : 1,
+
+            marginTop: 14,
+
+            opacity: loading
+              ? 0.7
+              : 1,
+
+            ...Shadows.luxury,
           }}
         >
           <Text
             style={{
               color: '#000',
+
               fontSize: 17,
+
               fontWeight: '900',
             }}
           >
@@ -305,8 +498,11 @@ function Input({
       <Text
         style={{
           color: 'white',
+
           fontSize: 15,
+
           fontWeight: '700',
+
           marginBottom: 12,
         }}
       >
@@ -315,15 +511,18 @@ function Input({
 
       <TextInput
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={
+          onChangeText
+        }
         placeholder={placeholder}
         placeholderTextColor="#666"
         multiline={multiline}
         style={{
           backgroundColor:
-            'rgba(255,255,255,0.05)',
+            Colors.dark.surface,
 
-          borderRadius: 24,
+          borderRadius:
+            Radius.lg,
 
           paddingHorizontal: 20,
 
@@ -336,13 +535,15 @@ function Input({
           borderWidth: 1,
 
           borderColor:
-            'rgba(255,255,255,0.06)',
+            Colors.dark.border,
 
-          minHeight: height || 64,
+          minHeight:
+            height || 64,
 
-          textAlignVertical: multiline
-            ? 'top'
-            : 'center',
+          textAlignVertical:
+            multiline
+              ? 'top'
+              : 'center',
         }}
       />
     </View>
