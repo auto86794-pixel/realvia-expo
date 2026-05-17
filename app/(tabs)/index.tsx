@@ -1,4 +1,5 @@
 import {
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -20,16 +21,25 @@ import Animated, {
   FadeInDown,
 } from 'react-native-reanimated'
 
+import { Image } from 'expo-image'
+
 import CategoryTabs from '@/components/home/CategoryTabs'
-import HomeHeader from '@/components/home/HomeHeader'
 import SearchBar from '@/components/home/SearchBar'
+
 import PropertyCard from '@/components/PropertyCard'
 import PropertyCardSkeleton from '@/components/PropertyCardSkeleton'
 
 import { supabase } from '../../src/services/supabase'
 
 import { useProtectedRoute } from '../../src/hooks/useProtectedRoute'
+
 import { useAuth } from '../../src/providers/AuthProvider'
+
+import {
+  Colors,
+  Radius,
+  Shadows
+} from '@/constants/theme'
 
 export default function Home() {
   useProtectedRoute()
@@ -165,216 +175,432 @@ export default function Home() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: '#0B0B0F',
+        backgroundColor:
+          Colors.dark.background,
       }}
       contentContainerStyle={{
-        paddingTop: 110,
-        paddingHorizontal: 24,
-        paddingBottom: 180,
-        gap: 34,
+        paddingBottom: 140,
       }}
       showsVerticalScrollIndicator={
         false
       }
     >
-      <HomeHeader
-        email={session?.user.email}
-      />
-
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-      />
-
-      <CategoryTabs
-        categories={categories}
-        selectedCategory={
-          selectedCategory
-        }
-        onSelect={
-          setSelectedCategory
-        }
-      />
-
-      {/* PROPERTIES */}
+      {/* HERO */}
       <View
         style={{
-          gap: 8,
-        }}
-      >
-        {loading ? (
-          <>
-            <PropertyCardSkeleton />
-            <PropertyCardSkeleton />
-            <PropertyCardSkeleton />
-          </>
-        ) : (
-          filteredProperties.map(
-            (
-              property,
-              index
-            ) => (
-              <Animated.View
-                key={property.id}
-                entering={FadeInDown.delay(
-                  300 +
-                    index * 140
-                ).springify()}
-              >
-                <PropertyCard
-                  id={String(
-                    property.id
-                  )}
-                  title={
-                    property.title
-                  }
-                  price={
-                    property.price
-                  }
-                  location={
-                    property.location
-                  }
-                  images={
-                    property.gallery
-                      ?.length
-                      ? property.gallery
-                      : [
-                          property.image,
-                        ]
-                  }
-                />
-              </Animated.View>
-            )
-          )
-        )}
-      </View>
+          height:
+            Platform.OS === 'web'
+              ? 820
+              : 620,
 
-      {/* FAVORITES */}
-      <Animated.View
-        entering={FadeInDown.delay(
-          900
-        ).springify()}
-        style={{
-          gap: 16,
+          borderBottomLeftRadius:
+            Radius.xl,
+
+          borderBottomRightRadius:
+            Radius.xl,
+
+          overflow: 'hidden',
         }}
       >
-        <Text
+        <Image
+          source={{
+            uri: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
+          }}
+          contentFit="cover"
           style={{
-            color: 'white',
-            fontSize: 26,
-            fontWeight: '800',
-            letterSpacing: -1,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+
+        <View
+          style={{
+            position: 'absolute',
+
+            width: '100%',
+            height: '100%',
+
+            backgroundColor:
+              'rgba(0,0,0,0.45)',
+          }}
+        />
+
+        <View
+          style={{
+            position: 'absolute',
+
+            width: '100%',
+            height: '100%',
+
+            justifyContent: 'center',
+
+            paddingHorizontal: 24,
           }}
         >
-          Kedvencek
-        </Text>
-
-        {favorites.length === 0 ? (
           <View
             style={{
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-
-              borderRadius: 24,
-
-              padding: 24,
-
-              borderWidth: 1,
-
-              borderColor:
-                'rgba(255,255,255,0.06)',
+              maxWidth: 1440,
+              width: '100%',
+              alignSelf: 'center',
             }}
           >
-            <Text
-              style={{
-                color: '#71717A',
-
-                fontSize: 16,
-
-                lineHeight: 24,
-              }}
+            <Animated.View
+              entering={FadeInDown.springify()}
             >
-              Még nincs mentett
-              ingatlanod.
-            </Text>
-          </View>
-        ) : (
-          favorites.map(
-            (favorite) => (
-              <View
-                key={favorite.id}
+              <Text
                 style={{
-                  backgroundColor:
-                    'rgba(255,255,255,0.04)',
+                  color: 'white',
 
-                  padding: 20,
+                  fontSize:
+                    Platform.OS ===
+                    'web'
+                      ? 96
+                      : 54,
 
-                  borderRadius: 24,
+                  lineHeight:
+                    Platform.OS ===
+                    'web'
+                      ? 102
+                      : 60,
 
-                  borderWidth: 1,
+                  fontWeight: '900',
 
-                  borderColor:
-                    'rgba(255,255,255,0.06)',
+                  letterSpacing: -4,
+
+                  maxWidth: 760,
                 }}
               >
-                <Text
-                  style={{
-                    color: 'white',
+                Discover Luxury Living
+              </Text>
 
-                    fontSize: 16,
+              <Text
+                style={{
+                  color: '#D1D5DB',
 
-                    fontWeight:
-                      '600',
-                  }}
-                >
-                  ❤️{' '}
-                  {
-                    favorite.property_id
-                  }
-                </Text>
-              </View>
-            )
-          )
-        )}
-      </Animated.View>
+                  fontSize:
+                    Platform.OS ===
+                    'web'
+                      ? 22
+                      : 18,
 
-      {/* LOGOUT */}
-      <Animated.View
-        entering={FadeInDown.delay(
-          1050
-        ).springify()}
+                  marginTop: 28,
+
+                  maxWidth: 560,
+
+                  lineHeight: 34,
+                }}
+              >
+                Exclusive premium
+                properties for modern
+                lifestyle and elite
+                living.
+              </Text>
+            </Animated.View>
+
+            <Animated.View
+              entering={FadeInDown.delay(
+                250
+              ).springify()}
+              style={{
+                marginTop: 42,
+                maxWidth: 520,
+              }}
+            >
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+              />
+            </Animated.View>
+          </View>
+        </View>
+      </View>
+
+      {/* CONTENT */}
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 1440,
+          alignSelf: 'center',
+
+          paddingHorizontal: 24,
+
+          marginTop: 42,
+        }}
       >
-        <Pressable
-          onPress={handleLogout}
+        <CategoryTabs
+          categories={categories}
+          selectedCategory={
+            selectedCategory
+          }
+          onSelect={
+            setSelectedCategory
+          }
+        />
+
+        {/* SECTION HEADER */}
+        <View
           style={{
-            backgroundColor:
-              'rgba(255,255,255,0.06)',
+            marginTop: 42,
+            marginBottom: 28,
 
-            borderRadius: 24,
+            flexDirection: 'row',
 
-            paddingVertical: 20,
+            justifyContent:
+              'space-between',
 
             alignItems: 'center',
-
-            borderWidth: 1,
-
-            borderColor:
-              'rgba(255,255,255,0.08)',
           }}
         >
+          <View>
+            <Text
+              style={{
+                color: 'white',
+
+                fontSize: 42,
+
+                fontWeight: '900',
+
+                letterSpacing: -2,
+              }}
+            >
+              Luxury Properties
+            </Text>
+
+            <Text
+              style={{
+                color:
+                  Colors.dark.muted,
+
+                marginTop: 8,
+
+                fontSize: 16,
+              }}
+            >
+              Handpicked premium
+              listings
+            </Text>
+          </View>
+
           <Text
             style={{
-              color: 'white',
+              color:
+                Colors.dark.primary,
 
               fontSize: 16,
 
               fontWeight: '700',
             }}
           >
-            Kijelentkezés
+            {
+              filteredProperties.length
+            }{' '}
+            properties
+          </Text>
+        </View>
+
+        {/* GRID */}
+        <View
+          style={{
+            flexDirection: 'row',
+
+            flexWrap: 'wrap',
+
+            justifyContent:
+              'space-between',
+
+            rowGap: 28,
+          }}
+        >
+          {loading ? (
+            <>
+              <PropertyCardSkeleton />
+              <PropertyCardSkeleton />
+              <PropertyCardSkeleton />
+            </>
+          ) : (
+            filteredProperties.map(
+              (
+                property,
+                index
+              ) => (
+                <Animated.View
+                  key={property.id}
+                  entering={FadeInDown.delay(
+                    300 +
+                      index * 120
+                  ).springify()}
+                  style={{
+                    width:
+                      Platform.OS ===
+                      'web'
+                        ? '32%'
+                        : '100%',
+                  }}
+                >
+                  <PropertyCard
+                    id={String(
+                      property.id
+                    )}
+                    title={
+                      property.title
+                    }
+                    price={
+                      property.price
+                    }
+                    location={
+                      property.location
+                    }
+                    images={
+                      property.gallery
+                        ?.length
+                        ? property.gallery
+                        : [
+                            property.image,
+                          ]
+                    }
+                  />
+                </Animated.View>
+              )
+            )
+          )}
+        </View>
+
+        {/* FAVORITES */}
+        <View
+          style={{
+            marginTop: 72,
+          }}
+        >
+          <Text
+            style={{
+              color: 'white',
+
+              fontSize: 38,
+
+              fontWeight: '900',
+
+              letterSpacing: -2,
+
+              marginBottom: 24,
+            }}
+          >
+            Favorites
+          </Text>
+
+          {favorites.length ===
+          0 ? (
+            <View
+              style={{
+                backgroundColor:
+                  Colors.dark.surface,
+
+                borderRadius:
+                  Radius.lg,
+
+                padding: 32,
+
+                borderWidth: 1,
+
+                borderColor:
+                  Colors.dark.border,
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    Colors.dark.muted,
+
+                  fontSize: 17,
+
+                  lineHeight: 28,
+                }}
+              >
+                You don’t have saved
+                properties yet.
+              </Text>
+            </View>
+          ) : (
+            favorites.map(
+              (favorite) => (
+                <View
+                  key={favorite.id}
+                  style={{
+                    backgroundColor:
+                      Colors.dark
+                        .surface,
+
+                    padding: 24,
+
+                    borderRadius:
+                      Radius.lg,
+
+                    borderWidth: 1,
+
+                    borderColor:
+                      Colors.dark
+                        .border,
+
+                    marginBottom: 18,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: 'white',
+
+                      fontSize: 18,
+
+                      fontWeight:
+                        '700',
+                    }}
+                  >
+                    ❤️{' '}
+                    {
+                      favorite.property_id
+                    }
+                  </Text>
+                </View>
+              )
+            )
+          )}
+        </View>
+
+        {/* LOGOUT */}
+        <Pressable
+          onPress={handleLogout}
+          style={{
+            marginTop: 72,
+
+            backgroundColor:
+              Colors.dark.surface,
+
+            borderRadius:
+              Radius.full,
+
+            paddingVertical: 22,
+
+            alignItems: 'center',
+
+            borderWidth: 1,
+
+            borderColor:
+              Colors.dark.border,
+
+            ...Shadows.luxury,
+          }}
+        >
+          <Text
+            style={{
+              color: 'white',
+
+              fontSize: 17,
+
+              fontWeight: '800',
+            }}
+          >
+            Logout
           </Text>
         </Pressable>
-      </Animated.View>
+      </View>
     </ScrollView>
   )
 }

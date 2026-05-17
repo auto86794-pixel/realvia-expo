@@ -1,12 +1,23 @@
 import {
-    Pressable,
-    ScrollView,
-    Text,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text
 } from 'react-native'
 
+import {
+  useState,
+} from 'react'
+
 import Animated, {
-    FadeInDown,
+  FadeInDown,
 } from 'react-native-reanimated'
+
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
 
 type Props = {
   categories: string[]
@@ -19,6 +30,9 @@ export default function CategoryTabs({
   selectedCategory,
   onSelect,
 }: Props) {
+  const [hovered, setHovered] =
+    useState<string | null>(null)
+
   return (
     <Animated.View
       entering={FadeInDown.delay(
@@ -31,8 +45,11 @@ export default function CategoryTabs({
           false
         }
         contentContainerStyle={{
-          gap: 12,
+          gap: 16,
+
           paddingRight: 24,
+
+          paddingVertical: 6,
         }}
       >
         {categories.map((category) => {
@@ -40,33 +57,73 @@ export default function CategoryTabs({
             selectedCategory ===
             category
 
+          const isHovered =
+            hovered === category
+
           return (
             <Pressable
               key={category}
               onPress={() =>
                 onSelect(category)
               }
+              onHoverIn={() => {
+                if (
+                  Platform.OS ===
+                  'web'
+                ) {
+                  setHovered(
+                    category
+                  )
+                }
+              }}
+              onHoverOut={() =>
+                setHovered(null)
+              }
               style={{
-                paddingHorizontal: 24,
-                paddingVertical: 15,
+                paddingHorizontal: 28,
 
-                borderRadius: 24,
+                paddingVertical: 16,
+
+                borderRadius:
+                  Radius.full,
 
                 backgroundColor:
                   active
-                    ? '#D6B98C'
-                    : 'rgba(255,255,255,0.05)',
+                    ? Colors.dark
+                        .primary
+                    : isHovered
+                    ? 'rgba(255,255,255,0.10)'
+                    : 'rgba(255,255,255,0.06)',
+
+                borderWidth: 1,
+
+                borderColor:
+                  active
+                    ? 'rgba(214,176,123,0.45)'
+                    : 'rgba(255,255,255,0.08)',
+
+                justifyContent:
+                  'center',
+
+                alignItems:
+                  'center',
+
+                minHeight: 58,
+
+                ...Shadows.luxury,
               }}
             >
               <Text
                 style={{
                   color: active
-                    ? 'black'
-                    : 'white',
+                    ? '#000'
+                    : '#FFF',
 
-                  fontWeight: '700',
+                  fontWeight: '800',
 
                   fontSize: 15,
+
+                  letterSpacing: 0.3,
                 }}
               >
                 {category}

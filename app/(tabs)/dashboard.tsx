@@ -1,36 +1,45 @@
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from 'react-native'
 
 import {
-    useCallback,
-    useState,
+  useCallback,
+  useState,
 } from 'react'
 
 import {
-    router,
-    useFocusEffect,
+  router,
+  useFocusEffect,
 } from 'expo-router'
 
 import {
-    Building2,
-    Heart,
-    MessageCircle,
-    Plus,
-    TrendingUp,
+  Building2,
+  Heart,
+  MessageCircle,
+  Plus,
+  TrendingUp,
 } from 'lucide-react-native'
 
 import Animated, {
-    FadeInDown,
+  FadeInDown,
 } from 'react-native-reanimated'
 
 import { Image } from 'expo-image'
 
+import { BlurView } from 'expo-blur'
+
 import { supabase } from '@/src/services/supabase'
+
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
 
 export default function Dashboard() {
   const [
@@ -59,15 +68,15 @@ export default function Dashboard() {
   ) {
     try {
       Alert.alert(
-        'Ingatlan törlése',
-        'Biztosan törölni szeretnéd ezt az ingatlant?',
+        'Delete Property',
+        'Are you sure you want to delete this property?',
         [
           {
-            text: 'Mégse',
+            text: 'Cancel',
             style: 'cancel',
           },
           {
-            text: 'Törlés',
+            text: 'Delete',
             style: 'destructive',
 
             onPress: async () => {
@@ -81,8 +90,8 @@ export default function Dashboard() {
                 console.log(error)
 
                 Alert.alert(
-                  'Hiba',
-                  'Nem sikerült törölni.'
+                  'Error',
+                  'Delete failed.'
                 )
 
                 return
@@ -98,11 +107,6 @@ export default function Dashboard() {
               setPropertiesCount(
                 (prev) => prev - 1
               )
-
-              Alert.alert(
-                'Sikeres törlés',
-                'Az ingatlan törölve lett.'
-              )
             },
           },
         ]
@@ -114,7 +118,6 @@ export default function Dashboard() {
 
   async function loadDashboard() {
     try {
-      // Properties
       const {
         count: propertiesTotal,
       } = await supabase
@@ -128,7 +131,6 @@ export default function Dashboard() {
         propertiesTotal || 0
       )
 
-      // Leads
       const {
         count: leadsTotal,
       } = await supabase
@@ -140,7 +142,6 @@ export default function Dashboard() {
 
       setLeadCount(leadsTotal || 0)
 
-      // Favorites
       const {
         count: favoritesTotal,
       } = await supabase
@@ -154,7 +155,6 @@ export default function Dashboard() {
         favoritesTotal || 0
       )
 
-      // WhatsApp leads
       const {
         count: whatsappTotal,
       } = await supabase
@@ -169,7 +169,6 @@ export default function Dashboard() {
         whatsappTotal || 0
       )
 
-      // Latest properties
       const { data } =
         await supabase
           .from('properties')
@@ -177,7 +176,7 @@ export default function Dashboard() {
           .order('id', {
             ascending: false,
           })
-          .limit(5)
+          .limit(6)
 
       if (data) {
         setProperties(data)
@@ -197,58 +196,69 @@ export default function Dashboard() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: '#05060A',
+        backgroundColor:
+          Colors.dark.background,
       }}
       contentContainerStyle={{
-        paddingTop: 90,
-        paddingBottom: 160,
-        paddingHorizontal: 24,
+        paddingBottom: 180,
       }}
       showsVerticalScrollIndicator={
         false
       }
     >
-      {/* HEADER */}
-      <Animated.View
-        entering={FadeInDown.springify()}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 42,
-            fontWeight: '800',
-            letterSpacing: -2,
-          }}
-        >
-          Dashboard
-        </Text>
-
-        <Text
-          style={{
-            color: '#8A8A93',
-            marginTop: 10,
-            fontSize: 16,
-          }}
-        >
-          Luxury admin overview
-        </Text>
-      </Animated.View>
-
-      {/* STATS */}
+      {/* HERO */}
       <View
         style={{
-          marginTop: 34,
-          gap: 16,
+          paddingTop: 90,
+          paddingHorizontal: 24,
+          paddingBottom: 40,
         }}
       >
+        <Animated.View
+          entering={FadeInDown.springify()}
+        >
+          <Text
+            style={{
+              color: 'white',
+              fontSize:
+                Platform.OS === 'web'
+                  ? 64
+                  : 42,
+              fontWeight: '900',
+              letterSpacing: -3,
+            }}
+          >
+            Dashboard
+          </Text>
+
+          <Text
+            style={{
+              color: '#8A8A93',
+              marginTop: 12,
+              fontSize: 18,
+            }}
+          >
+            Luxury admin overview
+          </Text>
+        </Animated.View>
+
+        {/* STATS */}
         <View
           style={{
+            marginTop: 38,
+
             flexDirection: 'row',
-            gap: 16,
+
+            flexWrap: 'wrap',
+
+            justifyContent:
+              'space-between',
+
+            rowGap: 18,
           }}
         >
           <StatCard
-            title="Ingatlan"
+            title="Properties"
             value={propertiesCount}
             icon={
               <Building2
@@ -259,7 +269,7 @@ export default function Dashboard() {
           />
 
           <StatCard
-            title="Lead"
+            title="Leads"
             value={leadCount}
             icon={
               <TrendingUp
@@ -268,16 +278,9 @@ export default function Dashboard() {
               />
             }
           />
-        </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: 16,
-          }}
-        >
           <StatCard
-            title="Kedvencek"
+            title="Favorites"
             value={favoritesCount}
             icon={
               <Heart
@@ -298,76 +301,109 @@ export default function Dashboard() {
             }
           />
         </View>
+
+        {/* CTA */}
+        <Animated.View
+          entering={FadeInDown.delay(
+            120
+          ).springify()}
+          style={{
+            marginTop: 34,
+          }}
+        >
+          <Pressable
+            onPress={() =>
+              router.push('/upload')
+            }
+            style={{
+              backgroundColor:
+                Colors.dark.primary,
+
+              borderRadius:
+                Radius.full,
+
+              paddingVertical: 22,
+
+              alignItems: 'center',
+
+              flexDirection: 'row',
+
+              justifyContent:
+                'center',
+
+              gap: 14,
+
+              ...Shadows.glow,
+            }}
+          >
+            <Plus
+              size={22}
+              color="#000"
+            />
+
+            <Text
+              style={{
+                color: '#000',
+                fontSize: 18,
+                fontWeight: '900',
+              }}
+            >
+              Upload Property
+            </Text>
+          </Pressable>
+        </Animated.View>
       </View>
 
-      {/* QUICK ACTIONS */}
+      {/* PROPERTIES */}
       <View
         style={{
-          marginTop: 42,
+          paddingHorizontal: 24,
         }}
       >
-        <Text
+        <View
           style={{
-            color: 'white',
-            fontSize: 24,
-            fontWeight: '800',
-            marginBottom: 18,
-          }}
-        >
-          Gyors műveletek
-        </Text>
-
-        <Pressable
-          onPress={() =>
-            router.push('/upload')
-          }
-          style={{
-            backgroundColor: '#D6B07B',
-            borderRadius: 999,
-            paddingVertical: 20,
-            alignItems: 'center',
             flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 12,
+
+            justifyContent:
+              'space-between',
+
+            alignItems: 'center',
+
+            marginBottom: 24,
           }}
         >
-          <Plus
-            size={22}
-            color="#000"
-          />
+          <Text
+            style={{
+              color: 'white',
+              fontSize: 34,
+              fontWeight: '900',
+              letterSpacing: -2,
+            }}
+          >
+            Latest Properties
+          </Text>
 
           <Text
             style={{
-              color: '#000',
-              fontSize: 17,
-              fontWeight: '900',
+              color:
+                Colors.dark.primary,
+              fontWeight: '700',
             }}
           >
-            Új ingatlan feltöltése
+            {properties.length} total
           </Text>
-        </Pressable>
-      </View>
-
-      {/* LATEST PROPERTIES */}
-      <View
-        style={{
-          marginTop: 42,
-        }}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 24,
-            fontWeight: '800',
-            marginBottom: 18,
-          }}
-        >
-          Legutóbbi ingatlanok
-        </Text>
+        </View>
 
         <View
           style={{
-            gap: 18,
+            flexDirection: 'row',
+
+            flexWrap: 'wrap',
+
+            justifyContent:
+              'space-between',
+
+            rowGap: 24,
           }}
         >
           {properties.map(
@@ -375,22 +411,37 @@ export default function Dashboard() {
               <Animated.View
                 key={property.id}
                 entering={FadeInDown.delay(
-                  250 + index * 100
+                  200 +
+                    index * 120
                 ).springify()}
+                style={{
+                  width:
+                    Platform.OS ===
+                    'web'
+                      ? '32%'
+                      : '100%',
+                }}
               >
-                <View
+                <BlurView
+                  intensity={40}
+                  tint="dark"
                   style={{
+                    borderRadius:
+                      Radius.lg,
+
+                    overflow:
+                      'hidden',
+
                     backgroundColor:
                       'rgba(255,255,255,0.04)',
-
-                    borderRadius: 28,
-
-                    overflow: 'hidden',
 
                     borderWidth: 1,
 
                     borderColor:
                       'rgba(255,255,255,0.06)',
+
+                    ...Shadows
+                      .luxury,
                   }}
                 >
                   <Pressable
@@ -408,13 +459,13 @@ export default function Dashboard() {
                       contentFit="cover"
                       style={{
                         width: '100%',
-                        height: 210,
+                        height: 240,
                       }}
                     />
 
                     <View
                       style={{
-                        padding: 20,
+                        padding: 24,
                       }}
                     >
                       <Text
@@ -422,13 +473,15 @@ export default function Dashboard() {
                           color:
                             'white',
 
-                          fontSize: 22,
+                          fontSize: 24,
 
                           fontWeight:
                             '800',
                         }}
                       >
-                        {property.title}
+                        {
+                          property.title
+                        }
                       </Text>
 
                       <Text
@@ -436,7 +489,7 @@ export default function Dashboard() {
                           color:
                             '#8A8A93',
 
-                          marginTop: 8,
+                          marginTop: 10,
 
                           fontSize: 15,
                         }}
@@ -450,17 +503,20 @@ export default function Dashboard() {
                       <Text
                         style={{
                           color:
-                            '#D6B07B',
+                            Colors.dark
+                              .primary,
 
-                          marginTop: 14,
+                          marginTop: 18,
 
-                          fontSize: 28,
+                          fontSize: 30,
 
                           fontWeight:
-                            '300',
+                            '700',
                         }}
                       >
-                        {property.price}
+                        {
+                          property.price
+                        }
                       </Text>
                     </View>
                   </Pressable>
@@ -468,9 +524,9 @@ export default function Dashboard() {
                   {/* ACTIONS */}
                   <View
                     style={{
-                      paddingHorizontal: 20,
-                      paddingBottom: 20,
-                      gap: 12,
+                      paddingHorizontal: 24,
+                      paddingBottom: 24,
+                      gap: 14,
                     }}
                   >
                     <Pressable
@@ -481,11 +537,11 @@ export default function Dashboard() {
                       }
                       style={{
                         backgroundColor:
-                          'rgba(255,255,255,0.06)',
+                          'rgba(255,255,255,0.08)',
 
-                        borderRadius: 18,
+                        borderRadius: 20,
 
-                        paddingVertical: 14,
+                        paddingVertical: 16,
 
                         alignItems:
                           'center',
@@ -504,10 +560,10 @@ export default function Dashboard() {
                           fontSize: 15,
 
                           fontWeight:
-                            '700',
+                            '800',
                         }}
                       >
-                        ✏️ Szerkesztés
+                        ✏️ Edit
                       </Text>
                     </Pressable>
 
@@ -521,11 +577,11 @@ export default function Dashboard() {
                       }
                       style={{
                         backgroundColor:
-                          'rgba(255,80,80,0.12)',
+                          'rgba(255,80,80,0.14)',
 
-                        borderRadius: 18,
+                        borderRadius: 20,
 
-                        paddingVertical: 14,
+                        paddingVertical: 16,
 
                         alignItems:
                           'center',
@@ -538,19 +594,20 @@ export default function Dashboard() {
                     >
                       <Text
                         style={{
-                          color: '#FF6B6B',
+                          color:
+                            '#FF6B6B',
 
                           fontSize: 15,
 
                           fontWeight:
-                            '700',
+                            '800',
                         }}
                       >
-                        🗑️ Törlés
+                        🗑️ Delete
                       </Text>
                     </Pressable>
                   </View>
-                </View>
+                </BlurView>
               </Animated.View>
             )
           )}
@@ -566,21 +623,31 @@ function StatCard({
   icon,
 }: any) {
   return (
-    <View
+    <BlurView
+      intensity={40}
+      tint="dark"
       style={{
-        flex: 1,
+        width:
+          Platform.OS === 'web'
+            ? '24%'
+            : '48%',
+
+        borderRadius:
+          Radius.lg,
+
+        overflow: 'hidden',
 
         backgroundColor:
-          'rgba(255,255,255,0.04)',
-
-        borderRadius: 28,
-
-        padding: 22,
+          'rgba(255,255,255,0.05)',
 
         borderWidth: 1,
 
         borderColor:
           'rgba(255,255,255,0.06)',
+
+        padding: 24,
+
+        ...Shadows.luxury,
       }}
     >
       {icon}
@@ -588,7 +655,7 @@ function StatCard({
       <Text
         style={{
           color: '#71717A',
-          marginTop: 16,
+          marginTop: 18,
           fontSize: 14,
         }}
       >
@@ -598,13 +665,14 @@ function StatCard({
       <Text
         style={{
           color: 'white',
-          marginTop: 10,
-          fontSize: 34,
-          fontWeight: '800',
+          marginTop: 12,
+          fontSize: 38,
+          fontWeight: '900',
+          letterSpacing: -1,
         }}
       >
         {value}
       </Text>
-    </View>
+    </BlurView>
   )
 }

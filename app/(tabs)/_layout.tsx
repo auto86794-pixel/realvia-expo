@@ -9,6 +9,7 @@ import {
 } from 'lucide-react-native'
 
 import {
+  Platform,
   StatusBar,
 } from 'react-native'
 
@@ -20,12 +21,26 @@ import {
   SafeAreaProvider,
 } from 'react-native-safe-area-context'
 
+import {
+  BlurView,
+} from 'expo-blur'
+
+import {
+  Colors,
+  Radius,
+  Shadows,
+} from '@/constants/theme'
+
 export default function TabsLayout() {
+  const isWeb =
+    Platform.OS === 'web'
+
   return (
     <GestureHandlerRootView
       style={{
         flex: 1,
-        backgroundColor: '#05060A',
+        backgroundColor:
+          Colors.dark.background,
       }}
     >
       <SafeAreaProvider>
@@ -37,73 +52,139 @@ export default function TabsLayout() {
           screenOptions={{
             headerShown: false,
 
-            tabBarStyle: {
-              backgroundColor:
-                '#0B0B0F',
-
-              borderTopColor:
-                'rgba(255,255,255,0.06)',
-
-              height: 88,
-
-              paddingBottom: 18,
-
-              paddingTop: 12,
-            },
-
             tabBarActiveTintColor:
-              '#D6B07B',
+              Colors.dark.primary,
 
             tabBarInactiveTintColor:
-              '#71717A',
+              Colors.dark
+                .tabIconDefault,
+
+            tabBarLabelStyle: {
+              fontSize: 12,
+
+              fontWeight: '700',
+
+              marginTop: 4,
+            },
+
+            tabBarStyle: isWeb
+              ? {
+                  display: 'none',
+                }
+              : {
+                  position:
+                    'absolute',
+
+                  left: 18,
+
+                  right: 18,
+
+                  bottom: 22,
+
+                  height: 82,
+
+                  borderRadius:
+                    Radius.xl,
+
+                  backgroundColor:
+                    'rgba(12,12,16,0.82)',
+
+                  borderTopWidth: 0,
+
+                  paddingTop: 10,
+
+                  paddingBottom: 12,
+
+                  ...(Platform.OS ===
+                  'android'
+                    ? {
+                        elevation: 0,
+                      }
+                    : {}),
+
+                  ...Shadows.luxury,
+                },
+
+            tabBarBackground: () => (
+              <BlurView
+                intensity={80}
+                tint="dark"
+                style={{
+                  flex: 1,
+
+                  borderRadius:
+                    Radius.xl,
+
+                  overflow:
+                    'hidden',
+                }}
+              />
+            ),
           }}
         >
+          {/* HOME */}
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Főoldal',
+              title: 'Home',
 
               tabBarIcon: ({
                 color,
-                size,
+                focused,
               }) => (
                 <Home
                   color={color}
-                  size={size}
+                  size={
+                    focused
+                      ? 26
+                      : 23
+                  }
                 />
               ),
             }}
           />
 
+          {/* FAVORITES */}
           <Tabs.Screen
             name="favorites"
             options={{
-              title: 'Kedvencek',
+              title:
+                'Favorites',
 
               tabBarIcon: ({
                 color,
-                size,
+                focused,
               }) => (
                 <Heart
                   color={color}
-                  size={size}
+                  size={
+                    focused
+                      ? 26
+                      : 23
+                  }
                 />
               ),
             }}
           />
 
+          {/* DASHBOARD */}
           <Tabs.Screen
             name="dashboard"
             options={{
-              title: 'Dashboard',
+              title:
+                'Dashboard',
 
               tabBarIcon: ({
                 color,
-                size,
+                focused,
               }) => (
                 <LayoutDashboard
                   color={color}
-                  size={size}
+                  size={
+                    focused
+                      ? 26
+                      : 23
+                  }
                 />
               ),
             }}

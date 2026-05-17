@@ -10,10 +10,25 @@ import {
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
-import { useFocusEffect } from 'expo-router'
+import {
+  BlurView,
+} from 'expo-blur'
+
+import {
+  LinearGradient,
+} from 'expo-linear-gradient'
+
+import {
+  useFocusEffect,
+} from 'expo-router'
+
+import Animated, {
+  FadeInDown,
+} from 'react-native-reanimated'
 
 import PropertyCard from '@/components/PropertyCard'
 
@@ -105,6 +120,10 @@ export default function FavoritesScreen() {
     await loadFavorites(false)
   }
 
+  const totalValue = useMemo(() => {
+    return favorites.length
+  }, [favorites])
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -120,7 +139,7 @@ export default function FavoritesScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={{
-        paddingBottom: 140,
+        paddingBottom: 180,
       }}
       refreshControl={
         <RefreshControl
@@ -129,55 +148,173 @@ export default function FavoritesScreen() {
           tintColor="#D6B98C"
         />
       }
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={
+        false
+      }
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Kedvencek
-        </Text>
+      {/* HERO */}
+      <LinearGradient
+        colors={[
+          '#10131A',
+          '#05060A',
+        ]}
+        style={styles.hero}
+      >
+        <Animated.View
+          entering={FadeInDown.springify()}
+        >
+          <Text style={styles.title}>
+            Kedvencek
+          </Text>
 
-        <Text style={styles.subtitle}>
-          {favorites.length} mentett ingatlan
-        </Text>
-      </View>
+          <Text
+            style={styles.subtitle}
+          >
+            Saját luxury collection
+          </Text>
+        </Animated.View>
 
+        {/* STATS */}
+        <Animated.View
+          entering={FadeInDown.delay(
+            120
+          ).springify()}
+        >
+          <BlurView
+            intensity={50}
+            tint="dark"
+            style={styles.statsCard}
+          >
+            <View>
+              <Text
+                style={
+                  styles.statsLabel
+                }
+              >
+                Mentett
+              </Text>
+
+              <Text
+                style={
+                  styles.statsValue
+                }
+              >
+                {totalValue}
+              </Text>
+            </View>
+
+            <View
+              style={
+                styles.divider
+              }
+            />
+
+            <View>
+              <Text
+                style={
+                  styles.statsLabel
+                }
+              >
+                Státusz
+              </Text>
+
+              <Text
+                style={
+                  styles.statsValueSmall
+                }
+              >
+                Premium
+              </Text>
+            </View>
+          </BlurView>
+        </Animated.View>
+      </LinearGradient>
+
+      {/* EMPTY */}
       {favorites.length === 0 && (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>
-            🖤
-          </Text>
+        <Animated.View
+          entering={FadeInDown.delay(
+            200
+          ).springify()}
+          style={styles.emptyWrapper}
+        >
+          <BlurView
+            intensity={45}
+            tint="dark"
+            style={styles.emptyCard}
+          >
+            <Text
+              style={
+                styles.emptyEmoji
+              }
+            >
+              🖤
+            </Text>
 
-          <Text style={styles.emptyTitle}>
-            Még nincs kedvenc ingatlanod
-          </Text>
+            <Text
+              style={
+                styles.emptyTitle
+              }
+            >
+              Luxury collection üres
+            </Text>
 
-          <Text style={styles.emptyText}>
-            Jelöld meg a kedvenc
-            ingatlanokat a szív ikonnal,
-            és itt automatikusan
-            megjelennek.
-          </Text>
-        </View>
+            <Text
+              style={
+                styles.emptyText
+              }
+            >
+              Mentsd el a kedvenc
+              ingatlanokat és itt
+              jelennek meg a saját
+              prémium válogatásaid.
+            </Text>
+          </BlurView>
+        </Animated.View>
       )}
 
-      {favorites.map((property) => (
-        <View
-          key={property.id}
-          style={styles.cardWrapper}
-        >
-          <PropertyCard
-            id={property.id}
-            title={property.title}
-            price={property.price}
-            location={property.location}
-            images={
-              property.gallery?.length
-                ? property.gallery
-                : [property.image]
-            }
-          />
-        </View>
-      ))}
+      {/* LIST */}
+      <View
+        style={{
+          marginTop: 10,
+        }}
+      >
+        {favorites.map(
+          (property, index) => (
+            <Animated.View
+              key={property.id}
+              entering={FadeInDown.delay(
+                220 +
+                  index * 120
+              ).springify()}
+              style={
+                styles.cardWrapper
+              }
+            >
+              <PropertyCard
+                id={property.id}
+                title={
+                  property.title
+                }
+                price={
+                  property.price
+                }
+                location={
+                  property.location
+                }
+                images={
+                  property.gallery
+                    ?.length
+                    ? property.gallery
+                    : [
+                        property.image,
+                      ]
+                }
+              />
+            </Animated.View>
+          )
+        )}
+      </View>
     </ScrollView>
   )
 }
@@ -186,7 +323,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#05060A',
-    paddingHorizontal: 20,
   },
 
   loader: {
@@ -196,51 +332,116 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  header: {
-    marginTop: 68,
-    marginBottom: 34,
+  hero: {
+    paddingTop: 90,
+    paddingHorizontal: 24,
+    paddingBottom: 38,
   },
 
   title: {
     color: 'white',
-    fontSize: 38,
+    fontSize: 46,
     fontWeight: '900',
-    letterSpacing: -1.5,
+    letterSpacing: -2,
   },
 
   subtitle: {
     color: '#8F939D',
-    fontSize: 16,
-    marginTop: 8,
+    fontSize: 17,
+    marginTop: 10,
   },
 
-  emptyContainer: {
+  statsCard: {
+    marginTop: 28,
+    borderRadius: 30,
+    overflow: 'hidden',
+
+    padding: 24,
+
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.06)',
+
+    backgroundColor:
+      'rgba(255,255,255,0.04)',
+
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 100,
+    justifyContent:
+      'space-between',
+  },
+
+  statsLabel: {
+    color: '#71717A',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+
+  statsValue: {
+    color: 'white',
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+
+  statsValueSmall: {
+    color: '#D6B98C',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+
+  divider: {
+    width: 1,
+    height: 48,
+    backgroundColor:
+      'rgba(255,255,255,0.08)',
+  },
+
+  emptyWrapper: {
     paddingHorizontal: 24,
+    marginTop: 30,
+  },
+
+  emptyCard: {
+    borderRadius: 34,
+    overflow: 'hidden',
+
+    paddingVertical: 50,
+    paddingHorizontal: 28,
+
+    alignItems: 'center',
+
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.06)',
+
+    backgroundColor:
+      'rgba(255,255,255,0.04)',
   },
 
   emptyEmoji: {
-    fontSize: 52,
-    marginBottom: 20,
+    fontSize: 64,
+    marginBottom: 24,
   },
 
   emptyTitle: {
     color: 'white',
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 16,
+    letterSpacing: -1,
   },
 
   emptyText: {
     color: '#8F939D',
     fontSize: 16,
+    lineHeight: 30,
     textAlign: 'center',
-    lineHeight: 28,
   },
 
   cardWrapper: {
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
 })
