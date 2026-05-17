@@ -1,20 +1,20 @@
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
 
 import { useState } from 'react'
 
 import {
-    router,
+  router,
 } from 'expo-router'
 
 import Animated, {
-    FadeInDown,
+  FadeInDown,
 } from 'react-native-reanimated'
 
 import { supabase } from '@/src/services/supabase'
@@ -102,11 +102,11 @@ export default function UploadScreen() {
   }
 
   const categories = [
-    'Villa',
-    'Modern',
-    'Luxus',
-    'Penthouse',
-    'Tengerpart',
+    'Lakások',
+  'Családi ház',
+  'Villák',
+  'Penthouse',
+  'Új építésű',
   ]
 
   return (

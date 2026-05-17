@@ -6,6 +6,7 @@ import {
   Heart,
   Home,
   LayoutDashboard,
+  Plus,
 } from 'lucide-react-native'
 
 import {
@@ -21,9 +22,7 @@ import {
   SafeAreaProvider,
 } from 'react-native-safe-area-context'
 
-import {
-  BlurView,
-} from 'expo-blur'
+import { BlurView } from 'expo-blur'
 
 import {
   Colors,
@@ -61,9 +60,7 @@ export default function TabsLayout() {
 
             tabBarLabelStyle: {
               fontSize: 12,
-
               fontWeight: '700',
-
               marginTop: 4,
             },
 
@@ -76,9 +73,7 @@ export default function TabsLayout() {
                     'absolute',
 
                   left: 18,
-
                   right: 18,
-
                   bottom: 22,
 
                   height: 82,
@@ -92,7 +87,6 @@ export default function TabsLayout() {
                   borderTopWidth: 0,
 
                   paddingTop: 10,
-
                   paddingBottom: 12,
 
                   ...(Platform.OS ===
@@ -126,7 +120,7 @@ export default function TabsLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Home',
+              title: 'Főoldal',
 
               tabBarIcon: ({
                 color,
@@ -149,7 +143,7 @@ export default function TabsLayout() {
             name="favorites"
             options={{
               title:
-                'Favorites',
+                'Kedvencek',
 
               tabBarIcon: ({
                 color,
@@ -161,6 +155,29 @@ export default function TabsLayout() {
                     focused
                       ? 26
                       : 23
+                  }
+                />
+              ),
+            }}
+          />
+
+          {/* UPLOAD */}
+          <Tabs.Screen
+            name="upload"
+            options={{
+              title:
+                'Feltöltés',
+
+              tabBarIcon: ({
+                color,
+                focused,
+              }) => (
+                <Plus
+                  color={color}
+                  size={
+                    focused
+                      ? 28
+                      : 24
                   }
                 />
               ),
@@ -191,13 +208,6 @@ export default function TabsLayout() {
           />
 
           {/* HIDDEN ROUTES */}
-
-          <Tabs.Screen
-            name="upload"
-            options={{
-              href: null,
-            }}
-          />
 
           <Tabs.Screen
             name="create"
