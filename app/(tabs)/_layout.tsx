@@ -11,7 +11,11 @@ import {
 
 import {
   Platform,
+  ScrollView,
   StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 
 import {
@@ -30,6 +34,101 @@ import {
   Shadows,
 } from '@/constants/theme'
 
+function CategoryBar() {
+  const categories = [
+    'Lakások',
+    'Családi ház',
+    'Penthouse',
+    'Villa',
+    'Telek',
+  ]
+
+  return (
+    <View
+      style={{
+        marginTop: 18,
+      }}
+    >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={
+          false
+        }
+        decelerationRate="fast"
+        snapToAlignment="start"
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          gap: 12,
+          paddingBottom: 10,
+        }}
+      >
+        {categories.map(
+          (
+            category,
+            index
+          ) => {
+            const isActive =
+              index === 0
+
+            return (
+              <TouchableOpacity
+                key={category}
+                activeOpacity={
+                  0.85
+                }
+                style={{
+                  paddingHorizontal:
+                    20,
+
+                  height: 44,
+
+                  borderRadius: 999,
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'center',
+
+                  backgroundColor:
+                    isActive
+                      ? Colors.dark
+                          .primary
+                      : 'rgba(255,255,255,0.08)',
+
+                  borderWidth: 1,
+
+                  borderColor:
+                    isActive
+                      ? Colors.dark
+                          .primary
+                      : 'rgba(255,255,255,0.08)',
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      isActive
+                        ? '#000'
+                        : '#fff',
+
+                    fontSize: 14,
+
+                    fontWeight:
+                      '600',
+                  }}
+                >
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            )
+          }
+        )}
+      </ScrollView>
+    </View>
+  )
+}
+
 function TabsContent() {
   const insets =
     useSafeAreaInsets()
@@ -42,6 +141,9 @@ function TabsContent() {
       <StatusBar
         barStyle="light-content"
       />
+
+      {/* CATEGORY BAR */}
+      <CategoryBar />
 
       <Tabs
         screenOptions={{
@@ -79,14 +181,15 @@ function TabsContent() {
                 right: 12,
 
                 bottom:
-                  insets.bottom + 10,
+                  insets.bottom +
+                  10,
 
                 height: 72,
 
                 borderRadius: 28,
 
                 backgroundColor:
-                  'rgba(12,12,16,0.78)',
+                  'rgba(12,12,16,0.68)',
 
                 borderTopWidth: 0,
 
@@ -109,7 +212,7 @@ function TabsContent() {
           tabBarBackground:
             () => (
               <BlurView
-                intensity={55}
+                intensity={45}
                 tint="dark"
                 style={{
                   flex: 1,
