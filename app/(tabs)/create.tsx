@@ -11,7 +11,6 @@ import {
 } from 'react-native'
 
 import { Image } from 'expo-image'
-
 import * as ImagePicker from 'expo-image-picker'
 import { useState } from 'react'
 
@@ -21,11 +20,34 @@ import Animated, {
 
 import { supabase } from '@/src/services/supabase'
 import { useProtectedRoute } from '../../src/hooks/useProtectedRoute'
-
 import { useAuth } from '../../src/providers/AuthProvider'
 
-
 const MAX_GALLERY_IMAGES = 12
+
+function parsePrice(value: string) {
+  const normalized = String(value)
+    .toLowerCase()
+    .replace(/\s/g, '')
+    .replace(',', '.')
+
+  const numericValue = Number(
+    normalized.replace(/[^0-9.]/g, '')
+  )
+
+  if (Number.isNaN(numericValue) || numericValue <= 0) {
+    return null
+  }
+
+  if (
+    normalized.includes('mft') ||
+    normalized.includes('m') ||
+    normalized.includes('millió')
+  ) {
+    return Math.round(numericValue * 1000000)
+  }
+
+  return Math.round(numericValue)
+}
 
 export default function CreateScreen() {
   useProtectedRoute()
@@ -35,17 +57,12 @@ export default function CreateScreen() {
   const [title, setTitle] = useState('')
   const [price, setPrice] = useState('')
   const [location, setLocation] = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState('Lakások')
 
-  const [image, setImage] = useState('')
   const [galleryImages, setGalleryImages] =
     useState<string[]>([])
 
-  const [loading, setLoading] =
-    useState(false)
-
-  const [uploadingCover, setUploadingCover] =
-    useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [uploadingGallery, setUploadingGallery] =
     useState(false)
@@ -53,14 +70,15 @@ export default function CreateScreen() {
   const [previewVisible, setPreviewVisible] =
     useState(false)
 
-  const [selectedPreviewImage, setSelectedPreviewImage] =
-    useState('')
-  
+  const [
+    selectedPreviewImage,
+    setSelectedPreviewImage,
+  ] = useState('')
 
-  
+  const coverImage = galleryImages[0] || ''
+
   async function uploadImage(uri: string) {
     const response = await fetch(uri)
-
     const blob = await response.blob()
 
     const fileName = `${Date.now()}-${Math.random()
@@ -91,47 +109,6 @@ export default function CreateScreen() {
       await ImagePicker.requestMediaLibraryPermissionsAsync()
 
     return permission.granted
-  }
-
-  async function pickCoverImage() {
-    try {
-      const granted = await requestPermission()
-
-      if (!granted) {
-        Alert.alert(
-          'Engedély szükséges',
-          'Kérlek engedélyezd a galéria hozzáférést.'
-        )
-
-        return
-      }
-
-      const result =
-        await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.7,
-        })
-
-      if (result.canceled) return
-
-      setUploadingCover(true)
-
-      const publicUrl = await uploadImage(
-        result.assets[0].uri
-      )
-
-      setImage(publicUrl)
-    } catch (error) {
-      console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'A borítókép feltöltése sikertelen.'
-      )
-    } finally {
-      setUploadingCover(false)
-    }
   }
 
   async function pickGalleryImages() {
@@ -180,16 +157,12 @@ export default function CreateScreen() {
       setUploadingGallery(true)
 
       const uploadedUrls = await Promise.all(
-        selectedAssets.map(asset =>
+        selectedAssets.map((asset) =>
           uploadImage(asset.uri)
         )
       )
 
-      if (!image && uploadedUrls.length > 0) {
-        setImage(uploadedUrls[0])
-      }
-
-      setGalleryImages(current => [
+      setGalleryImages((current) => [
         ...current,
         ...uploadedUrls,
       ])
@@ -198,7 +171,7 @@ export default function CreateScreen() {
 
       Alert.alert(
         'Hiba',
-        'A galéria képek feltöltése sikertelen.'
+        'A képek feltöltése sikertelen.'
       )
     } finally {
       setUploadingGallery(false)
@@ -216,7 +189,7 @@ export default function CreateScreen() {
   }
 
   function removeGalleryImage(index: number) {
-    setGalleryImages(current =>
+    setGalleryImages((current) =>
       current.filter(
         (_, itemIndex) => itemIndex !== index
       )
@@ -224,28 +197,30 @@ export default function CreateScreen() {
   }
 
   async function createProperty() {
- console.log('CREATE STARTED')
     if (!session?.user) {
-    Alert.alert(
-      'Hiba',
-      'Ingatlan létrehozásához be kell jelentkezned.'
-    )
+      Alert.alert(
+        'Hiba',
+        'Ingatlan létrehozásához be kell jelentkezned.'
+      )
 
-    return
-  }
+      return
+    }
 
-  if (
-    !title ||
-    !price ||
-    !location ||
-    !category ||
-    !image
-  ) {
+    const cleanTitle = String(title).trim()
+    const cleanLocation = String(location).trim()
+    const cleanCategory = String(category).trim()
+    const parsedPrice = parsePrice(price)
 
-    
+    if (
+      !cleanTitle ||
+      !cleanLocation ||
+      !cleanCategory ||
+      !parsedPrice ||
+      galleryImages.length === 0
+    ) {
       Alert.alert(
         'Hiányzó adatok',
-        'Minden kötelező mezőt tölts ki.'
+        'Minden kötelező mezőt tölts ki, és adj meg legalább egy képet.'
       )
 
       return
@@ -257,14 +232,14 @@ export default function CreateScreen() {
       const { error } = await supabase
         .from('properties')
         .insert({
-  title: String(title).trim(),
-  price: String(price).trim(),
-  location: String(location).trim(),
-  category: String(category).trim(),
-  image,
-  gallery: galleryImages,
-})
-       
+          title: cleanTitle,
+          price: parsedPrice,
+          location: cleanLocation,
+          category: cleanCategory,
+          image: coverImage,
+          gallery: galleryImages,
+        })
+
       if (error) {
         console.log(error)
 
@@ -284,8 +259,7 @@ export default function CreateScreen() {
       setTitle('')
       setPrice('')
       setLocation('')
-      setCategory('')
-      setImage('')
+      setCategory('Lakások')
       setGalleryImages([])
     } catch (error) {
       console.log(error)
@@ -338,7 +312,7 @@ export default function CreateScreen() {
             </Text>
 
             <TextInput
-              placeholder="Modern Tengerparti Villa"
+              placeholder="Modern tengerparti villa"
               placeholderTextColor="#6B7280"
               style={styles.input}
               value={title}
@@ -350,11 +324,12 @@ export default function CreateScreen() {
             <Text style={styles.label}>Ár</Text>
 
             <TextInput
-              placeholder="139 Mft"
+              placeholder="139000000 vagy 139 M Ft"
               placeholderTextColor="#6B7280"
               style={styles.input}
               value={price}
               onChangeText={setPrice}
+              keyboardType="default"
               autoCapitalize="none"
             />
           </View>
@@ -379,43 +354,12 @@ export default function CreateScreen() {
             </Text>
 
             <TextInput
-              placeholder="Luxus Villa"
+              placeholder="Lakások"
               placeholderTextColor="#6B7280"
               style={styles.input}
               value={category}
               onChangeText={setCategory}
             />
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>
-              Borítókép
-            </Text>
-
-            <Pressable
-              style={[
-                styles.uploadButton,
-                uploadingCover &&
-                  styles.disabledButton,
-              ]}
-              disabled={uploadingCover}
-              onPress={pickCoverImage}
-            >
-              <Text style={styles.uploadButtonText}>
-                {uploadingCover
-                  ? 'Feltöltés...'
-                  : 'Borítókép feltöltése'}
-              </Text>
-            </Pressable>
-
-            {image ? (
-              <Image
-                source={{ uri: image }}
-                style={styles.previewImage}
-                contentFit="cover"
-                transition={300}
-              />
-            ) : null}
           </View>
 
           <View style={styles.section}>
@@ -434,50 +378,65 @@ export default function CreateScreen() {
             >
               <Text style={styles.uploadButtonText}>
                 {uploadingGallery
-                  ? 'Galéria feltöltése...'
-                  : `Galéria képek feltöltése (${galleryImages.length}/${MAX_GALLERY_IMAGES})`}
+                  ? 'Képek feltöltése...'
+                  : `Képek feltöltése (${galleryImages.length}/${MAX_GALLERY_IMAGES})`}
               </Text>
             </Pressable>
 
             {galleryImages.length > 0 ? (
-              <View style={styles.galleryGrid}>
-                {galleryImages.map((item, index) => (
-                  <View
-                    key={item}
-                    style={styles.galleryItem}
-                  >
-                    <Pressable
-                      onPress={() =>
-                        openPreview(item)
-                      }
-                    >
-                      <Image
-                        source={{ uri: item }}
-                        style={styles.galleryImage}
-                        contentFit="cover"
-                        transition={300}
-                      />
-                    </Pressable>
+              <>
+                <Text style={styles.helperText}>
+                  Az első kép lesz a borítókép.
+                </Text>
 
-                    <Pressable
-                      style={styles.removeButton}
-                      onPress={() =>
-                        removeGalleryImage(index)
-                      }
+                <View style={styles.galleryGrid}>
+                  {galleryImages.map((item, index) => (
+                    <View
+                      key={item}
+                      style={styles.galleryItem}
                     >
-                      <Text
-                        style={styles.removeButtonText}
+                      <Pressable
+                        onPress={() =>
+                          openPreview(item)
+                        }
                       >
-                        ✕
-                      </Text>
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
+                        <Image
+                          source={{ uri: item }}
+                          style={styles.galleryImage}
+                          contentFit="cover"
+                          transition={300}
+                        />
+                      </Pressable>
+
+                      {index === 0 ? (
+                        <View style={styles.coverBadge}>
+                          <Text style={styles.coverBadgeText}>
+                            Borító
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      <Pressable
+                        style={styles.removeButton}
+                        onPress={() =>
+                          removeGalleryImage(index)
+                        }
+                      >
+                        <Text
+                          style={styles.removeButtonText}
+                        >
+                          ✕
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              </>
             ) : (
               <Text style={styles.helperText}>
-                Tölts fel több képet az ingatlan
-                galériájához.
+                Tölts fel képeket az ingatlan
+                galériájához. Az első kép lesz a
+                borítókép.
               </Text>
             )}
           </View>
@@ -489,9 +448,10 @@ export default function CreateScreen() {
           <Pressable
             style={[
               styles.button,
-              loading && styles.disabledButton,
+              (loading || uploadingGallery) &&
+                styles.disabledButton,
             ]}
-            disabled={loading}
+            disabled={loading || uploadingGallery}
             onPress={createProperty}
           >
             <Text style={styles.buttonText}>
@@ -516,7 +476,7 @@ export default function CreateScreen() {
           />
 
           <Image
-            source={selectedPreviewImage} 
+            source={{ uri: selectedPreviewImage }}
             style={styles.fullscreenImage}
             contentFit="contain"
             transition={300}
@@ -609,13 +569,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  previewImage: {
-    width: '100%',
-    height: 260,
-    borderRadius: 28,
-    marginTop: 18,
-  },
-
   galleryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -635,6 +588,22 @@ const styles = StyleSheet.create({
   galleryImage: {
     width: 110,
     height: 110,
+  },
+
+  coverBadge: {
+    position: 'absolute',
+    left: 8,
+    bottom: 8,
+    backgroundColor: 'rgba(214,185,140,0.95)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+
+  coverBadgeText: {
+    color: '#050505',
+    fontSize: 10,
+    fontWeight: '900',
   },
 
   removeButton: {
@@ -703,7 +672,7 @@ const styles = StyleSheet.create({
   fullscreenImage: {
     width: '100%',
     height: '80%',
-     maxWidth: 1200,
+    maxWidth: 1200,
   },
 
   closePreviewButton: {
