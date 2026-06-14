@@ -224,7 +224,8 @@ export default function CreateScreen() {
   }
 
   async function createProperty() {
-if (!session?.user) {
+ console.log('CREATE STARTED')
+    if (!session?.user) {
     Alert.alert(
       'Hiba',
       'Ingatlan létrehozásához be kell jelentkezned.'
@@ -256,10 +257,10 @@ if (!session?.user) {
       const { error } = await supabase
         .from('properties')
         .insert({
-  title: title.trim(),
-  price: price.trim(),
-  location: location.trim(),
-  category: category.trim(),
+  title: String(title).trim(),
+  price: String(price).trim(),
+  location: String(location).trim(),
+  category: String(category).trim(),
   image,
   gallery: galleryImages,
 })
