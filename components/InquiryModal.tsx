@@ -57,6 +57,19 @@ export default function InquiryModal({
     useState(false)
 
   async function submitInquiry() {
+     console.log('SUBMIT INQUIRY')
+
+  console.log({
+    name,
+    email,
+    phone,
+    message,
+    nameType: typeof name,
+    emailType: typeof email,
+    phoneType: typeof phone,
+    messageType: typeof message,
+  })
+
     try {
       if (!name || !email) {
         Alert.alert(
