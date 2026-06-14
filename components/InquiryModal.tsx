@@ -23,7 +23,7 @@ import {
 import { supabase } from '@/src/services/supabase'
 
 const AGENT_PHONE =
-  '+36301234567'
+  '+36307833456'
 
 const AGENT_EMAIL =
   'info@realvia.hu'
