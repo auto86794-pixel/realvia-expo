@@ -1,44 +1,43 @@
 import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+  Stack,
+  router,
+  useLocalSearchParams,
+} from 'expo-router'
 
-import {
+import React, {
   useEffect,
   useState,
 } from 'react'
 
 import {
-  router,
-  useLocalSearchParams,
-} from 'expo-router'
-
-import Animated, {
-  FadeInDown,
-} from 'react-native-reanimated'
-
-import * as ImagePicker from 'expo-image-picker'
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 
 import { Image } from 'expo-image'
 
-import { decode } from 'base64-arraybuffer'
+import { LinearGradient } from 'expo-linear-gradient'
 
 import { supabase } from '@/src/services/supabase'
-
-import {
-  Colors,
-  Radius,
-  Shadows,
-} from '@/constants/theme'
 
 export default function EditProperty() {
   const { id } =
     useLocalSearchParams()
+
+  const propertyId =
+    Number(id)
+
+  const [loading, setLoading] =
+    useState(true)
+
+  const [saving, setSaving] =
+    useState(false)
 
   const [title, setTitle] =
     useState('')
@@ -52,711 +51,409 @@ export default function EditProperty() {
   const [description, setDescription] =
     useState('')
 
-  const [category, setCategory] =
-    useState('Lakások')
-
-  const [images, setImages] =
-    useState<string[]>([])
-
-  const [loading, setLoading] =
-    useState(false)
-
-  const [
-    initialLoading,
-    setInitialLoading,
-  ] = useState(true)
-
-  const categories = [
-    'Lakások',
-    'Családi ház',
-    'Villák',
-    'Penthouse',
-    'Új építésű',
-  ]
+  const [image, setImage] =
+    useState('')
 
   async function loadProperty() {
     try {
+      if (!propertyId) {
+        Alert.alert(
+          'Hiba',
+          'Érvénytelen ingatlan azonosító.'
+        )
+
+        router.back()
+
+        return
+      }
+
+      setLoading(true)
+
       const { data, error } =
         await supabase
           .from('properties')
           .select('*')
-          .eq('id', id)
+          .eq('id', propertyId)
           .single()
-
-      if (error) {
-        console.log(error)
-        return
-      }
-
-      if (data) {
-        setTitle(data.title || '')
-
-        setLocation(
-          data.location || ''
-        )
-
-        setPrice(data.price || '')
-
-        setDescription(
-          data.description || ''
-        )
-
-        setCategory(
-          data.category ||
-            'Lakások'
-        )
-
-        setImages(
-          data.gallery ||
-            (data.image
-              ? [data.image]
-              : [])
-        )
-      }
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setInitialLoading(false)
-    }
-  }
-
-  async function pickImage() {
-    try {
-      const result =
-        await ImagePicker.launchImageLibraryAsync(
-          {
-            mediaTypes:
-              ImagePicker.MediaTypeOptions.Images,
-
-            allowsMultipleSelection: true,
-
-            selectionLimit: 10,
-
-            quality: 0.9,
-
-            base64: true,
-          }
-        )
-
-      if (result.canceled) return
-
-      const uploadedImages: string[] =
-        []
-
-      for (const asset of result.assets) {
-        const fileExt =
-          asset.uri
-            .split('.')
-            .pop() || 'jpg'
-
-        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`
-
-        const filePath = `${fileName}`
-
-        const { error } =
-          await supabase.storage
-            .from('properties')
-            .upload(
-              filePath,
-              decode(
-                asset.base64 || ''
-              ),
-              {
-                contentType:
-                  asset.mimeType ||
-                  'image/jpeg',
-              }
-            )
-
-        if (error) {
-          console.log(error)
-          continue
-        }
-
-        const { data } =
-          supabase.storage
-            .from('properties')
-            .getPublicUrl(
-              filePath
-            )
-
-        uploadedImages.push(
-          data.publicUrl
-        )
-      }
-
-      setImages((prev) => [
-        ...prev,
-        ...uploadedImages,
-      ])
-    } catch (error) {
-      console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'Kép feltöltési hiba.'
-      )
-    }
-  }
-
-  function removeImage(
-    imageToRemove: string
-  ) {
-    setImages((prev) =>
-      prev.filter(
-        (img) =>
-          img !== imageToRemove
-      )
-    )
-  }
-
-  async function handleUpdate() {
-    try {
-      setLoading(true)
-
-      const { error } =
-        await supabase
-          .from('properties')
-          .update({
-            title,
-            location,
-            price,
-            description,
-            category,
-            image: images[0],
-            gallery: images,
-          })
-          .eq('id', id)
 
       if (error) {
         console.log(error)
 
         Alert.alert(
           'Hiba',
-          'Nem sikerült frissíteni.'
+          'Nem sikerült betölteni az ingatlant.'
+        )
+
+        return
+      }
+
+      setTitle(data.title || '')
+      setLocation(data.location || '')
+      setPrice(data.price || '')
+      setDescription(
+        data.description || ''
+      )
+      setImage(data.image || '')
+    } catch (error) {
+      console.log(error)
+
+      Alert.alert(
+        'Hiba',
+        'Váratlan hiba történt.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function saveProperty() {
+    try {
+      if (!title.trim()) {
+        Alert.alert(
+          'Hiányzó adat',
+          'Adj meg egy nevet.'
+        )
+
+        return
+      }
+
+      if (!location.trim()) {
+        Alert.alert(
+          'Hiányzó adat',
+          'Adj meg egy lokációt.'
+        )
+
+        return
+      }
+
+      if (!propertyId) {
+        Alert.alert(
+          'Hiba',
+          'Érvénytelen ingatlan azonosító.'
+        )
+
+        return
+      }
+
+      setSaving(true)
+
+      const { error } =
+        await supabase
+          .from('properties')
+          .update({
+            title: title.trim(),
+            location:
+              location.trim(),
+            price: price.trim(),
+            description:
+              description.trim(),
+          })
+          .eq('id', propertyId)
+
+      if (error) {
+        console.log(error)
+
+        Alert.alert(
+          'Hiba',
+          'Nem sikerült menteni.'
         )
 
         return
       }
 
       Alert.alert(
-        'Sikeres mentés',
+        'Siker',
         'Az ingatlan frissítve lett.'
       )
 
       router.back()
     } catch (error) {
       console.log(error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  async function handleDelete() {
-    try {
       Alert.alert(
-        'Ingatlan törlése',
-        'Biztosan törölni szeretnéd ezt az ingatlant?',
-        [
-          {
-            text: 'Mégse',
-            style: 'cancel',
-          },
-          {
-            text: 'Törlés',
-            style: 'destructive',
-
-            onPress: async () => {
-              const { error } =
-                await supabase
-                  .from(
-                    'properties'
-                  )
-                  .delete()
-                  .eq('id', id)
-
-              if (error) {
-                console.log(error)
-
-                Alert.alert(
-                  'Hiba',
-                  'Nem sikerült törölni.'
-                )
-
-                return
-              }
-
-              Alert.alert(
-                'Sikeres törlés',
-                'Az ingatlan törölve lett.'
-              )
-
-              router.replace(
-                '/dashboard'
-              )
-            },
-          },
-        ]
+        'Hiba',
+        'Váratlan hiba történt.'
       )
-    } catch (error) {
-      console.log(error)
+    } finally {
+      setSaving(false)
     }
   }
 
   useEffect(() => {
     loadProperty()
-  }, [])
+  }, [id])
 
-  if (initialLoading) {
+  if (loading) {
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor:
-            Colors.dark
-              .background,
+          backgroundColor: '#05060A',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
-      />
+      >
+        <ActivityIndicator
+          size="large"
+          color="#E6C998"
+        />
+      </View>
     )
   }
 
   return (
-    <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor:
-          Colors.dark.background,
-      }}
-      contentContainerStyle={{
-        paddingTop: 90,
-        paddingBottom: 180,
-        paddingHorizontal: 24,
-      }}
-      showsVerticalScrollIndicator={
-        false
-      }
-    >
-      {/* HEADER */}
-      <Animated.View
-        entering={FadeInDown.springify()}
+    <>
+      <StatusBar barStyle="light-content" />
+
+      <Stack.Screen
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <ScrollView
+        style={{
+          flex: 1,
+          backgroundColor: '#05060A',
+        }}
+        contentContainerStyle={{
+          padding: 24,
+          paddingTop: 110,
+          paddingBottom: 140,
+        }}
+        showsVerticalScrollIndicator={
+          false
+        }
       >
+        <View
+          style={{
+            height: 260,
+            borderRadius: 32,
+            overflow: 'hidden',
+            marginBottom: 34,
+          }}
+        >
+          <Image
+            source={{
+              uri:
+                image ||
+                'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1600&auto=format&fit=crop',
+            }}
+            contentFit="cover"
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+
+          <LinearGradient
+            colors={[
+              'transparent',
+              'rgba(0,0,0,0.75)',
+            ]}
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              justifyContent:
+                'flex-end',
+              padding: 24,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor:
+                  'rgba(230,201,152,0.14)',
+                borderWidth: 1,
+                borderColor:
+                  'rgba(230,201,152,0.22)',
+                alignSelf:
+                  'flex-start',
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 999,
+                marginBottom: 14,
+              }}
+            >
+              <Text
+                style={{
+                  color: '#F2E6CF',
+                  fontSize: 12,
+                  fontWeight: '700',
+                  letterSpacing: 1.2,
+                }}
+              >
+                REALVIA EXCLUSIVE
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 32,
+                fontWeight: '700',
+                letterSpacing: -1,
+                maxWidth: '88%',
+              }}
+            >
+              {title || 'Luxury Villa'}
+            </Text>
+
+            <Text
+              style={{
+                color:
+                  'rgba(255,255,255,0.72)',
+                marginTop: 8,
+                fontSize: 15,
+                letterSpacing: 1,
+              }}
+            >
+              {location}
+            </Text>
+          </LinearGradient>
+        </View>
+
         <Text
           style={{
-            color: 'white',
-
-            fontSize:
-              Platform.OS ===
-              'web'
-                ? 54
-                : 42,
-
-            fontWeight: '900',
-
-            letterSpacing: -2,
+            color: '#F2E6CF',
+            fontSize: 38,
+            fontWeight: '600',
+            letterSpacing: 1,
+            marginBottom: 38,
           }}
         >
           Ingatlan szerkesztése
         </Text>
 
-        <Text
+        <View
           style={{
-            color:
-              Colors.dark.muted,
-
-            marginTop: 12,
-
-            fontSize: 17,
-
-            lineHeight: 28,
+            gap: 24,
           }}
         >
-          Frissítsd az ingatlan
-          adatait és galériáját.
-        </Text>
-      </Animated.View>
-
-      {/* FORM */}
-      <View
-        style={{
-          marginTop: 42,
-          gap: 24,
-        }}
-      >
-        <Input
-          label="Ingatlan neve"
-          value={title}
-          onChangeText={setTitle}
-        />
-
-        <Input
-          label="Lokáció"
-          value={location}
-          onChangeText={setLocation}
-        />
-
-        <Input
-          label="Ár"
-          value={price}
-          onChangeText={setPrice}
-        />
-
-        <Input
-          label="Leírás"
-          value={description}
-          onChangeText={
-            setDescription
-          }
-          multiline
-          height={160}
-        />
-
-        {/* GALLERY */}
-        <View>
-          <Text
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Ingatlan neve"
+            placeholderTextColor="#777"
             style={{
-              color: 'white',
-
-              fontSize: 15,
-
-              fontWeight: '700',
-
-              marginBottom: 14,
+              height: 68,
+              borderRadius: 24,
+              backgroundColor:
+                'rgba(255,255,255,0.04)',
+              borderWidth: 1,
+              borderColor:
+                'rgba(230,201,152,0.10)',
+              paddingHorizontal: 22,
+              color: '#fff',
+              fontSize: 17,
             }}
-          >
-            Galéria
-          </Text>
+          />
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={
-              false
+          <TextInput
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Lokáció"
+            placeholderTextColor="#777"
+            style={{
+              height: 68,
+              borderRadius: 24,
+              backgroundColor:
+                'rgba(255,255,255,0.04)',
+              borderWidth: 1,
+              borderColor:
+                'rgba(230,201,152,0.10)',
+              paddingHorizontal: 22,
+              color: '#fff',
+              fontSize: 17,
+            }}
+          />
+
+          <TextInput
+            value={price}
+            onChangeText={setPrice}
+            placeholder="Ár"
+            placeholderTextColor="#777"
+            style={{
+              height: 68,
+              borderRadius: 24,
+              backgroundColor:
+                'rgba(255,255,255,0.04)',
+              borderWidth: 1,
+              borderColor:
+                'rgba(230,201,152,0.10)',
+              paddingHorizontal: 22,
+              color: '#fff',
+              fontSize: 17,
+            }}
+          />
+
+          <TextInput
+            value={description}
+            onChangeText={
+              setDescription
             }
-            contentContainerStyle={{
-              gap: 14,
+            placeholder="Leírás"
+            placeholderTextColor="#777"
+            multiline
+            textAlignVertical="top"
+            style={{
+              minHeight: 220,
+              borderRadius: 28,
+              backgroundColor:
+                'rgba(255,255,255,0.04)',
+              borderWidth: 1,
+              borderColor:
+                'rgba(230,201,152,0.10)',
+              paddingHorizontal: 22,
+              paddingTop: 22,
+              color: '#fff',
+              fontSize: 17,
+              lineHeight: 30,
             }}
-          >
-            {images.map((img) => (
-              <View
-                key={img}
-                style={{
-                  position:
-                    'relative',
-                }}
-              >
-                <Image
-                  source={{
-                    uri: img,
-                  }}
-                  contentFit="cover"
-                  style={{
-                    width: 220,
-                    height: 140,
+          />
+        </View>
 
-                    borderRadius:
-                      20,
-                  }}
-                />
-
-                <Pressable
-                  onPress={() =>
-                    removeImage(
-                      img
-                    )
-                  }
-                  style={{
-                    position:
-                      'absolute',
-
-                    top: 10,
-                    right: 10,
-
-                    backgroundColor:
-                      'rgba(0,0,0,0.7)',
-
-                    width: 34,
-                    height: 34,
-
-                    borderRadius:
-                      999,
-
-                    alignItems:
-                      'center',
-
-                    justifyContent:
-                      'center',
-                  }}
-                >
-                  <Text
-                    style={{
-                      color:
-                        'white',
-
-                      fontSize: 18,
-
-                      fontWeight:
-                        '900',
-                    }}
-                  >
-                    ×
-                  </Text>
-                </Pressable>
-              </View>
-            ))}
-
-            <Pressable
-              onPress={pickImage}
+        <Pressable
+          onPress={saveProperty}
+          disabled={saving}
+          style={{
+            height: 70,
+            borderRadius: 999,
+            backgroundColor:
+              '#E6C998',
+            justifyContent:
+              'center',
+            alignItems: 'center',
+            marginTop: 42,
+            opacity:
+              saving ? 0.7 : 1,
+            shadowColor:
+              '#E6C998',
+            shadowOffset: {
+              width: 0,
+              height: 8,
+            },
+            shadowOpacity: 0.22,
+            shadowRadius: 24,
+            elevation: 10,
+          }}
+        >
+          {saving ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text
               style={{
-                width: 220,
-                height: 140,
-
-                borderRadius: 20,
-
-                backgroundColor:
-                  Colors.dark
-                    .surface,
-
-                borderWidth: 1,
-
-                borderColor:
-                  Colors.dark
-                    .border,
-
-                alignItems:
-                  'center',
-
-                justifyContent:
-                  'center',
-
-                ...Shadows.luxury,
+                color: '#000',
+                fontSize: 18,
+                fontWeight: '800',
+                letterSpacing: 1,
               }}
             >
-              <Text
-                style={{
-                  color:
-                    Colors.dark
-                      .primary,
-
-                  fontWeight: '800',
-
-                  fontSize: 16,
-                }}
-              >
-                + Képek hozzáadása
-              </Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-
-        {/* CATEGORY */}
-        <View>
-          <Text
-            style={{
-              color: 'white',
-
-              fontSize: 15,
-
-              fontWeight: '700',
-
-              marginBottom: 14,
-            }}
-          >
-            Kategória
-          </Text>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={
-              false
-            }
-            contentContainerStyle={{
-              gap: 12,
-            }}
-          >
-            {categories.map(
-              (item) => (
-                <Pressable
-                  key={item}
-                  onPress={() =>
-                    setCategory(item)
-                  }
-                  style={{
-                    backgroundColor:
-                      category === item
-                        ? Colors.dark
-                            .primary
-                        : Colors.dark
-                            .surface,
-
-                    paddingHorizontal: 22,
-
-                    paddingVertical: 14,
-
-                    borderRadius:
-                      Radius.full,
-
-                    borderWidth: 1,
-
-                    borderColor:
-                      category === item
-                        ? Colors.dark
-                            .primary
-                        : Colors.dark
-                            .border,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color:
-                        category === item
-                          ? '#000'
-                          : 'white',
-
-                      fontWeight: '800',
-                    }}
-                  >
-                    {item}
-                  </Text>
-                </Pressable>
-              )
-            )}
-          </ScrollView>
-        </View>
-
-        {/* SAVE BUTTON */}
-        <Pressable
-          onPress={handleUpdate}
-          disabled={loading}
-          style={{
-            backgroundColor:
-              Colors.dark.primary,
-
-            paddingVertical: 22,
-
-            borderRadius:
-              Radius.full,
-
-            alignItems: 'center',
-
-            marginTop: 14,
-
-            opacity: loading
-              ? 0.7
-              : 1,
-
-            ...Shadows.luxury,
-          }}
-        >
-          <Text
-            style={{
-              color: '#000',
-
-              fontSize: 17,
-
-              fontWeight: '900',
-            }}
-          >
-            {loading
-              ? 'Mentés...'
-              : 'Változtatások mentése'}
-          </Text>
+              MENTÉS
+            </Text>
+          )}
         </Pressable>
-
-        {/* DELETE BUTTON */}
-        <Pressable
-          onPress={handleDelete}
-          style={{
-            backgroundColor:
-              'rgba(255,80,80,0.12)',
-
-            paddingVertical: 22,
-
-            borderRadius:
-              Radius.full,
-
-            alignItems: 'center',
-
-            borderWidth: 1,
-
-            borderColor:
-              'rgba(255,80,80,0.18)',
-          }}
-        >
-          <Text
-            style={{
-              color: '#FF6B6B',
-
-              fontSize: 17,
-
-              fontWeight: '900',
-            }}
-          >
-            🗑️ Ingatlan törlése
-          </Text>
-        </Pressable>
-      </View>
-    </ScrollView>
-  )
-}
-
-function Input({
-  label,
-  value,
-  onChangeText,
-  multiline,
-  height,
-}: any) {
-  return (
-    <View>
-      <Text
-        style={{
-          color: 'white',
-
-          fontSize: 15,
-
-          fontWeight: '700',
-
-          marginBottom: 12,
-        }}
-      >
-        {label}
-      </Text>
-
-      <TextInput
-        value={value}
-        onChangeText={
-          onChangeText
-        }
-        multiline={multiline}
-        placeholderTextColor="#666"
-        style={{
-          backgroundColor:
-            Colors.dark.surface,
-
-          borderRadius:
-            Radius.lg,
-
-          paddingHorizontal: 20,
-
-          paddingVertical: 18,
-
-          color: 'white',
-
-          fontSize: 16,
-
-          borderWidth: 1,
-
-          borderColor:
-            Colors.dark.border,
-
-          minHeight:
-            height || 64,
-
-          textAlignVertical:
-            multiline
-              ? 'top'
-              : 'center',
-        }}
-      />
-    </View>
+      </ScrollView>
+    </>
   )
 }

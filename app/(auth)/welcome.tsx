@@ -1,7 +1,9 @@
 import {
   ImageBackground,
+  Platform,
   Pressable,
-  Text
+  Text,
+  View,
 } from 'react-native'
 
 import { LinearGradient } from 'expo-linear-gradient'
@@ -24,7 +26,7 @@ export default function Welcome() {
       <LinearGradient
         colors={[
           'rgba(0,0,0,0.25)',
-          'rgba(0,0,0,0.92)',
+          'rgba(0,0,0,0.94)',
         ]}
         style={{
           flex: 1,
@@ -40,18 +42,75 @@ export default function Welcome() {
         <Animated.View
           entering={FadeInDown.springify()}
           style={{
-            marginBottom: 34,
+            marginBottom: 42,
+
+            alignItems: 'center',
           }}
         >
+          <View
+            style={{
+              width: 54,
+              height: 54,
+
+              borderWidth: 1,
+
+              borderColor:
+                'rgba(230,201,152,0.85)',
+
+              justifyContent:
+                'center',
+
+              alignItems: 'center',
+
+              marginBottom: 24,
+            }}
+          >
+            <Text
+              style={{
+                color: '#F2E6CF',
+
+                fontSize: 34,
+
+                fontWeight: '400',
+
+                letterSpacing: 1,
+
+                fontFamily:
+                  Platform.OS ===
+                  'ios'
+                    ? 'Didot'
+                    : Platform.OS ===
+                      'android'
+                    ? 'serif'
+                    : 'Didot, serif',
+              }}
+            >
+              R
+            </Text>
+          </View>
+
           <Text
             style={{
-              color: 'white',
+              color: '#F2E6CF',
 
-              fontSize: 58,
+              fontSize: 64,
 
-              fontWeight: '900',
+              fontWeight: '300',
 
-              letterSpacing: -3,
+              letterSpacing: 3,
+
+              textAlign: 'center',
+
+              fontFamily:
+                Platform.OS ===
+                'ios'
+                  ? 'Didot'
+                  : Platform.OS ===
+                    'android'
+                  ? 'serif'
+                  : 'Didot, serif',
+
+              marginBottom: 8,
             }}
           >
             REALVIA
@@ -59,27 +118,73 @@ export default function Welcome() {
 
           <Text
             style={{
-              color: 'white',
+              color: '#E8D3AE',
 
-              fontSize: 22,
+              fontSize: 18,
 
-              fontWeight: '700',
+              fontWeight: '600',
+
+              letterSpacing: 1.2,
+
+              textAlign: 'center',
 
               marginTop: 10,
             }}
           >
-            Találd meg álmaid otthonát
+            EGY LÉPÉSSEL KÖZELEBB AZ OTTHONODHOZ 
           </Text>
+
+          <View
+            style={{
+              flexDirection: 'row',
+
+              alignItems: 'center',
+
+              marginTop: 18,
+
+              marginBottom: 18,
+            }}
+          >
+            <View
+              style={{
+                height: 1,
+
+                width: 42,
+
+                backgroundColor:
+                  'rgba(230,201,152,0.45)',
+              }}
+            />
+
+            <View
+              style={{
+                width: 10,
+              }}
+            />
+
+            <View
+              style={{
+                height: 1,
+
+                width: 42,
+
+                backgroundColor:
+                  'rgba(230,201,152,0.45)',
+              }}
+            />
+          </View>
 
           <Text
             style={{
               color: '#D4D4D8',
 
-              fontSize: 16,
+              fontSize: 18,
 
-              marginTop: 18,
+              lineHeight: 30,
 
-              lineHeight: 25,
+              textAlign: 'center',
+
+              maxWidth: 340,
             }}
           >
             Kivételes ingatlanok.
@@ -105,11 +210,11 @@ export default function Welcome() {
             }
             style={{
               backgroundColor:
-                '#D6B07B',
+                '#E6C998',
 
-              paddingVertical: 20,
+              paddingVertical: 22,
 
-              borderRadius: 28,
+              borderRadius: 999,
 
               alignItems: 'center',
 
@@ -117,29 +222,29 @@ export default function Welcome() {
 
               maxWidth: 420,
 
-              shadowColor: '#D6B07B',
+              shadowColor: '#E6C998',
 
               shadowOffset: {
                 width: 0,
-                height: 0,
+                height: 8,
               },
 
-              shadowOpacity: 0.18,
+              shadowOpacity: 0.22,
 
-              shadowRadius: 16,
+              shadowRadius: 24,
 
-              elevation: 8,
+              elevation: 10,
             }}
           >
             <Text
               style={{
-                color: '#000000',
+                color: '#000',
 
-                fontSize: 18,
+                fontSize: 20,
 
                 fontWeight: '800',
 
-                letterSpacing: 1,
+                letterSpacing: 2,
               }}
             >
               BELÉPÉS
@@ -153,19 +258,19 @@ export default function Welcome() {
               )
             }
             style={{
-              paddingVertical: 18,
+              paddingVertical: 20,
 
-              borderRadius: 26,
+              borderRadius: 999,
 
               alignItems: 'center',
 
               borderWidth: 1,
 
               borderColor:
-                'rgba(255,255,255,0.08)',
+                'rgba(230,201,152,0.45)',
 
               backgroundColor:
-                'rgba(255,255,255,0.03)',
+                'rgba(255,255,255,0.02)',
 
               width: '100%',
 
@@ -174,13 +279,13 @@ export default function Welcome() {
           >
             <Text
               style={{
-                color: 'white',
+                color: '#E6C998',
 
-                fontSize: 17,
+                fontSize: 18,
 
                 fontWeight: '700',
 
-                letterSpacing: 0.5,
+                letterSpacing: 1.2,
               }}
             >
               REGISZTRÁCIÓ
@@ -194,17 +299,17 @@ export default function Welcome() {
               )
             }
             style={{
-              marginTop: 6,
+              marginTop: 8,
             }}
           >
             <Text
               style={{
                 color:
-                  'rgba(255,255,255,0.55)',
+                  'rgba(230,201,152,0.72)',
 
-                fontSize: 15,
+                fontSize: 16,
 
-                letterSpacing: 0.3,
+                letterSpacing: 0.6,
               }}
             >
               Vendégként böngészem →

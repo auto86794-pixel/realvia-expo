@@ -2,7 +2,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text
+  Text,
 } from 'react-native'
 
 import {
@@ -47,7 +47,7 @@ export default function CategoryTabs({
         contentContainerStyle={{
           gap: 16,
 
-          paddingRight: 24,
+          paddingHorizontal: 24,
 
           paddingVertical: 6,
         }}
@@ -80,6 +80,10 @@ export default function CategoryTabs({
                 setHovered(null)
               }
               style={{
+                flexShrink: 0,
+
+                minWidth: 120,
+
                 paddingHorizontal: 28,
 
                 paddingVertical: 16,

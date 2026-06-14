@@ -20,10 +20,18 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { supabase } from '@/src/services/supabase'
+import { useProtectedRoute } from '../../src/hooks/useProtectedRoute'
+
+import { useAuth } from '../../src/providers/AuthProvider'
+
 
 const MAX_GALLERY_IMAGES = 12
 
 export default function CreateScreen() {
+  useProtectedRoute()
+
+  const { session } = useAuth()
+
   const [title, setTitle] = useState('')
   const [price, setPrice] = useState('')
   const [location, setLocation] = useState('')
@@ -33,7 +41,8 @@ export default function CreateScreen() {
   const [galleryImages, setGalleryImages] =
     useState<string[]>([])
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] =
+    useState(false)
 
   const [uploadingCover, setUploadingCover] =
     useState(false)
@@ -46,7 +55,9 @@ export default function CreateScreen() {
 
   const [selectedPreviewImage, setSelectedPreviewImage] =
     useState('')
+  
 
+  
   async function uploadImage(uri: string) {
     const response = await fetch(uri)
 
@@ -213,13 +224,24 @@ export default function CreateScreen() {
   }
 
   async function createProperty() {
-    if (
-      !title ||
-      !price ||
-      !location ||
-      !category ||
-      !image
-    ) {
+if (!session?.user) {
+    Alert.alert(
+      'Hiba',
+      'Ingatlan létrehozásához be kell jelentkezned.'
+    )
+
+    return
+  }
+
+  if (
+    !title ||
+    !price ||
+    !location ||
+    !category ||
+    !image
+  ) {
+
+    
       Alert.alert(
         'Hiányzó adatok',
         'Minden kötelező mezőt tölts ki.'
@@ -234,14 +256,14 @@ export default function CreateScreen() {
       const { error } = await supabase
         .from('properties')
         .insert({
-          title,
-          price,
-          location,
-          category,
-          image,
-          gallery: galleryImages,
-        })
-
+  title: title.trim(),
+  price: price.trim(),
+  location: location.trim(),
+  category: category.trim(),
+  image,
+  gallery: galleryImages,
+})
+       
       if (error) {
         console.log(error)
 
@@ -332,7 +354,7 @@ export default function CreateScreen() {
               style={styles.input}
               value={price}
               onChangeText={setPrice}
-              keyboardType="numeric"
+              autoCapitalize="none"
             />
           </View>
 

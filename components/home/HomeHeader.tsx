@@ -31,12 +31,8 @@ export default function HomeHeader({
       <View
         style={{
           flexDirection: 'row',
-
-          justifyContent:
-            'space-between',
-
+          justifyContent: 'space-between',
           alignItems: 'center',
-
           marginBottom:
             Platform.OS === 'web'
               ? 48
@@ -48,20 +44,16 @@ export default function HomeHeader({
           <Text
             style={{
               color: 'white',
-
               fontSize:
                 Platform.OS === 'web'
-                  ? 72
-                  : 52,
-
+                  ? 64
+                  : 48,
               fontWeight: '900',
-
               letterSpacing: -4,
-
               lineHeight:
                 Platform.OS === 'web'
-                  ? 72
-                  : 56,
+                  ? 64
+                  : 52,
             }}
           >
             REALVIA
@@ -71,20 +63,15 @@ export default function HomeHeader({
             style={{
               color:
                 Colors.dark.primary,
-
               fontSize: 14,
-
               letterSpacing: 3,
-
               marginTop: 4,
-
               textTransform:
                 'uppercase',
-
               fontWeight: '700',
             }}
           >
-            Luxury Real Estate
+            PRÉMIUM INGATLANOK
           </Text>
         </View>
 
@@ -94,19 +81,13 @@ export default function HomeHeader({
             style={{
               backgroundColor:
                 'rgba(255,255,255,0.06)',
-
               borderRadius:
                 Radius.full,
-
               paddingHorizontal: 20,
-
               paddingVertical: 14,
-
               borderWidth: 1,
-
               borderColor:
                 'rgba(255,255,255,0.08)',
-
               maxWidth: 280,
             }}
           >
@@ -114,9 +95,7 @@ export default function HomeHeader({
               numberOfLines={1}
               style={{
                 color: '#D1D5DB',
-
                 fontSize: 14,
-
                 fontWeight: '600',
               }}
             >
@@ -132,52 +111,144 @@ export default function HomeHeader({
           maxWidth: 760,
         }}
       >
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            backgroundColor:
+              'rgba(212,175,55,0.12)',
+            borderRadius:
+              Radius.full,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            marginBottom: 24,
+            borderWidth: 1,
+            borderColor:
+              'rgba(212,175,55,0.25)',
+          }}
+        >
+          <Text
+            style={{
+              color: '#D4AF37',
+              fontSize: 12,
+              fontWeight: '700',
+              letterSpacing: 2,
+            }}
+          >
+            ✦ PRÉMIUM INGATLANOK
+          </Text>
+        </View>
+
         <Text
           style={{
             color: 'white',
-
             fontSize:
               Platform.OS === 'web'
-                ? 82
+                ? 72
                 : 48,
-
             lineHeight:
               Platform.OS === 'web'
-                ? 88
+                ? 78
                 : 54,
-
             fontWeight: '900',
-
-            letterSpacing: -4,
+            letterSpacing: -3,
           }}
         >
-          Find Your Dream Luxury Property
+          Prémium ingatlanok
+          {'\n'}
+          kivételes életstílushoz
         </Text>
 
         <Text
           style={{
-            color: '#A1A1AA',
-
+            color: '#E5E7EB',
             fontSize:
               Platform.OS === 'web'
-                ? 22
-                : 18,
-
+                ? 20
+                : 17,
             lineHeight:
               Platform.OS === 'web'
-                ? 36
-                : 30,
-
-            marginTop: 28,
-
-            maxWidth: 620,
+                ? 32
+                : 24,
+            marginTop: 24,
+            maxWidth: 560,
           }}
         >
-          Exclusive villas,
-          penthouses and premium
-          estates tailored for
-          modern luxury living.
+          Válogatott luxusotthonok,
+          villák és penthouse-ok
+          egyetlen platformon.
         </Text>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginTop: 36,
+            gap: 40,
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 28,
+                fontWeight: '900',
+              }}
+            >
+              500+
+            </Text>
+
+            <Text
+              style={{
+                color: '#9CA3AF',
+                marginTop: 4,
+              }}
+            >
+              Ingatlan
+            </Text>
+          </View>
+
+          <View>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 28,
+                fontWeight: '900',
+              }}
+            >
+              1500+
+            </Text>
+
+            <Text
+              style={{
+                color: '#9CA3AF',
+                marginTop: 4,
+              }}
+            >
+              Ügyfél
+            </Text>
+          </View>
+
+          <View>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 28,
+                fontWeight: '900',
+              }}
+            >
+              4.9★
+            </Text>
+
+            <Text
+              style={{
+                color: '#9CA3AF',
+                marginTop: 4,
+              }}
+            >
+              Értékelés
+            </Text>
+          </View>
+        </View>
       </View>
     </Animated.View>
   )

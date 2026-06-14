@@ -1,5 +1,7 @@
 import { View } from 'react-native'
 
+import { useEffect } from 'react'
+
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -8,13 +10,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import {
-  useEffect,
-} from 'react'
-
 export default function PropertyCardSkeleton() {
   const opacity =
     useSharedValue(0.35)
+
+  const translateX =
+    useSharedValue(-300)
 
   useEffect(() => {
     opacity.value =
@@ -28,11 +29,34 @@ export default function PropertyCardSkeleton() {
         -1,
         true
       )
+
+    translateX.value =
+      withRepeat(
+        withTiming(500, {
+          duration: 1800,
+          easing: Easing.linear,
+        }),
+        -1,
+        false
+      )
   }, [])
 
   const animatedStyle =
     useAnimatedStyle(() => ({
       opacity: opacity.value,
+    }))
+
+  const shimmerStyle =
+    useAnimatedStyle(() => ({
+      transform: [
+        {
+          translateX:
+            translateX.value,
+        },
+        {
+          rotate: '12deg',
+        },
+      ],
     }))
 
   return (
@@ -55,6 +79,7 @@ export default function PropertyCardSkeleton() {
           borderColor:
             'rgba(255,255,255,0.04)',
         },
+
         animatedStyle,
       ]}
     >
@@ -121,6 +146,28 @@ export default function PropertyCardSkeleton() {
           }}
         />
       </View>
+
+      {/* SHIMMER */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            position: 'absolute',
+
+            width: 180,
+            height: '140%',
+
+            backgroundColor:
+              'rgba(255,255,255,0.05)',
+
+            opacity: 0.18,
+
+            top: -80,
+          },
+
+          shimmerStyle,
+        ]}
+      />
     </Animated.View>
   )
 }

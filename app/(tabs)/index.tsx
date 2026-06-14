@@ -175,7 +175,25 @@ export default function Home() {
       selectedCategory,
     ])
 
-  return (
+
+const favoriteProperties =
+  useMemo(() => {
+    const favoriteIds =
+      favorites.map(
+        fav => fav.property_id
+      )
+
+    return properties.filter(
+      property =>
+        favoriteIds.includes(
+          property.id
+        )
+    )
+  }, [favorites, properties])
+
+return (
+
+ 
     <View
       style={{
         flex: 1,
@@ -214,15 +232,15 @@ export default function Home() {
           }}
         >
           <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
-            }}
-            contentFit="cover"
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          />
+            
+  source={require('../../assets/images/luxury-placeholder.png')}
+  contentFit="cover"
+  style={{
+    width: '100%',
+    height: '100%',
+  }}
+/>
+         
 
           <View
             style={{
@@ -232,7 +250,7 @@ export default function Home() {
               height: '100%',
 
               backgroundColor:
-                'rgba(0,0,0,0.45)',
+                'rgba(0,0,0,0.58)',
             }}
           />
 
@@ -244,6 +262,11 @@ export default function Home() {
               height: '100%',
 
               justifyContent: 'center',
+
+              paddingTop:
+                Platform.OS === 'web'
+                  ? 0
+                  : 40,
 
               paddingHorizontal: 24,
             }}
@@ -535,42 +558,43 @@ export default function Home() {
               favorites.map(
                 (favorite) => (
                   <View
-                    key={favorite.id}
-                    style={{
-                      backgroundColor:
-                        Colors.dark
-                          .surface,
-
-                      padding: 24,
-
-                      borderRadius:
-                        Radius.lg,
-
-                      borderWidth: 1,
-
-                      borderColor:
-                        Colors.dark
-                          .border,
-
-                      marginBottom: 18,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: 'white',
-
-                        fontSize: 18,
-
-                        fontWeight:
-                          '700',
-                      }}
-                    >
-                      ❤️{' '}
-                      {
-                        favorite.property_id
-                      }
-                    </Text>
-                  </View>
+  style={{
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 24,
+  }}
+>
+  {favoriteProperties.map(
+    (property, index) => (
+      <Animated.View
+        key={property.id}
+        entering={FadeInDown.delay(
+          200 + index * 100
+        ).springify()}
+        style={{
+          width:
+            Platform.OS === 'web'
+              ? '32%'
+              : '100%',
+        }}
+      >
+        <PropertyCard
+          id={property.id}
+          title={property.title}
+          price={property.price}
+          location={property.location}
+          images={
+            property.gallery?.length
+              ? property.gallery
+              : [property.image]
+          }
+        />
+      </Animated.View>
+    )
+  )}
+</View>
+                  
                 )
               )
             )}

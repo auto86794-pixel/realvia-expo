@@ -1,19 +1,19 @@
 export const hu = {
   home: {
     heroTitle:
-      'Találd meg álmaid luxus ingatlanát',
+      'Találd meg álmaid otthonát',
 
     heroSubtitle:
-      'Exkluzív villák, penthouse-ok és prémium otthonok modern életstílushoz.',
+      'Exkluzív villák, penthouse-ok és prémium otthonok Magyarország legjobb lokációiban.',
 
     search:
-      'Luxus ingatlan keresése...',
+      'Város, kerület vagy ingatlantípus...',
 
     luxuryProperties:
-      'Luxus Ingatlanok',
+      'Exkluzív Ingatlanok',
 
     handpicked:
-      'Kézzel válogatott prémium ajánlatok',
+      'Válogatott prémium ajánlatok',
 
     favorites:
       'Kedvencek',
@@ -24,29 +24,30 @@ export const hu = {
 
   categories: {
     all: 'Összes',
-  apartments: 'Lakások',
-  houses: 'Családi ház',
-  villas: 'Villák',
-  penthouses: 'Penthouse',
-  newBuild: 'Új építésű',
+    apartments: 'Lakások',
+    houses: 'Családi házak',
+    villas: 'Villák',
+    penthouses: 'Penthouse-ok',
+    newBuild: 'Új építésűek',
   },
 
   dashboard: {
     title: 'Dashboard',
 
     subtitle:
-      'Luxury admin áttekintés',
+      'Prémium ingatlan adminisztráció',
 
     upload:
       'Új ingatlan feltöltése',
 
     latest:
-      'Legutóbbi ingatlanok',
+      'Legfrissebb ingatlanok',
 
     properties:
       'Ingatlanok',
 
-    leads: 'Leadek',
+    leads:
+      'Érdeklődők',
 
     favorites:
       'Kedvencek',
@@ -65,13 +66,13 @@ export const hu = {
     title: 'Kedvencek',
 
     subtitle:
-      'Saját luxury collection',
+      'Mentett ingatlanjaid',
 
     empty:
       'Még nincs kedvenc ingatlanod.',
 
     emptyText:
-      'Mentsd el kedvenc ingatlanaidat és itt jelennek meg.',
+      'Mentsd el kedvenc ingatlanaidat, és itt bármikor megtalálod őket.',
   },
 
   property: {
@@ -85,6 +86,6 @@ export const hu = {
       'Részletek',
 
     contact:
-      'Kapcsolat',
+      'Kapcsolatfelvétel',
   },
 }

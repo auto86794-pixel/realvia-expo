@@ -34,7 +34,11 @@ import PropertyCard from '@/components/PropertyCard'
 
 import { supabase } from '@/src/services/supabase'
 
+import { useAuth } from '../../src/providers/AuthProvider'
+
 export default function FavoritesScreen() {
+  const { session } = useAuth()
+
   const [favorites, setFavorites] =
     useState<any[]>([])
 
@@ -52,12 +56,26 @@ export default function FavoritesScreen() {
         setLoading(true)
       }
 
+      if (!session?.user?.id) {
+        setFavorites([])
+        return
+      }
+
       const {
         data: favoriteRows,
         error: favoritesError,
       } = await supabase
         .from('favorites')
         .select('property_id')
+        .eq(
+          'user_id',
+          session.user.id
+         )
+         console.log('USER:', session.user.id)
+         
+console.log('FAVORITES:', favoriteRows)
+console.log('FAVORITES ERROR:', favoritesError)
+        
 
       if (favoritesError) {
         console.log(favoritesError)
@@ -73,7 +91,7 @@ export default function FavoritesScreen() {
       }
 
       const ids = favoriteRows.map(
-        (item) => item.property_id
+        item => item.property_id
       )
 
       const {
@@ -83,6 +101,10 @@ export default function FavoritesScreen() {
         .from('properties')
         .select('*')
         .in('id', ids)
+        console.log('IDS:', ids)
+
+console.log('PROPERTIES:', properties)
+console.log('PROPERTIES ERROR:', propertiesError)
 
       if (propertiesError) {
         console.log(propertiesError)
@@ -107,12 +129,12 @@ export default function FavoritesScreen() {
 
   useEffect(() => {
     loadFavorites()
-  }, [])
+  }, [session?.user?.id])
 
   useFocusEffect(
     useCallback(() => {
       loadFavorites(false)
-    }, [])
+    }, [session?.user?.id])
   )
 
   async function onRefresh() {
@@ -152,7 +174,6 @@ export default function FavoritesScreen() {
         false
       }
     >
-      {/* HERO */}
       <LinearGradient
         colors={[
           '#10131A',
@@ -174,7 +195,6 @@ export default function FavoritesScreen() {
           </Text>
         </Animated.View>
 
-        {/* STATS */}
         <Animated.View
           entering={FadeInDown.delay(
             120
@@ -230,7 +250,6 @@ export default function FavoritesScreen() {
         </Animated.View>
       </LinearGradient>
 
-      {/* EMPTY */}
       {favorites.length === 0 && (
         <Animated.View
           entering={FadeInDown.delay(
@@ -273,7 +292,6 @@ export default function FavoritesScreen() {
         </Animated.View>
       )}
 
-      {/* LIST */}
       <View
         style={{
           marginTop: 10,
@@ -355,16 +373,12 @@ const styles = StyleSheet.create({
     marginTop: 28,
     borderRadius: 30,
     overflow: 'hidden',
-
     padding: 24,
-
     borderWidth: 1,
     borderColor:
       'rgba(255,255,255,0.06)',
-
     backgroundColor:
       'rgba(255,255,255,0.04)',
-
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent:
@@ -405,16 +419,12 @@ const styles = StyleSheet.create({
   emptyCard: {
     borderRadius: 34,
     overflow: 'hidden',
-
     paddingVertical: 50,
     paddingHorizontal: 28,
-
     alignItems: 'center',
-
     borderWidth: 1,
     borderColor:
       'rgba(255,255,255,0.06)',
-
     backgroundColor:
       'rgba(255,255,255,0.04)',
   },

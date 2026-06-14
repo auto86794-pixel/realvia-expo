@@ -46,6 +46,18 @@ export default function UploadScreen() {
   const [category, setCategory] =
     useState('Lakások')
 
+    const [bedrooms, setBedrooms] =
+  useState('')
+
+const [bathrooms, setBathrooms] =
+  useState('')
+
+const [area, setArea] =
+  useState('')
+
+const [parking, setParking] =
+  useState('')
+
   const [images, setImages] =
     useState<string[]>([])
 
@@ -139,33 +151,59 @@ export default function UploadScreen() {
   async function handleUpload() {
     try {
       if (
-        !title ||
-        !location ||
-        !price ||
-        images.length === 0
-      ) {
-        Alert.alert(
-          'Hiányzó mezők',
-          'Tölts ki minden kötelező mezőt.'
-        )
+  !title ||
+  !location ||
+  !price ||
+  !bedrooms ||
+  !bathrooms ||
+  !area ||
+  !parking ||
+  images.length === 0
+) {
+  Alert.alert(
+    'Hiányzó mezők',
+    'Tölts ki minden kötelező mezőt.'
+  )
 
-        return
-      }
+  return
+}
+       
+      if (
+  Number(bedrooms) <= 0 ||
+  Number(bathrooms) <= 0 ||
+  Number(area) <= 0
+) {
+  Alert.alert(
+    'Hibás adatok',
+    'Add meg a hálószobák, fürdőszobák és alapterület helyes értékét.'
+  )
+
+  return
+}
 
       setLoading(true)
 
       const { error } =
         await supabase
-          .from('properties')
-          .insert({
-            title,
-            location,
-            price,
-            image: images[0],
-            description,
-            category,
-            gallery: images,
-          })
+        .from('properties')
+  .insert({
+    title,
+    location,
+
+    price: Number(price),
+
+    image: images[0],
+
+    description,
+    category,
+    gallery: images,
+
+    bedrooms: Number(bedrooms),
+    bathrooms: Number(bathrooms),
+    area: Number(area),
+    parking: Number(parking),
+  })
+         
 
       if (error) {
         console.log(error)
@@ -278,7 +316,7 @@ export default function UploadScreen() {
           label="Ár"
           value={price}
           onChangeText={setPrice}
-          placeholder="249 M Ft"
+          placeholder="79900000"
         />
 
         <Input
@@ -291,6 +329,33 @@ export default function UploadScreen() {
           multiline
           height={160}
         />
+        <Input
+  label="Hálószobák"
+  value={bedrooms}
+  onChangeText={setBedrooms}
+  placeholder="3"
+/>
+
+<Input
+  label="Fürdőszobák"
+  value={bathrooms}
+  onChangeText={setBathrooms}
+  placeholder="2"
+/>
+
+<Input
+  label="Alapterület (m²)"
+  value={area}
+  onChangeText={setArea}
+  placeholder="120"
+/>
+
+<Input
+  label="Parkolóhelyek"
+  value={parking}
+  onChangeText={setParking}
+  placeholder="2"
+/>
 
         {/* IMAGE PICKER */}
         <View>

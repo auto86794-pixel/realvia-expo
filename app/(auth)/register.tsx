@@ -48,10 +48,26 @@ export default function RegisterScreen() {
         return
       }
 
-      if (password.length < 6) {
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+      if (
+        !emailRegex.test(
+          email.trim()
+        )
+      ) {
+        Alert.alert(
+          'Érvénytelen email',
+          'Adj meg egy valós email címet.'
+        )
+
+        return
+      }
+
+      if (password.length < 8) {
         Alert.alert(
           'Gyenge jelszó',
-          'A jelszónak legalább 6 karakterből kell állnia.'
+          'A jelszónak legalább 8 karakterből kell állnia.'
         )
 
         return
@@ -61,7 +77,7 @@ export default function RegisterScreen() {
 
       const { error } =
         await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
         })
 
@@ -76,7 +92,7 @@ export default function RegisterScreen() {
 
       Alert.alert(
         'Sikeres regisztráció',
-        'A fiókod létrejött. Most már bejelentkezhetsz.'
+        'Ellenőrizd az emailedet és erősítsd meg a regisztrációt.'
       )
 
       router.replace('/login')
@@ -107,14 +123,10 @@ export default function RegisterScreen() {
         ]}
         style={{
           flex: 1,
-
           justifyContent:
             'center',
-
           alignItems: 'center',
-
           paddingHorizontal: 24,
-
           paddingVertical: 54,
         }}
       >
@@ -122,27 +134,20 @@ export default function RegisterScreen() {
           entering={FadeInDown.springify()}
           style={{
             width: '100%',
-
             maxWidth: 560,
-
             alignSelf: 'center',
-
             marginBottom: 28,
           }}
         >
           <Text
             style={{
               color: 'white',
-
               fontSize:
                 Platform.OS === 'web'
                   ? 62
                   : 44,
-
               fontWeight: '900',
-
               letterSpacing: -2.5,
-
               textAlign: 'center',
             }}
           >
@@ -152,16 +157,12 @@ export default function RegisterScreen() {
           <Text
             style={{
               color: '#D4D4D8',
-
               fontSize:
                 Platform.OS === 'web'
                   ? 18
                   : 16,
-
               marginTop: 16,
-
               lineHeight: 28,
-
               textAlign: 'center',
             }}
           >
@@ -177,28 +178,18 @@ export default function RegisterScreen() {
           ).springify()}
           style={{
             width: '100%',
-
             maxWidth: 520,
-
             alignSelf: 'center',
-
             backgroundColor:
               'rgba(20,20,20,0.72)',
-
             borderRadius:
               Radius.xl,
-
             borderWidth: 1,
-
             borderColor:
               'rgba(255,255,255,0.08)',
-
             padding: 26,
-
             gap: 18,
-
             overflow: 'hidden',
-
             ...Shadows.luxury,
           }}
         >
@@ -241,16 +232,11 @@ export default function RegisterScreen() {
             style={{
               backgroundColor:
                 Colors.dark.primary,
-
               paddingVertical: 20,
-
               borderRadius:
                 Radius.full,
-
               alignItems: 'center',
-
               marginTop: 10,
-
               opacity: loading
                 ? 0.7
                 : 1,
@@ -264,11 +250,8 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   color: '#000',
-
                   fontSize: 17,
-
                   fontWeight: '900',
-
                   letterSpacing: 0.5,
                 }}
               >
@@ -283,17 +266,12 @@ export default function RegisterScreen() {
             }
             style={{
               paddingVertical: 18,
-
               borderRadius:
                 Radius.full,
-
               alignItems: 'center',
-
               borderWidth: 1,
-
               borderColor:
                 'rgba(255,255,255,0.08)',
-
               backgroundColor:
                 'rgba(255,255,255,0.04)',
             }}
@@ -301,9 +279,7 @@ export default function RegisterScreen() {
             <Text
               style={{
                 color: 'white',
-
                 fontSize: 16,
-
                 fontWeight: '800',
               }}
             >
@@ -326,19 +302,12 @@ const labelStyle = {
 const inputStyle = {
   backgroundColor:
     'rgba(255,255,255,0.05)',
-
   borderRadius: 22,
-
   borderWidth: 1,
-
   borderColor:
     'rgba(255,255,255,0.06)',
-
   paddingHorizontal: 20,
-
   paddingVertical: 18,
-
   color: 'white',
-
   fontSize: 16,
 }
