@@ -466,7 +466,7 @@ return (
                       width:
                         Platform.OS ===
                         'web'
-                          ? 420
+                          ? 400
                           : '100%',
                     }}
                   >
@@ -575,7 +575,7 @@ return (
         style={{
           width:
             Platform.OS === 'web'
-              ? 420
+              ? 400
               : '100%',
         }}
       >
