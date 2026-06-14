@@ -428,61 +428,34 @@ useEffect(() => {
               `/property/edit/${property.id}`
             )
           }}
-          onDelete={() => {
-            Alert.alert(
-              'Ingatlan törlése',
-              'Biztosan törölni szeretnéd?',
-              [
-                {
-                  text: 'Mégse',
-                  style: 'cancel',
-                },
-                {
-                  text: 'Törlés',
-                  style: 'destructive',
-                  onPress: async () => {
-                    try {
-                      const { error } =
-                        await supabase
-                          .from('properties')
-                          .delete()
-                          .eq(
-                            'id',
-                            property.id
-                          )
+         onDelete={async () => {
+  if (!window.confirm('Biztosan törölni szeretnéd?')) {
+    return
+  }
 
-                      console.log(
-                        'DELETE ERROR:',
-                        error
-                      )
+  try {
+    const { error } = await supabase
+      .from('properties')
+      .delete()
+      .eq('id', property.id)
 
-                      if (error) {
-                        Alert.alert(
-                          'DELETE ERROR',
-                          error.message
-                        )
-                        return
-                      }
+    if (error) {
+      alert(error.message)
+      return
+    }
 
-                      Alert.alert(
-                        'Siker',
-                        'Az ingatlan törölve lett.'
-                      )
-
-                      router.replace('/')
-                    } catch (error) {
-                      console.log(error)
-
-                      Alert.alert(
-                        'Hiba',
-                        'Nem sikerült törölni.'
-                      )
-                    }
-                  },
-                },
-              ]
-            )
-          }}
+    alert('Az ingatlan törölve lett.')
+    router.replace('/')
+  } catch (error) {
+    console.log(error)
+  }
+}}
+    
+                    
+          
+          
+          
+          
           onFavorite={toggleFavorite}
         />
 

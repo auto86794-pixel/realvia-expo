@@ -241,6 +241,31 @@ function TabsContent() {
           }}
         />
 
+
+{/* INQUIRIES */}
+<Tabs.Screen
+  name="inquiries"
+  options={{
+    title: 'Érdeklődések',
+
+    tabBarIcon: ({
+      color,
+      focused,
+    }) => (
+      <LayoutDashboard
+        color={color}
+        size={
+          focused
+            ? 25
+            : 22
+        }
+      />
+    ),
+  }}
+/>
+
+{/* HIDDEN ROUTES */}
+
         {/* HIDDEN ROUTES */}
 
         <Tabs.Screen

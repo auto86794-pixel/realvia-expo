@@ -134,7 +134,12 @@ export default function PropertyHero({
           />
         </Pressable>
 
-        <Pressable onPress={onDelete}>
+        <Pressable
+  onPress={() => {
+    console.log('DELETE ICON CLICK')
+    onDelete()
+  }}
+>
           <Trash2
             size={24}
             color="#FF6B6B"
