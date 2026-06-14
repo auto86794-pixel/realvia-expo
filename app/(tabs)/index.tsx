@@ -288,14 +288,14 @@ return (
                     fontSize:
                       Platform.OS ===
                       'web'
-                        ? 96
-                        : 54,
+                        ? 80
+                        : 48,
 
                     lineHeight:
                       Platform.OS ===
                       'web'
-                        ? 102
-                        : 60,
+                        ? 86
+                        : 54,
 
                     fontWeight: '900',
 
