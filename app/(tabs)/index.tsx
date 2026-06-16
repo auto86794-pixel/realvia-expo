@@ -276,62 +276,42 @@ return (
             }}
           >
             <View
-              style={{
-                maxWidth: 1440,
-                width: '100%',
-                alignSelf: 'center',
-              }}
-            >
-              <Animated.View
-                entering={FadeInDown.springify()}
-              >
-                <Text
-                  style={{
-                    color: 'white',
+  style={{
+    maxWidth: 1440,
+    width: '100%',
+    alignSelf: 'center',
+  }}
+>
+  <Animated.View
+    entering={FadeInDown.springify()}
+  >
+    <Text
+      style={{
+        color: 'white',
+        fontSize: isMobile ? 36 : 80,
+        lineHeight: isMobile ? 42 : 86,
+        fontWeight: '900',
+        letterSpacing: -4,
+        maxWidth: 760,
+      }}
+    >
+      {hu.home.heroTitle}
+    </Text>
 
-                    fontSize:
-                      Platform.OS ===
-                      'web'
-                        ? 80
-                        : 36,
+    <Text
+      style={{
+        color: '#D1D5DB',
+        fontSize: isMobile ? 18 : 22,
+        marginTop: 28,
+        maxWidth: 560,
+        lineHeight: 34,
+      }}
+    >
+      {hu.home.heroSubtitle}
+    </Text>
+  </Animated.View>
 
-                    lineHeight:
-                      Platform.OS ===
-                      'web'
-                        ? 86
-                        : 42,
-
-                    fontWeight: '900',
-
-                    letterSpacing: -4,
-
-                    maxWidth: 760,
-                  }}
-                >
-                  {hu.home.heroTitle}
-                </Text>
-
-                <Text
-                  style={{
-                    color: '#D1D5DB',
-
-                    fontSize:
-                      Platform.OS ===
-                      'web'
-                        ? 22
-                        : 18,
-
-                    marginTop: 28,
-
-                    maxWidth: 560,
-
-                    lineHeight: 34,
-                  }}
-                >
-                  {hu.home.heroSubtitle}
-                </Text>
-              </Animated.View>
-
+  
               <Animated.View
                 entering={FadeInDown.delay(
                   250
