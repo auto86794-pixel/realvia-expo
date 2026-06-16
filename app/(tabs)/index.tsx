@@ -275,8 +275,8 @@ return (
           >
             <View
   style={{
-    maxWidth: 1440,
-    width: '100%',
+   width: '100%',
+    maxWidth: isMobile ? '100%' : 1440,
     alignSelf: 'center',
   }}
 >
@@ -329,26 +329,30 @@ return (
         </View>
 
         {/* CONTENT */}
-        <View
-          style={{
-            width: '100%',
-            maxWidth: 1440,
-            alignSelf: 'center',
+     
+<View
+  style={{
+    width: '100%',
+    maxWidth: 1440,
+    alignSelf: 'center',
+    marginTop: 42,
+    overflow: 'hidden',
+  }}
+>
+  <View
+    style={{
+      paddingHorizontal: isMobile ? 16 : 24,
+      maxWidth: '100%',
+      overflow: 'hidden',
+    }}
+  >
 
-            paddingHorizontal: 24,
-
-            marginTop: 42,
-          }}
-        >
-          <CategoryTabs
-            categories={categories}
-            selectedCategory={
-              selectedCategory
-            }
-            onSelect={
-              setSelectedCategory
-            }
-          />
+      <CategoryTabs
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
+        </View>
 
           {/* SECTION HEADER */}
           <View
