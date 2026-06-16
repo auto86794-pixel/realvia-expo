@@ -220,21 +220,19 @@ return (
       >
         {/* HERO */}
         <View
-          style={{
-            height:
-              Platform.OS === 'web'
-                ? 820
-                : 620,
+  style={{
+    height: isMobile ? 560 : 820,
 
-            borderBottomLeftRadius:
-              Radius.xl,
+    borderBottomLeftRadius:
+      Radius.xl,
 
-            borderBottomRightRadius:
-              Radius.xl,
+    borderBottomRightRadius:
+      Radius.xl,
 
-            overflow: 'hidden',
-          }}
-        >
+    overflow: 'hidden',
+  }}
+>
+        
           <Image
             
   source={require('../../assets/images/luxury-placeholder.png')}
@@ -288,11 +286,11 @@ return (
     <Text
       style={{
         color: 'white',
-        fontSize: isMobile ? 36 : 80,
-        lineHeight: isMobile ? 42 : 86,
+        fontSize: isMobile ? 52 : 80,
+        lineHeight: isMobile ? 58 : 86,
         fontWeight: '900',
         letterSpacing: -4,
-        maxWidth: 760,
+        maxWidth: isMobile ? '100%' : 760,
       }}
     >
       {hu.home.heroTitle}
