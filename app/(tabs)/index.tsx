@@ -4,6 +4,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import {
@@ -47,6 +48,9 @@ export default function Home() {
   useProtectedRoute()
 
   const { session } = useAuth()
+  const { width } = useWindowDimensions()
+
+  const isMobile = width < 768
 
   const [favorites, setFavorites] =
     useState<any[]>([])
@@ -289,13 +293,13 @@ return (
                       Platform.OS ===
                       'web'
                         ? 80
-                        : 48,
+                        : 36,
 
                     lineHeight:
                       Platform.OS ===
                       'web'
                         ? 86
-                        : 54,
+                        : 42,
 
                     fontWeight: '900',
 

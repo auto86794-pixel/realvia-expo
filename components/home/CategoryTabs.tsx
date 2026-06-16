@@ -5,9 +5,7 @@ import {
   Text,
 } from 'react-native'
 
-import {
-  useState,
-} from 'react'
+import { useState } from 'react'
 
 import Animated, {
   FadeInDown,
@@ -35,27 +33,26 @@ export default function CategoryTabs({
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(
-        200
-      ).springify()}
+      entering={FadeInDown.delay(200).springify()}
+      style={{
+        width: '100%',
+        overflow: 'hidden',
+      }}
     >
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={
-          false
-        }
+        showsHorizontalScrollIndicator={false}
+        style={{
+          width: '100%',
+        }}
         contentContainerStyle={{
           gap: 16,
-
-          paddingHorizontal: 24,
-
           paddingVertical: 6,
         }}
       >
         {categories.map((category) => {
           const active =
-            selectedCategory ===
-            category
+            selectedCategory === category
 
           const isHovered =
             hovered === category
@@ -67,13 +64,8 @@ export default function CategoryTabs({
                 onSelect(category)
               }
               onHoverIn={() => {
-                if (
-                  Platform.OS ===
-                  'web'
-                ) {
-                  setHovered(
-                    category
-                  )
+                if (Platform.OS === 'web') {
+                  setHovered(category)
                 }
               }}
               onHoverOut={() =>
@@ -81,39 +73,22 @@ export default function CategoryTabs({
               }
               style={{
                 flexShrink: 0,
-
                 minWidth: 120,
-
                 paddingHorizontal: 28,
-
                 paddingVertical: 16,
-
-                borderRadius:
-                  Radius.full,
-
-                backgroundColor:
-                  active
-                    ? Colors.dark
-                        .primary
-                    : isHovered
-                    ? 'rgba(255,255,255,0.10)'
-                    : 'rgba(255,255,255,0.06)',
-
+                borderRadius: Radius.full,
+                backgroundColor: active
+                  ? Colors.dark.primary
+                  : isHovered
+                  ? 'rgba(255,255,255,0.10)'
+                  : 'rgba(255,255,255,0.06)',
                 borderWidth: 1,
-
-                borderColor:
-                  active
-                    ? 'rgba(214,176,123,0.45)'
-                    : 'rgba(255,255,255,0.08)',
-
-                justifyContent:
-                  'center',
-
-                alignItems:
-                  'center',
-
+                borderColor: active
+                  ? 'rgba(214,176,123,0.45)'
+                  : 'rgba(255,255,255,0.08)',
+                justifyContent: 'center',
+                alignItems: 'center',
                 minHeight: 58,
-
                 ...Shadows.luxury,
               }}
             >
@@ -122,11 +97,8 @@ export default function CategoryTabs({
                   color: active
                     ? '#000'
                     : '#FFF',
-
                   fontWeight: '800',
-
                   fontSize: 15,
-
                   letterSpacing: 0.3,
                 }}
               >
