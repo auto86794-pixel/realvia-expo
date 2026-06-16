@@ -559,10 +559,8 @@ return (
           200 + index * 100
         ).springify()}
         style={{
-          width:
-            Platform.OS === 'web'
-              ? 400
-              : '100%',
+          width: isMobile ? '100%' : 400,
+  maxWidth: '100%',
         }}
       >
         <PropertyCard
