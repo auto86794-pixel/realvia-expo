@@ -221,7 +221,7 @@ return (
         {/* HERO */}
         <View
   style={{
-    height: isMobile ? 560 : 820,
+    height: isMobile ? 320 : 820,
 
     borderBottomLeftRadius:
       Radius.xl,

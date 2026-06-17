@@ -112,7 +112,7 @@ export default function PropertyCard({
       }}
       style={[
         {
-          height: Platform.OS === 'web' ? 500 : 430,
+          height: Platform.OS === 'web' ? 500 : 320,
           borderRadius: Radius.xl,
           overflow: 'hidden',
           backgroundColor: Colors.dark.surface,
