@@ -21,8 +21,11 @@ import {
 const screenWidth =
   Dimensions.get('window').width
 
+const isMobile =
+  screenWidth < 768
+
 const HERO_HEIGHT =
-  screenWidth > 900 ? 720 : 620
+  isMobile ? 470 : 720
 
 interface Props {
   property: any
@@ -135,11 +138,13 @@ export default function PropertyHero({
         </Pressable>
 
         <Pressable
-  onPress={() => {
-    console.log('DELETE ICON CLICK')
-    onDelete()
-  }}
->
+          onPress={() => {
+            console.log(
+              'DELETE ICON CLICK'
+            )
+            onDelete()
+          }}
+        >
           <Trash2
             size={24}
             color="#FF6B6B"
@@ -174,8 +179,12 @@ export default function PropertyHero({
           right: 0,
           bottom: 0,
           paddingHorizontal: 26,
-          paddingBottom: 56,
-          paddingTop: 160,
+          paddingBottom: isMobile
+            ? 36
+            : 56,
+          paddingTop: isMobile
+            ? 100
+            : 160,
         }}
       >
         <View
@@ -209,8 +218,13 @@ export default function PropertyHero({
         <Text
           style={{
             color: 'white',
-            fontSize: 42,
+            fontSize: isMobile
+              ? 34
+              : 42,
             fontWeight: '800',
+            lineHeight: isMobile
+              ? 38
+              : 46,
           }}
         >
           {property.title}
@@ -219,7 +233,9 @@ export default function PropertyHero({
         <Text
           style={{
             color: '#CFCFD4',
-            fontSize: 17,
+            fontSize: isMobile
+              ? 15
+              : 17,
             marginTop: 12,
           }}
         >
@@ -229,8 +245,10 @@ export default function PropertyHero({
         <Text
           style={{
             color: '#F3D19C',
-            fontSize: 36,
-            fontWeight: '200',
+            fontSize: isMobile
+              ? 30
+              : 36,
+            fontWeight: '300',
             marginTop: 18,
           }}
         >
