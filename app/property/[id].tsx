@@ -418,13 +418,19 @@ useEffect(() => {
     <>
       <Animated.ScrollView
         style={{
-          flex: 1,
-          backgroundColor: '#05060A',
-        }}
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-      >
+    flex: 1,
+    backgroundColor: '#05060A',
+  }}
+  contentContainerStyle={{
+    width: '100%',
+    overflow: 'hidden',
+  }}
+  showsVerticalScrollIndicator={false}
+  showsHorizontalScrollIndicator={false}
+  onScroll={scrollHandler}
+  scrollEventThrottle={16}
+>
+      
         <PropertyHero
           property={property}
           image={
