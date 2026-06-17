@@ -264,7 +264,6 @@ return (
               height: '100%',
 
               justifyContent: 'center',
-
               paddingTop:
                 Platform.OS === 'web'
                   ? 0
@@ -336,7 +335,7 @@ return (
     maxWidth: 1440,
     alignSelf: 'center',
     marginTop: 42,
-    overflow: 'hidden',
+    paddingHorizontal: isMobile ? 16 : 24,
   }}
 >
   <View
@@ -485,104 +484,84 @@ return (
           </View>
 
           {/* FAVORITES */}
-          <View
-            style={{
-              marginTop: 72,
-            }}
-          >
-            <Text
-              style={{
-                color: 'white',
-
-                fontSize: 38,
-
-                fontWeight: '900',
-
-                letterSpacing: -2,
-
-                marginBottom: 24,
-              }}
-            >
-              {hu.home.favorites}
-            </Text>
-
-            {favorites.length ===
-            0 ? (
-              <View
-                style={{
-                  backgroundColor:
-                    Colors.dark.surface,
-
-                  borderRadius:
-                    Radius.lg,
-
-                  padding: 32,
-
-                  borderWidth: 1,
-
-                  borderColor:
-                    Colors.dark.border,
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      Colors.dark.muted,
-
-                    fontSize: 17,
-
-                    lineHeight: 28,
-                  }}
-                >
-                  {
-                    hu.favorites
-                      .empty
-                  }
-                </Text>
-              </View>
-            ) : (
-              favorites.map(
-                (favorite) => (
-                  <View
+          {/* FAVORITES */}
+<View
   style={{
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 24,
+    marginTop: 72,
   }}
 >
-  {favoriteProperties.map(
-    (property, index) => (
-      <Animated.View
-        key={property.id}
-        entering={FadeInDown.delay(
-          200 + index * 100
-        ).springify()}
+  <Text
+    style={{
+      color: 'white',
+      fontSize: 38,
+      fontWeight: '900',
+      letterSpacing: -2,
+      marginBottom: 24,
+    }}
+  >
+    {hu.home.favorites}
+  </Text>
+
+  {favoriteProperties.length === 0 ? (
+    <View
+      style={{
+        backgroundColor: Colors.dark.surface,
+        borderRadius: Radius.lg,
+        padding: 32,
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
+      }}
+    >
+      <Text
         style={{
-          width: isMobile ? '100%' : 400,
-  maxWidth: '100%',
+          color: Colors.dark.muted,
+          fontSize: 17,
+          lineHeight: 28,
         }}
       >
-        <PropertyCard
-          id={property.id}
-          title={property.title}
-          price={property.price}
-          location={property.location}
-          images={
-            property.gallery?.length
-              ? property.gallery
-              : [property.image]
-          }
-        />
-      </Animated.View>
-    )
+        {hu.favorites.empty}
+      </Text>
+    </View>
+  ) : (
+    <View
+      style={{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 24,
+      }}
+    >
+      {favoriteProperties.map((property, index) => (
+        <Animated.View
+          key={property.id}
+          entering={FadeInDown.delay(
+            200 + index * 100
+          ).springify()}
+          style={{
+            width: isMobile ? '100%' : 400,
+            maxWidth: '100%',
+          }}
+        >
+          <PropertyCard
+            id={String(property.id)}
+            title={property.title}
+            price={property.price}
+            location={property.location}
+            images={
+              property.gallery?.length
+                ? property.gallery
+                : [property.image]
+            }
+          />
+        </Animated.View>
+      ))}
+    </View>
   )}
 </View>
-                  
-                )
-              )
-            )}
-          </View>
+              
+              
+            
+        
 
           {/* LOGOUT */}
           <Pressable

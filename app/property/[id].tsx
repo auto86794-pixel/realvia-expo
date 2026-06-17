@@ -210,13 +210,28 @@ setInquiryVisible] =
 
       setIsFavorite(true)
 
-      
-      await supabase
-        .from('favorites')
-        .insert({
-          property_id: property.id,
-          user_id: userId,
-        })
+const { data, error } = await supabase
+  .from('favorites')
+  .insert({
+    property_id: property.id,
+    user_id: userId,
+  })
+  .select()
+
+console.log('INSERT DATA:', data)
+console.log('INSERT ERROR:', error)
+
+if (error) {
+  setIsFavorite(false)
+
+  Alert.alert(
+    'Hiba',
+    error.message
+  )
+
+  return
+}
+       
     } catch (error) {
       console.log(error)
 

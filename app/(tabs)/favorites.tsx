@@ -14,17 +14,11 @@ import {
   useState,
 } from 'react'
 
-import {
-  BlurView,
-} from 'expo-blur'
+import { BlurView } from 'expo-blur'
 
-import {
-  LinearGradient,
-} from 'expo-linear-gradient'
+import { LinearGradient } from 'expo-linear-gradient'
 
-import {
-  useFocusEffect,
-} from 'expo-router'
+import { useFocusEffect } from 'expo-router'
 
 import Animated, {
   FadeInDown,
@@ -39,18 +33,11 @@ import { useAuth } from '../../src/providers/AuthProvider'
 export default function FavoritesScreen() {
   const { session } = useAuth()
 
-  const [favorites, setFavorites] =
-    useState<any[]>([])
+  const [favorites, setFavorites] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const [loading, setLoading] =
-    useState(true)
-
-  const [refreshing, setRefreshing] =
-    useState(false)
-
-  async function loadFavorites(
-    showLoader = true
-  ) {
+  async function loadFavorites(showLoader = true) {
     try {
       if (showLoader) {
         setLoading(true)
@@ -67,25 +54,18 @@ export default function FavoritesScreen() {
       } = await supabase
         .from('favorites')
         .select('property_id')
-        .eq(
-          'user_id',
-          session.user.id
-         )
-         console.log('USER:', session.user.id)
-         
-console.log('FAVORITES:', favoriteRows)
-console.log('FAVORITES ERROR:', favoritesError)
-        
+        .eq('user_id', session.user.id)
+
+      console.log('USER:', session.user.id)
+      console.log('FAVORITES:', favoriteRows)
+      console.log('FAVORITES ERROR:', favoritesError)
 
       if (favoritesError) {
         console.log(favoritesError)
         return
       }
 
-      if (
-        !favoriteRows ||
-        favoriteRows.length === 0
-      ) {
+      if (!favoriteRows || favoriteRows.length === 0) {
         setFavorites([])
         return
       }
@@ -101,10 +81,10 @@ console.log('FAVORITES ERROR:', favoritesError)
         .from('properties')
         .select('*')
         .in('id', ids)
-        console.log('IDS:', ids)
 
-console.log('PROPERTIES:', properties)
-console.log('PROPERTIES ERROR:', propertiesError)
+      console.log('IDS:', ids)
+      console.log('PROPERTIES:', properties)
+      console.log('PROPERTIES ERROR:', propertiesError)
 
       if (propertiesError) {
         console.log(propertiesError)
@@ -170,35 +150,24 @@ console.log('PROPERTIES ERROR:', propertiesError)
           tintColor="#D6B98C"
         />
       }
-      showsVerticalScrollIndicator={
-        false
-      }
+      showsVerticalScrollIndicator={false}
     >
       <LinearGradient
-        colors={[
-          '#10131A',
-          '#05060A',
-        ]}
+        colors={['#10131A', '#05060A']}
         style={styles.hero}
       >
-        <Animated.View
-          entering={FadeInDown.springify()}
-        >
+        <Animated.View entering={FadeInDown.springify()}>
           <Text style={styles.title}>
             Kedvencek
           </Text>
 
-          <Text
-            style={styles.subtitle}
-          >
+          <Text style={styles.subtitle}>
             Saját luxury collection
           </Text>
         </Animated.View>
 
         <Animated.View
-          entering={FadeInDown.delay(
-            120
-          ).springify()}
+          entering={FadeInDown.delay(120).springify()}
         >
           <BlurView
             intensity={50}
@@ -206,43 +175,23 @@ console.log('PROPERTIES ERROR:', propertiesError)
             style={styles.statsCard}
           >
             <View>
-              <Text
-                style={
-                  styles.statsLabel
-                }
-              >
+              <Text style={styles.statsLabel}>
                 Mentett
               </Text>
 
-              <Text
-                style={
-                  styles.statsValue
-                }
-              >
+              <Text style={styles.statsValue}>
                 {totalValue}
               </Text>
             </View>
 
-            <View
-              style={
-                styles.divider
-              }
-            />
+            <View style={styles.divider} />
 
             <View>
-              <Text
-                style={
-                  styles.statsLabel
-                }
-              >
+              <Text style={styles.statsLabel}>
                 Státusz
               </Text>
 
-              <Text
-                style={
-                  styles.statsValueSmall
-                }
-              >
+              <Text style={styles.statsValueSmall}>
                 Premium
               </Text>
             </View>
@@ -252,9 +201,7 @@ console.log('PROPERTIES ERROR:', propertiesError)
 
       {favorites.length === 0 && (
         <Animated.View
-          entering={FadeInDown.delay(
-            200
-          ).springify()}
+          entering={FadeInDown.delay(200).springify()}
           style={styles.emptyWrapper}
         >
           <BlurView
@@ -262,76 +209,44 @@ console.log('PROPERTIES ERROR:', propertiesError)
             tint="dark"
             style={styles.emptyCard}
           >
-            <Text
-              style={
-                styles.emptyEmoji
-              }
-            >
+            <Text style={styles.emptyEmoji}>
               🖤
             </Text>
 
-            <Text
-              style={
-                styles.emptyTitle
-              }
-            >
+            <Text style={styles.emptyTitle}>
               Luxury collection üres
             </Text>
 
-            <Text
-              style={
-                styles.emptyText
-              }
-            >
-              Mentsd el a kedvenc
-              ingatlanokat és itt
-              jelennek meg a saját
-              prémium válogatásaid.
+            <Text style={styles.emptyText}>
+              Mentsd el a kedvenc ingatlanokat és itt
+              jelennek meg a saját prémium válogatásaid.
             </Text>
           </BlurView>
         </Animated.View>
       )}
 
-      <View
-        style={{
-          marginTop: 10,
-        }}
-      >
-        {favorites.map(
-          (property, index) => (
-            <Animated.View
-              key={property.id}
-              entering={FadeInDown.delay(
-                220 +
-                  index * 120
-              ).springify()}
-              style={
-                styles.cardWrapper
+      <View style={{ marginTop: 10 }}>
+        {favorites.map((property, index) => (
+          <Animated.View
+            key={property.id}
+            entering={FadeInDown.delay(
+              220 + index * 120
+            ).springify()}
+            style={styles.cardWrapper}
+          >
+            <PropertyCard
+              id={property.id}
+              title={property.title}
+              price={property.price}
+              location={property.location}
+              images={
+                property.gallery?.length
+                  ? property.gallery
+                  : [property.image]
               }
-            >
-              <PropertyCard
-                id={property.id}
-                title={
-                  property.title
-                }
-                price={
-                  property.price
-                }
-                location={
-                  property.location
-                }
-                images={
-                  property.gallery
-                    ?.length
-                    ? property.gallery
-                    : [
-                        property.image,
-                      ]
-                }
-              />
-            </Animated.View>
-          )
-        )}
+            />
+          </Animated.View>
+        ))}
       </View>
     </ScrollView>
   )
@@ -375,14 +290,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 24,
     borderWidth: 1,
-    borderColor:
-      'rgba(255,255,255,0.06)',
-    backgroundColor:
-      'rgba(255,255,255,0.04)',
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
   },
 
   statsLabel: {
@@ -407,8 +319,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 48,
-    backgroundColor:
-      'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   emptyWrapper: {
@@ -423,10 +334,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor:
-      'rgba(255,255,255,0.06)',
-    backgroundColor:
-      'rgba(255,255,255,0.04)',
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
 
   emptyEmoji: {
