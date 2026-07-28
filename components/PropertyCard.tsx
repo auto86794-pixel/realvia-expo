@@ -3,6 +3,7 @@ import {
   Pressable,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import { Image } from 'expo-image'
@@ -41,6 +42,8 @@ export default function PropertyCard({
   location,
   images,
 }: Props) {
+  const { width } = useWindowDimensions()
+  const isMobile = width < 768
   const propertyId = String(id)
 
   const scale = useSharedValue(1)
@@ -112,7 +115,12 @@ export default function PropertyCard({
       }}
       style={[
         {
-          height: Platform.OS === 'web' ? 500 : 320,
+          height:
+            Platform.OS === 'web'
+              ? isMobile
+                ? 390
+                : 500
+              : 320,
           borderRadius: Radius.xl,
           overflow: 'hidden',
           backgroundColor: Colors.dark.surface,
@@ -213,8 +221,8 @@ export default function PropertyCard({
         <Text
           style={{
             color: 'white',
-            fontSize: Platform.OS === 'web' ? 38 : 32,
-            lineHeight: Platform.OS === 'web' ? 42 : 36,
+            fontSize: isMobile ? 28 : 38,
+            lineHeight: isMobile ? 33 : 42,
             letterSpacing: -1.2,
             maxWidth: '88%',
             fontWeight: '700',
@@ -234,7 +242,7 @@ export default function PropertyCard({
           <Text
             style={{
               color: Colors.dark.primary,
-              fontSize: Platform.OS === 'web' ? 34 : 30,
+              fontSize: isMobile ? 25 : 34,
               fontWeight: '700',
               letterSpacing: -1,
             }}

@@ -51,6 +51,13 @@ export default function Home() {
   const { width } = useWindowDimensions()
 
   const isMobile = width < 768
+  const isTablet = width >= 768 && width < 1180
+  const pagePadding = isMobile ? 16 : 32
+  const cardWidth = isMobile
+    ? '100%'
+    : isTablet
+      ? '48.5%'
+      : '31.5%'
 
   const [favorites, setFavorites] =
     useState<any[]>([])
@@ -213,6 +220,7 @@ return (
         }}
         contentContainerStyle={{
           paddingBottom: 180,
+          flexGrow: 1,
         }}
         showsVerticalScrollIndicator={
           false
@@ -221,7 +229,7 @@ return (
         {/* HERO */}
         <View
   style={{
-    height: isMobile ? 320 : 820,
+    height: isMobile ? 520 : 680,
 
     borderBottomLeftRadius:
       Radius.xl,
@@ -269,7 +277,7 @@ return (
                   ? 0
                   : 40,
 
-              paddingHorizontal: 24,
+              paddingHorizontal: pagePadding,
             }}
           >
             <View
@@ -285,10 +293,10 @@ return (
     <Text
       style={{
         color: 'white',
-        fontSize: isMobile ? 52 : 80,
-        lineHeight: isMobile ? 58 : 86,
+        fontSize: isMobile ? 42 : 72,
+        lineHeight: isMobile ? 47 : 78,
         fontWeight: '900',
-        letterSpacing: -4,
+        letterSpacing: isMobile ? -2 : -4,
         maxWidth: isMobile ? '100%' : 760,
       }}
     >
@@ -298,10 +306,10 @@ return (
     <Text
       style={{
         color: '#D1D5DB',
-        fontSize: isMobile ? 18 : 22,
-        marginTop: 28,
+        fontSize: isMobile ? 16 : 22,
+        marginTop: isMobile ? 18 : 28,
         maxWidth: 560,
-        lineHeight: 34,
+        lineHeight: isMobile ? 24 : 34,
       }}
     >
       {hu.home.heroSubtitle}
@@ -314,7 +322,7 @@ return (
                   250
                 ).springify()}
                 style={{
-                  marginTop: 42,
+                  marginTop: isMobile ? 28 : 42,
                   maxWidth: 520,
                 }}
               >
@@ -334,13 +342,12 @@ return (
     width: '100%',
     maxWidth: 1440,
     alignSelf: 'center',
-    marginTop: 42,
-    paddingHorizontal: isMobile ? 16 : 24,
+    marginTop: isMobile ? 28 : 42,
+    paddingHorizontal: pagePadding,
   }}
 >
   <View
     style={{
-      paddingHorizontal: isMobile ? 16 : 24,
       maxWidth: '100%',
       overflow: 'hidden',
     }}
@@ -360,11 +367,15 @@ return (
               marginBottom: 28,
 
               flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 12,
 
               justifyContent:
                 'space-between',
 
-              alignItems: 'center',
+              alignItems: isMobile
+                ? 'flex-start'
+                : 'center',
             }}
           >
             <View>
@@ -372,11 +383,15 @@ return (
                 style={{
                   color: 'white',
 
-                  fontSize: 42,
+                  fontSize: isMobile
+                    ? 30
+                    : 42,
 
                   fontWeight: '900',
 
-                  letterSpacing: -2,
+                  letterSpacing: isMobile
+                    ? -1
+                    : -2,
                 }}
               >
                 {
@@ -427,13 +442,19 @@ return (
                 'space-between',
 
               rowGap: 28,
+              columnGap: '2%',
             }}
           >
             {loading ? (
               <>
-                <PropertyCardSkeleton />
-                <PropertyCardSkeleton />
-                <PropertyCardSkeleton />
+                {[0, 1, 2].map((item) => (
+                  <View
+                    key={item}
+                    style={{ width: cardWidth }}
+                  >
+                    <PropertyCardSkeleton />
+                  </View>
+                ))}
               </>
             ) : (
               filteredProperties.map(
@@ -448,11 +469,7 @@ return (
                         index * 120
                     ).springify()}
                     style={{
-                      width:
-                        Platform.OS ===
-                        'web'
-                          ? 400
-                          : '100%',
+                      width: cardWidth,
                     }}
                   >
                     <PropertyCard
@@ -494,6 +511,7 @@ return (
     style={{
       color: 'white',
       fontSize: 38,
+      lineHeight: isMobile ? 38 : 46,
       fontWeight: '900',
       letterSpacing: -2,
       marginBottom: 24,
@@ -538,7 +556,7 @@ return (
             200 + index * 100
           ).springify()}
           style={{
-            width: isMobile ? '100%' : 400,
+            width: cardWidth,
             maxWidth: '100%',
           }}
         >
@@ -610,14 +628,14 @@ return (
         style={{
           position: 'absolute',
 
-          right: 28,
-          bottom: 34,
+          right: isMobile ? 16 : 28,
+          bottom: isMobile ? 108 : 34,
 
           backgroundColor:
             Colors.dark.primary,
 
-          paddingHorizontal: 28,
-          paddingVertical: 18,
+          paddingHorizontal: isMobile ? 20 : 28,
+          paddingVertical: isMobile ? 15 : 18,
 
           borderRadius: Radius.full,
 
