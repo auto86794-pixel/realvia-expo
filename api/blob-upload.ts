@@ -4,8 +4,16 @@ import {
   jwtVerify,
 } from 'jose'
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 function getAuthBaseUrl() {
-  const value = process.env.NEON_AUTH_BASE_URL
+  const value =
+    process.env.NEON_AUTH_BASE_URL ||
+    process.env.EXPO_PUBLIC_NEON_AUTH_URL
 
   if (!value) {
     throw new Error('NEON_AUTH_BASE_URL is not configured.')
@@ -46,8 +54,9 @@ export default async function handler(
 
     await verifyUser(request)
 
-    const contentType =
+    const contentType = String(
       request.headers['content-type'] || 'image/jpeg'
+    ).split(';')[0]
     const allowedTypes = [
       'image/jpeg',
       'image/png',
@@ -95,8 +104,14 @@ export default async function handler(
       error instanceof Error
         ? error.message
         : 'Upload failed'
+    console.error('Blob upload failed:', error)
+
     const status =
-      message === 'Unauthorized' ? 401 : 400
+      message === 'Unauthorized'
+        ? 401
+        : message.includes('configured')
+          ? 500
+          : 400
 
     response.status(status).json({ error: message })
   }

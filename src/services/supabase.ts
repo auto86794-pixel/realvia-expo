@@ -27,10 +27,5 @@ export const supabase = createClient({
   },
   dataApi: {
     url: dataApiUrl,
-    options: {
-      db: {
-        schema: 'public',
-      },
-    },
   },
 })

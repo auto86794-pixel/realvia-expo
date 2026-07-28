@@ -8,16 +8,18 @@ export async function uploadPropertyImage(
   uri: string,
   contentType = 'image/jpeg'
 ) {
-  const response = await fetch(uri)
+  const imageResponse = await fetch(uri)
 
-  if (!response.ok) {
+  if (!imageResponse.ok) {
     throw new Error('A kiválasztott kép nem olvasható.')
   }
 
-  const blob = await response.blob()
+  const blob = await imageResponse.blob()
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession({
+    forceFetch: true,
+  })
 
   const accessToken = session?.access_token
 
@@ -34,18 +36,37 @@ export async function uploadPropertyImage(
       body: blob,
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Content-Type': contentType,
+        'Content-Type':
+          blob.type || contentType,
       },
     }
   )
 
-  const result = await uploadResponse.json()
+  const responseText =
+    await uploadResponse.text()
+
+  let result: {
+    url?: string
+    error?: string
+  } = {}
+
+  try {
+    result = responseText
+      ? JSON.parse(responseText)
+      : {}
+  } catch {
+    result = {
+      error:
+        'A képfeltöltő szerver nem megfelelő választ adott.',
+    }
+  }
 
   if (!uploadResponse.ok || !result.url) {
     throw new Error(
-      result.error || 'A képfeltöltés sikertelen.'
+      result.error ||
+        'A képfeltöltés sikertelen.'
     )
   }
 
-  return result.url as string
+  return result.url
 }
