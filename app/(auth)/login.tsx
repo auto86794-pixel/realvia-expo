@@ -22,6 +22,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { supabase } from '../../src/services/supabase'
+import { useAuth } from '../../src/providers/AuthProvider'
 
 import {
   Colors,
@@ -30,6 +31,7 @@ import {
 } from '@/constants/theme'
 
 export default function LoginScreen() {
+  const { refreshSession } = useAuth()
   const { width, height } =
     useWindowDimensions()
   const isMobile = width < 768
@@ -80,6 +82,16 @@ export default function LoginScreen() {
           'Ellenőrizd az email címet és a jelszót.'
         )
 
+        return
+      }
+
+      const activeSession =
+        await refreshSession()
+
+      if (!activeSession?.user) {
+        setMessage(
+          'A belépés sikerült, de a munkamenet nem indult el. Frissítsd az oldalt, majd próbáld újra.'
+        )
         return
       }
 

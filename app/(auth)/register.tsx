@@ -22,6 +22,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { supabase } from '../../src/services/supabase'
+import { useAuth } from '../../src/providers/AuthProvider'
 
 import {
   Colors,
@@ -30,6 +31,7 @@ import {
 } from '@/constants/theme'
 
 export default function RegisterScreen() {
+  const { refreshSession } = useAuth()
   const { width, height } =
     useWindowDimensions()
   const isMobile = width < 768
@@ -124,6 +126,7 @@ export default function RegisterScreen() {
       }
 
       if (data.session) {
+        await refreshSession()
         router.replace('/(tabs)' as any)
         return
       }

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -10,12 +11,14 @@ import { supabase } from '../services/supabase'
 type AuthContextType = {
   session: any | null
   loading: boolean
+  refreshSession: () => Promise<any | null>
 }
 
 const AuthContext =
   createContext<AuthContextType>({
     session: null,
     loading: true,
+    refreshSession: async () => null,
   })
 
 export function AuthProvider({
@@ -29,13 +32,29 @@ export function AuthProvider({
   const [loading, setLoading] =
     useState(true)
 
+  const refreshSession =
+    useCallback(async () => {
+      const { data, error } =
+        await supabase.auth.getSession({
+          forceFetch: true,
+        })
+
+      if (error) {
+        throw error
+      }
+
+      const nextSession =
+        data?.session || null
+
+      setSession(nextSession)
+
+      return nextSession
+    }, [])
+
   useEffect(() => {
     async function loadSession() {
       try {
-        const { data } =
-          await supabase.auth.getSession()
-
-        setSession(data.session)
+        await refreshSession()
       } catch (error) {
         console.log(error)
       } finally {
@@ -57,13 +76,14 @@ export function AuthProvider({
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [refreshSession])
 
   return (
     <AuthContext.Provider
       value={{
         session,
         loading,
+        refreshSession,
       }}
     >
       {children}
