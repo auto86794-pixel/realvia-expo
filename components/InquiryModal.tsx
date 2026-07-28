@@ -205,13 +205,12 @@ if (Platform.OS === 'web') {
         style={{
           flex: 1,
           justifyContent: 'flex-end',
-          backgroundColor:
-            'rgba(0,0,0,0.7)',
+          backgroundColor: 'rgba(26,38,31,0.48)',
         }}
       >
         <View
           style={{
-            backgroundColor: '#111',
+            backgroundColor: '#F8F5EF',
             borderTopLeftRadius: 32,
             borderTopRightRadius: 32,
             padding: 24,
@@ -220,7 +219,7 @@ if (Platform.OS === 'web') {
         >
           <Text
             style={{
-              color: 'white',
+              color: '#1D2923',
               fontSize: 28,
               fontWeight: '700',
               marginBottom: 8,
@@ -231,7 +230,7 @@ if (Platform.OS === 'web') {
 
           <Text
             style={{
-              color: '#888',
+              color: '#737D77',
               marginBottom: 24,
             }}
           >
@@ -248,22 +247,24 @@ if (Platform.OS === 'web') {
               onPress={openPhone}
               style={{
                 backgroundColor:
-                  'rgba(255,255,255,0.06)',
+                  '#FFFDFC',
                 borderRadius: 18,
                 padding: 18,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 14,
+                borderWidth: 1,
+                borderColor: '#DDD7CF',
               }}
             >
               <Phone
                 size={22}
-                color="#D6B07B"
+                color="#8B6338"
               />
 
               <Text
                 style={{
-                  color: 'white',
+                  color: '#354139',
                   fontSize: 16,
                   fontWeight: '700',
                 }}
@@ -276,22 +277,24 @@ if (Platform.OS === 'web') {
               onPress={openEmail}
               style={{
                 backgroundColor:
-                  'rgba(255,255,255,0.06)',
+                  '#FFFDFC',
                 borderRadius: 18,
                 padding: 18,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 14,
+                borderWidth: 1,
+                borderColor: '#DDD7CF',
               }}
             >
               <Mail
                 size={22}
-                color="#D6B07B"
+                color="#8B6338"
               />
 
               <Text
                 style={{
-                  color: 'white',
+                  color: '#354139',
                   fontSize: 16,
                   fontWeight: '700',
                 }}
@@ -303,7 +306,7 @@ if (Platform.OS === 'web') {
             <Pressable
               onPress={openWhatsApp}
               style={{
-                backgroundColor: '#D6B07B',
+                backgroundColor: '#2E4639',
                 borderRadius: 18,
                 padding: 18,
                 flexDirection: 'row',
@@ -314,12 +317,12 @@ if (Platform.OS === 'web') {
             >
               <MessageCircle
                 size={22}
-                color="#000"
+                color="#FFF"
               />
 
               <Text
                 style={{
-                  color: '#000',
+                  color: '#FFF',
                   fontSize: 16,
                   fontWeight: '800',
                 }}
@@ -335,8 +338,10 @@ if (Platform.OS === 'web') {
             value={name}
             onChangeText={setName}
             style={{
-              backgroundColor: '#1A1A1A',
-              color: 'white',
+              backgroundColor: '#FFFDFC',
+              color: '#1D2923',
+              borderWidth: 1,
+              borderColor: '#DDD7CF',
               borderRadius: 16,
               padding: 16,
               marginBottom: 14,
@@ -351,8 +356,10 @@ if (Platform.OS === 'web') {
             autoCapitalize="none"
             keyboardType="email-address"
             style={{
-              backgroundColor: '#1A1A1A',
-              color: 'white',
+              backgroundColor: '#FFFDFC',
+              color: '#1D2923',
+              borderWidth: 1,
+              borderColor: '#DDD7CF',
               borderRadius: 16,
               padding: 16,
               marginBottom: 14,
@@ -366,8 +373,10 @@ if (Platform.OS === 'web') {
             onChangeText={setPhone}
             keyboardType="phone-pad"
             style={{
-              backgroundColor: '#1A1A1A',
-              color: 'white',
+              backgroundColor: '#FFFDFC',
+              color: '#1D2923',
+              borderWidth: 1,
+              borderColor: '#DDD7CF',
               borderRadius: 16,
               padding: 16,
               marginBottom: 14,
@@ -383,8 +392,10 @@ if (Platform.OS === 'web') {
             numberOfLines={4}
             textAlignVertical="top"
             style={{
-              backgroundColor: '#1A1A1A',
-              color: 'white',
+              backgroundColor: '#FFFDFC',
+              color: '#1D2923',
+              borderWidth: 1,
+              borderColor: '#DDD7CF',
               borderRadius: 16,
               padding: 16,
               height: 120,
@@ -396,7 +407,7 @@ if (Platform.OS === 'web') {
             onPress={submitInquiry}
             disabled={loading}
             style={{
-              backgroundColor: '#D6B07B',
+              backgroundColor: '#2E4639',
               padding: 18,
               borderRadius: 18,
               alignItems: 'center',
@@ -407,12 +418,12 @@ if (Platform.OS === 'web') {
           >
             {loading ? (
               <ActivityIndicator
-                color="#000"
+                color="#FFF"
               />
             ) : (
               <Text
                 style={{
-                  color: '#000',
+                  color: '#FFF',
                   fontWeight: '800',
                   fontSize: 16,
                 }}
@@ -435,7 +446,7 @@ if (Platform.OS === 'web') {
           >
             <Text
               style={{
-                color: '#888',
+                color: '#68736C',
               }}
             >
               Bezárás

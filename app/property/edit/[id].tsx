@@ -1,459 +1,207 @@
-import {
-  Stack,
-  router,
-  useLocalSearchParams,
-} from 'expo-router'
-
-import React, {
-  useEffect,
-  useState,
-} from 'react'
-
+import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
-  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
-
 import { Image } from 'expo-image'
-
-import { LinearGradient } from 'expo-linear-gradient'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react-native'
+import { router, useLocalSearchParams } from 'expo-router'
 
 import { supabase } from '@/src/services/supabase'
+import { useAuth } from '@/src/providers/AuthProvider'
+import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
+
+const statuses = [
+  { value: 'published', label: 'Publikus', help: 'Mindenki láthatja' },
+  { value: 'draft', label: 'Piszkozat', help: 'Csak te látod' },
+  { value: 'inactive', label: 'Inaktív', help: 'Ideiglenesen rejtett' },
+]
 
 export default function EditProperty() {
-  const { id } =
-    useLocalSearchParams()
+  useProtectedRoute()
+  const { id } = useLocalSearchParams()
+  const { session } = useAuth()
+  const { width } = useWindowDimensions()
+  const desktop = width >= 850
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [title, setTitle] = useState('')
+  const [location, setLocation] = useState('')
+  const [price, setPrice] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
+  const [listingType, setListingType] = useState('Eladó')
+  const [bedrooms, setBedrooms] = useState('')
+  const [bathrooms, setBathrooms] = useState('')
+  const [area, setArea] = useState('')
+  const [parking, setParking] = useState('')
+  const [status, setStatus] = useState('published')
+  const [image, setImage] = useState('')
 
-  const propertyId =
-    Number(id)
-
-  const [loading, setLoading] =
-    useState(true)
-
-  const [saving, setSaving] =
-    useState(false)
-
-  const [title, setTitle] =
-    useState('')
-
-  const [location, setLocation] =
-    useState('')
-
-  const [price, setPrice] =
-    useState('')
-
-  const [description, setDescription] =
-    useState('')
-
-  const [image, setImage] =
-    useState('')
-
-  async function loadProperty() {
-    try {
-      if (!propertyId) {
-        Alert.alert(
-          'Hiba',
-          'Érvénytelen ingatlan azonosító.'
-        )
-
+  useEffect(() => {
+    async function load() {
+      if (!session?.user?.id) return
+      try {
+        setLoading(true)
+        const { data, error } = await supabase.from('properties').select('*').eq('id', id).eq('owner_id', session.user.id).single()
+        if (error) throw error
+        setTitle(data.title || '')
+        setLocation(data.location || '')
+        setPrice(String(data.price || ''))
+        setDescription(data.description || '')
+        setCategory(data.category || 'Lakás')
+        setListingType(data.listing_type || 'Eladó')
+        setBedrooms(String(data.bedrooms || ''))
+        setBathrooms(String(data.bathrooms || ''))
+        setArea(String(data.area || ''))
+        setParking(String(data.parking || '0'))
+        setStatus(data.status || 'published')
+        setImage(data.image || '')
+      } catch (error) {
+        console.log(error)
+        Alert.alert('Nem szerkeszthető', 'A hirdetés nem található, vagy nem a saját hirdetésed.')
         router.back()
-
-        return
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(true)
-
-      const { data, error } =
-        await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', propertyId)
-          .single()
-
-      if (error) {
-        console.log(error)
-
-        Alert.alert(
-          'Hiba',
-          'Nem sikerült betölteni az ingatlant.'
-        )
-
-        return
-      }
-
-      setTitle(data.title || '')
-      setLocation(data.location || '')
-      setPrice(data.price || '')
-      setDescription(
-        data.description || ''
-      )
-      setImage(data.image || '')
-    } catch (error) {
-      console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'Váratlan hiba történt.'
-      )
-    } finally {
-      setLoading(false)
     }
-  }
+    load()
+  }, [id, session?.user?.id])
 
-  async function saveProperty() {
+  async function save() {
+    if (!title.trim() || !location.trim() || Number(price) <= 0 || Number(area) <= 0) {
+      Alert.alert('Hiányzó adatok', 'A cím, helyszín, ár és alapterület kitöltése kötelező.')
+      return
+    }
     try {
-      if (!title.trim()) {
-        Alert.alert(
-          'Hiányzó adat',
-          'Adj meg egy nevet.'
-        )
-
-        return
-      }
-
-      if (!location.trim()) {
-        Alert.alert(
-          'Hiányzó adat',
-          'Adj meg egy lokációt.'
-        )
-
-        return
-      }
-
-      if (!propertyId) {
-        Alert.alert(
-          'Hiba',
-          'Érvénytelen ingatlan azonosító.'
-        )
-
-        return
-      }
-
       setSaving(true)
-
-      const { error } =
-        await supabase
-          .from('properties')
-          .update({
-            title: title.trim(),
-            location:
-              location.trim(),
-            price: price.trim(),
-            description:
-              description.trim(),
-          })
-          .eq('id', propertyId)
-
-      if (error) {
-        console.log(error)
-
-        Alert.alert(
-          'Hiba',
-          'Nem sikerült menteni.'
-        )
-
-        return
-      }
-
-      Alert.alert(
-        'Siker',
-        'Az ingatlan frissítve lett.'
-      )
-
-      router.back()
+      const { error } = await supabase.from('properties').update({
+        title: title.trim(),
+        location: location.trim(),
+        price: Number(price),
+        description: description.trim(),
+        category: category.trim(),
+        listing_type: listingType,
+        bedrooms: Number(bedrooms) || 0,
+        bathrooms: Number(bathrooms) || 0,
+        area: Number(area),
+        parking: Number(parking) || 0,
+        status,
+      }).eq('id', id).eq('owner_id', session?.user?.id)
+      if (error) throw error
+      Alert.alert('Mentve', 'A hirdetés módosításai sikeresen elmentve.', [{ text: 'Rendben', onPress: () => router.replace('/dashboard') }])
     } catch (error) {
       console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'Váratlan hiba történt.'
-      )
+      Alert.alert('Mentési hiba', 'A módosításokat nem sikerült elmenteni.')
     } finally {
       setSaving(false)
     }
   }
 
-  useEffect(() => {
-    loadProperty()
-  }, [id])
-
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: '#05060A',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <ActivityIndicator
-          size="large"
-          color="#E6C998"
-        />
-      </View>
-    )
-  }
+  if (loading) return <View style={styles.loading}><ActivityIndicator size="large" color="#8B6338" /></View>
 
   return (
-    <>
-      <StatusBar barStyle="light-content" />
+    <ScrollView style={styles.page} contentContainerStyle={styles.content}>
+      <View style={styles.shell}>
+        <Pressable onPress={() => router.back()} style={styles.back}><ArrowLeft size={18} color="#455149" /><Text style={styles.backText}>Vissza</Text></Pressable>
+        <View style={styles.header}>
+          <Text style={styles.eyebrow}>SAJÁT HIRDETÉS</Text>
+          <Text style={styles.title}>Hirdetés szerkesztése</Text>
+          <Text style={styles.subtitle}>Frissítsd az adatokat vagy változtasd meg a hirdetés láthatóságát.</Text>
+        </View>
 
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
-
-      <ScrollView
-        style={{
-          flex: 1,
-          backgroundColor: '#05060A',
-        }}
-        contentContainerStyle={{
-          padding: 24,
-          paddingTop: 110,
-          paddingBottom: 140,
-        }}
-        showsVerticalScrollIndicator={
-          false
-        }
-      >
-        <View
-          style={{
-            height: 260,
-            borderRadius: 32,
-            overflow: 'hidden',
-            marginBottom: 34,
-          }}
-        >
-          <Image
-            source={{
-              uri:
-                image ||
-                'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1600&auto=format&fit=crop',
-            }}
-            contentFit="cover"
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          />
-
-          <LinearGradient
-            colors={[
-              'transparent',
-              'rgba(0,0,0,0.75)',
-            ]}
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              justifyContent:
-                'flex-end',
-              padding: 24,
-            }}
-          >
-            <View
-              style={{
-                backgroundColor:
-                  'rgba(230,201,152,0.14)',
-                borderWidth: 1,
-                borderColor:
-                  'rgba(230,201,152,0.22)',
-                alignSelf:
-                  'flex-start',
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 999,
-                marginBottom: 14,
-              }}
-            >
-              <Text
-                style={{
-                  color: '#F2E6CF',
-                  fontSize: 12,
-                  fontWeight: '700',
-                  letterSpacing: 1.2,
-                }}
-              >
-                REALVIA EXCLUSIVE
-              </Text>
+        <View style={[styles.grid, desktop && styles.gridDesktop]}>
+          <View style={styles.form}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Alapadatok</Text>
+              <Field label="Hirdetés címe" value={title} onChangeText={setTitle} />
+              <View style={[styles.row, desktop && styles.rowDesktop]}>
+                <View style={styles.flex}><Field label="Helyszín" value={location} onChangeText={setLocation} /></View>
+                <View style={styles.flex}><Field label="Ár (Ft)" value={price} onChangeText={setPrice} keyboardType="numeric" /></View>
+              </View>
+              <View style={[styles.row, desktop && styles.rowDesktop]}>
+                <View style={styles.flex}><Field label="Kategória" value={category} onChangeText={setCategory} /></View>
+                <View style={styles.flex}><Field label="Hirdetés típusa" value={listingType} onChangeText={setListingType} /></View>
+              </View>
             </View>
 
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 32,
-                fontWeight: '700',
-                letterSpacing: -1,
-                maxWidth: '88%',
-              }}
-            >
-              {title || 'Luxury Villa'}
-            </Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Tulajdonságok és leírás</Text>
+              <View style={[styles.row, desktop && styles.rowDesktop]}>
+                <View style={styles.flex}><Field label="Szobák" value={bedrooms} onChangeText={setBedrooms} keyboardType="numeric" /></View>
+                <View style={styles.flex}><Field label="Fürdő" value={bathrooms} onChangeText={setBathrooms} keyboardType="numeric" /></View>
+                <View style={styles.flex}><Field label="Alapterület" value={area} onChangeText={setArea} keyboardType="numeric" /></View>
+                <View style={styles.flex}><Field label="Parkoló" value={parking} onChangeText={setParking} keyboardType="numeric" /></View>
+              </View>
+              <Field label="Bemutatás" value={description} onChangeText={setDescription} multiline />
+            </View>
+          </View>
 
-            <Text
-              style={{
-                color:
-                  'rgba(255,255,255,0.72)',
-                marginTop: 8,
-                fontSize: 15,
-                letterSpacing: 1,
-              }}
-            >
-              {location}
-            </Text>
-          </LinearGradient>
+          <View style={styles.sidebar}>
+            {image ? <Image source={{ uri: image }} contentFit="cover" style={styles.preview} /> : null}
+            <View style={styles.statusCard}>
+              <Text style={styles.cardTitle}>Hirdetés állapota</Text>
+              {statuses.map((item) => (
+                <Pressable key={item.value} onPress={() => setStatus(item.value)} style={[styles.statusOption, status === item.value && styles.statusSelected]}>
+                  <View style={{ flex: 1 }}><Text style={[styles.statusLabel, status === item.value && styles.statusLabelSelected]}>{item.label}</Text><Text style={[styles.statusHelp, status === item.value && styles.statusHelpSelected]}>{item.help}</Text></View>
+                  {status === item.value && <CheckCircle2 size={20} color="#fff" />}
+                </Pressable>
+              ))}
+            </View>
+            <Pressable onPress={save} disabled={saving} style={styles.save}>
+              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Módosítások mentése</Text>}
+            </Pressable>
+          </View>
         </View>
-
-        <Text
-          style={{
-            color: '#F2E6CF',
-            fontSize: 38,
-            fontWeight: '600',
-            letterSpacing: 1,
-            marginBottom: 38,
-          }}
-        >
-          Ingatlan szerkesztése
-        </Text>
-
-        <View
-          style={{
-            gap: 24,
-          }}
-        >
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Ingatlan neve"
-            placeholderTextColor="#777"
-            style={{
-              height: 68,
-              borderRadius: 24,
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.10)',
-              paddingHorizontal: 22,
-              color: '#fff',
-              fontSize: 17,
-            }}
-          />
-
-          <TextInput
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Lokáció"
-            placeholderTextColor="#777"
-            style={{
-              height: 68,
-              borderRadius: 24,
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.10)',
-              paddingHorizontal: 22,
-              color: '#fff',
-              fontSize: 17,
-            }}
-          />
-
-          <TextInput
-            value={price}
-            onChangeText={setPrice}
-            placeholder="Ár"
-            placeholderTextColor="#777"
-            style={{
-              height: 68,
-              borderRadius: 24,
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.10)',
-              paddingHorizontal: 22,
-              color: '#fff',
-              fontSize: 17,
-            }}
-          />
-
-          <TextInput
-            value={description}
-            onChangeText={
-              setDescription
-            }
-            placeholder="Leírás"
-            placeholderTextColor="#777"
-            multiline
-            textAlignVertical="top"
-            style={{
-              minHeight: 220,
-              borderRadius: 28,
-              backgroundColor:
-                'rgba(255,255,255,0.04)',
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.10)',
-              paddingHorizontal: 22,
-              paddingTop: 22,
-              color: '#fff',
-              fontSize: 17,
-              lineHeight: 30,
-            }}
-          />
-        </View>
-
-        <Pressable
-          onPress={saveProperty}
-          disabled={saving}
-          style={{
-            height: 70,
-            borderRadius: 999,
-            backgroundColor:
-              '#E6C998',
-            justifyContent:
-              'center',
-            alignItems: 'center',
-            marginTop: 42,
-            opacity:
-              saving ? 0.7 : 1,
-            shadowColor:
-              '#E6C998',
-            shadowOffset: {
-              width: 0,
-              height: 8,
-            },
-            shadowOpacity: 0.22,
-            shadowRadius: 24,
-            elevation: 10,
-          }}
-        >
-          {saving ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <Text
-              style={{
-                color: '#000',
-                fontSize: 18,
-                fontWeight: '800',
-                letterSpacing: 1,
-              }}
-            >
-              MENTÉS
-            </Text>
-          )}
-        </Pressable>
-      </ScrollView>
-    </>
+      </View>
+    </ScrollView>
   )
 }
+
+function Field({ label, multiline, ...props }: any) {
+  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...props} multiline={multiline} textAlignVertical={multiline ? 'top' : 'center'} placeholderTextColor="#9A9E99" style={[styles.input, multiline && styles.textarea]} /></View>
+}
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: '#F4F1EB' },
+  content: { paddingHorizontal: 20, paddingTop: Platform.OS === 'web' ? 42 : 70, paddingBottom: 130 },
+  shell: { width: '100%', maxWidth: 1160, alignSelf: 'center' },
+  loading: { flex: 1, backgroundColor: '#F4F1EB', alignItems: 'center', justifyContent: 'center' },
+  back: { flexDirection: 'row', gap: 8, alignItems: 'center', alignSelf: 'flex-start', paddingVertical: 9 },
+  backText: { color: '#455149', fontWeight: '700' },
+  header: { marginTop: 24, marginBottom: 31 },
+  eyebrow: { color: '#9B7141', fontSize: 11, fontWeight: '900', letterSpacing: 1.7 },
+  title: { color: '#1D2923', fontSize: Platform.OS === 'web' ? 44 : 35, fontWeight: '800', letterSpacing: -1.2, marginTop: 8 },
+  subtitle: { color: '#68736C', fontSize: 16, lineHeight: 24, marginTop: 10 },
+  grid: { gap: 22 },
+  gridDesktop: { flexDirection: 'row', alignItems: 'flex-start' },
+  form: { flex: 1, gap: 18 },
+  card: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 21, padding: 23, gap: 17 },
+  cardTitle: { color: '#1D2923', fontSize: 20, fontWeight: '800', marginBottom: 2 },
+  row: { gap: 13 },
+  rowDesktop: { flexDirection: 'row' },
+  flex: { flex: 1 },
+  field: { gap: 8 },
+  label: { color: '#3D4942', fontSize: 13, fontWeight: '800' },
+  input: { minHeight: 55, borderRadius: 13, borderWidth: 1, borderColor: '#D8D2C9', backgroundColor: '#FAF9F6', color: '#1D2923', paddingHorizontal: 16, fontSize: 15, outlineStyle: 'none' as any },
+  textarea: { minHeight: 150, paddingTop: 15, lineHeight: 23 },
+  sidebar: { width: '100%', gap: 13 },
+  preview: { width: '100%', height: 220, borderRadius: 20 },
+  statusCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 21, padding: 18, gap: 9 },
+  statusOption: { borderWidth: 1, borderColor: '#DDD7CF', borderRadius: 13, padding: 14, flexDirection: 'row', alignItems: 'center' },
+  statusSelected: { backgroundColor: '#2E4639', borderColor: '#2E4639' },
+  statusLabel: { color: '#354139', fontWeight: '800' },
+  statusLabelSelected: { color: '#fff' },
+  statusHelp: { color: '#858C87', fontSize: 12, marginTop: 3 },
+  statusHelpSelected: { color: '#CFD9D2' },
+  save: { minHeight: 57, borderRadius: 14, backgroundColor: '#2E4639', alignItems: 'center', justifyContent: 'center' },
+  saveText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+})

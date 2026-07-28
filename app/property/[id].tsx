@@ -1,595 +1,260 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
-
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Linking,
   Platform,
   Pressable,
+  ScrollView,
+  StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native'
+import { Image } from 'expo-image'
+import { router, useLocalSearchParams } from 'expo-router'
+import { ArrowLeft, Bath, BedDouble, Car, Heart, MapPin, Maximize, Pencil, Share2, Trash2 } from 'lucide-react-native'
 
-import * as Haptics from 'expo-haptics'
-
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated'
-
-import {
-  router,
-  useLocalSearchParams,
-} from 'expo-router'
-
-import {
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context'
-
+import InquiryModal from '@/components/InquiryModal'
 import { supabase } from '@/src/services/supabase'
+import { useAuth } from '@/src/providers/AuthProvider'
 
-import InquiryModal from '../../components/InquiryModal'
-
-import PropertyHero from '../../components/property/PropertyHero'
-
-import PropertyGallery from '../../components/property/PropertyGallery'
-
-import PropertyStats from '../../components/property/PropertyStats'
-
-import PropertyAgent from '../../components/property/PropertyAgent'
-
-import PropertyDescription from '../../components/property/PropertyDescription'
-
-import PropertyLocation from '../../components/property/PropertyLocation'
-
-import FullscreenGalleryModal from '../../components/property/FullscreenGalleryModal'
-
-interface Property {
+type Property = {
   id: number
+  owner_id?: string
   title: string
-  image: string
-  gallery?: any[] | string
+  image?: string
+  gallery?: string[] | string
   location: string
-  price: string
+  price: string | number
   description?: string
-  bedrooms?: number | string
-  bathrooms?: number | string
-  size?: number | string
-  area?: number | string
+  bedrooms?: number
+  bathrooms?: number
+  area?: number
+  parking?: number
   category?: string
-  parking?: number | string
-  neighborhood?: string
-  latitude?: number
-  longitude?: number
+  listing_type?: string
 }
 
 export default function PropertyDetail() {
-  const { id } =
-    useLocalSearchParams()
+  const { id } = useLocalSearchParams()
+  const { session } = useAuth()
+  const { width } = useWindowDimensions()
+  const desktop = width >= 900
+  const [property, setProperty] = useState<Property | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [favorite, setFavorite] = useState(false)
+  const [activeImage, setActiveImage] = useState(0)
+  const [inquiryOpen, setInquiryOpen] = useState(false)
 
-  useSafeAreaInsets()
+  const images = useMemo(() => {
+    if (!property) return []
+    if (Array.isArray(property.gallery) && property.gallery.length) return property.gallery
+    if (typeof property.gallery === 'string') {
+      try {
+        const parsed = JSON.parse(property.gallery)
+        if (Array.isArray(parsed) && parsed.length) return parsed
+      } catch {}
+    }
+    return property.image ? [property.image] : []
+  }, [property])
 
-  const [property, setProperty] =
-    useState<Property | null>(null)
+  const ownProperty = !!session?.user?.id && property?.owner_id === session.user.id
 
-  const [loading, setLoading] =
-    useState(true)
-
-  const [isFavorite, setIsFavorite] =
-    useState(false)
-
-  const [userId, setUserId] =
-    useState<string | null>(null)
-
-  const [currentImage, setCurrentImage] =
-    useState(0)
-
-  const [galleryVisible,
-setGalleryVisible] =
-    useState(false)
-
-  const [inquiryVisible,
-setInquiryVisible] =
-    useState(false)
-
-  const scrollY =
-    useSharedValue(0)
-
-  
-
-  async function haptic(
-    style:
-      | Haptics.ImpactFeedbackStyle.Light
-      | Haptics.ImpactFeedbackStyle.Medium
-      | Haptics.ImpactFeedbackStyle.Heavy
-      | Haptics.ImpactFeedbackStyle.Rigid =
-      Haptics.ImpactFeedbackStyle.Light
-  ) {
-    try {
-      if (Platform.OS !== 'web') {
-        await Haptics.impactAsync(style)
-      }
-    } catch {}
-  }
-
-  async function loadProperty() {
-    try {
-      setLoading(true)
-
-      const { data, error } =
-        await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', id)
-          .single()
-
-      if (error) {
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true)
+        const { data, error } = await supabase.from('properties').select('*').eq('id', id).single()
+        if (error) throw error
+        setProperty(data as Property)
+      } catch (error) {
         console.log(error)
-        return
+      } finally {
+        setLoading(false)
       }
-
-      setProperty(data)
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setLoading(false)
     }
-  }
+    load()
+  }, [id])
 
-  async function loadUser() {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      setUserId(user?.id ?? null)
-    } catch (error) {
-      console.log(error)
+  useEffect(() => {
+    async function check() {
+      if (!session?.user?.id || !property?.id) return
+      const { data } = await supabase.from('favorites').select('id').eq('user_id', session.user.id).eq('property_id', property.id).maybeSingle()
+      setFavorite(!!data)
     }
-  }
-
-  async function checkFavorite() {
-    try {
-      if (!property?.id || !userId) return
-
-      const { data } =
-        await supabase
-          .from('favorites')
-          .select('id')
-          .eq('property_id', property.id)
-          .eq('user_id', userId)
-          .maybeSingle()
-
-      setIsFavorite(!!data)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+    check()
+  }, [property?.id, session?.user?.id])
 
   async function toggleFavorite() {
-    try {
-      if (!userId) {
-        Alert.alert(
-          'Bejelentkezés szükséges',
-          'A kedvencek használatához jelentkezz be.'
-        )
-        return
-      }
-
-      if (!property?.id) return
-
-      await haptic(
-        Haptics.ImpactFeedbackStyle.Medium
-      )
-
-      const {
-        
-  data: existingFavorite,
-} = await supabase
-  .from('favorites')
-  .select('id')
-  .eq('property_id', property.id)
-  .eq('user_id', userId)
-  .maybeSingle()
-
-      if (existingFavorite) {
-        setIsFavorite(false)
-
-        await supabase
-          .from('favorites')
-          .delete()
-          .eq('property_id', property.id)
-          .eq('user_id', userId)
-
-        return
-      }
-
-      setIsFavorite(true)
-
-const { data, error } = await supabase
-  .from('favorites')
-  .insert({
-    property_id: property.id,
-    user_id: userId,
-  })
-  .select()
-
-console.log('INSERT DATA:', data)
-console.log('INSERT ERROR:', error)
-
-if (error) {
-  setIsFavorite(false)
-
-  Alert.alert(
-    'Hiba',
-    error.message
-  )
-
-  return
-}
-       
-    } catch (error) {
-      console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'Váratlan hiba történt.'
-      )
+    if (!session?.user?.id || !property) {
+      Alert.alert('Belépés szükséges', 'A mentéshez előbb jelentkezz be.')
+      return
+    }
+    if (favorite) {
+      await supabase.from('favorites').delete().eq('user_id', session.user.id).eq('property_id', property.id)
+      setFavorite(false)
+    } else {
+      const { error } = await supabase.from('favorites').insert({ user_id: session.user.id, property_id: property.id })
+      if (!error) setFavorite(true)
     }
   }
 
-  async function openMap() {
-    try {
-      await haptic(
-        Haptics.ImpactFeedbackStyle.Medium
-      )
-
-      if (
-        property?.latitude &&
-        property?.longitude
-      ) {
-        const label =
-          encodeURIComponent(
-            property.title
-          )
-
-        const url =
-          Platform.OS === 'ios'
-            ? `maps://?q=${label}&ll=${property.latitude},${property.longitude}`
-            : `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
-
-        Linking.openURL(url)
-        return
-      }
-
-      if (property?.location) {
-        Linking.openURL(
-          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            property.location
-          )}`
-        )
-      }
-    } catch (error) {
-      console.log(error)
+  async function removeProperty() {
+    if (!property || !ownProperty) return
+    const remove = async () => {
+      const { error } = await supabase.from('properties').delete().eq('id', property.id).eq('owner_id', session.user.id)
+      if (error) return Alert.alert('Hiba', 'A hirdetést nem sikerült törölni.')
+      router.replace('/dashboard')
+    }
+    if (Platform.OS === 'web') {
+      if (globalThis.confirm?.('Biztosan törlöd ezt a hirdetést?')) await remove()
+    } else {
+      Alert.alert('Hirdetés törlése', 'Ez a művelet nem vonható vissza.', [
+        { text: 'Mégse', style: 'cancel' },
+        { text: 'Törlés', style: 'destructive', onPress: remove },
+      ])
     }
   }
 
- useEffect(() => {
-  loadProperty()
-  loadUser()
-}, [id])
-
-useEffect(() => {
-  checkFavorite()
-}, [property?.id, userId])
-
-  const scrollHandler =
-    useAnimatedScrollHandler({
-      onScroll: (event) => {
-        scrollY.value =
-          event.contentOffset.y
-      },
-    })
-
-  const galleryImages =
-    useMemo(() => {
-      if (!property) return []
-
-      try {
-        const parsedGallery =
-          Array.isArray(property.gallery)
-            ? property.gallery
-            : typeof property.gallery ===
-              'string'
-            ? JSON.parse(property.gallery)
-            : []
-
-        return (
-          parsedGallery.length
-            ? parsedGallery
-            : [property.image]
-        )
-          .map((item: any) => {
-            if (typeof item === 'string') {
-              return item
-            }
-
-            if (item?.url) {
-              return item.url
-            }
-
-            return null
-          })
-          .filter(Boolean)
-      } catch {
-        return property.image
-          ? [property.image]
-          : []
-      }
-    }, [property])
-
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: '#05060A',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <View
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 60,
-            backgroundColor:
-              'rgba(214,176,123,0.08)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 30,
-            borderWidth: 1,
-            borderColor:
-              'rgba(214,176,123,0.18)',
-          }}
-        >
-          <ActivityIndicator
-            size="large"
-            color="#D6B07B"
-          />
-        </View>
-
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 28,
-            fontWeight: '800',
-            letterSpacing: 1,
-          }}
-        >
-          REALVIA
-        </Text>
-
-        <Text
-          style={{
-            color: '#8F8F95',
-            marginTop: 12,
-            fontSize: 15,
-            letterSpacing: 3,
-            textTransform: 'uppercase',
-          }}
-        >
-          Luxury Real Estate
-        </Text>
-      </View>
-    )
+  async function share() {
+    const url = Platform.OS === 'web' ? globalThis.location?.href : `https://www.realvia.hu/property/${id}`
+    if (url) await Linking.openURL(`mailto:?subject=${encodeURIComponent(property?.title || 'Realvia ingatlan')}&body=${encodeURIComponent(url)}`)
   }
 
-  if (!property) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: '#05060A',
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 24,
-        }}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 24,
-            fontWeight: '700',
-            textAlign: 'center',
-          }}
-        >
-          Az ingatlan nem található
-        </Text>
-      </View>
-    )
-  }
+  if (loading) return <View style={styles.loading}><ActivityIndicator size="large" color="#8B6338" /><Text style={styles.loadingText}>Ingatlan betöltése…</Text></View>
+  if (!property) return <View style={styles.loading}><Text style={styles.notFound}>Az ingatlan nem található.</Text><Pressable onPress={() => router.replace('/')}><Text style={styles.backLink}>Vissza a főoldalra</Text></Pressable></View>
 
   return (
     <>
-      <Animated.ScrollView
-        style={{
-    flex: 1,
-    backgroundColor: '#05060A',
-  }}
-  contentContainerStyle={{
-    width: '100%',
-    overflow: 'hidden',
-  }}
-  showsVerticalScrollIndicator={false}
-  showsHorizontalScrollIndicator={false}
-  onScroll={scrollHandler}
-  scrollEventThrottle={16}
->
-      
-        <PropertyHero
-          property={property}
-          image={
-            galleryImages[currentImage]
-          }
-          isFavorite={isFavorite}
-          onBack={() => {
-            try {
-              router.back()
-            } catch {
-              router.replace('/')
-            }
-          }}
-          onEdit={() => {
-            router.push(
-              `/property/edit/${property.id}`
-            )
-          }}
-         onDelete={async () => {
-  if (!window.confirm('Biztosan törölni szeretnéd?')) {
-    return
-  }
+      <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+        <View style={styles.shell}>
+          <View style={styles.topbar}>
+            <Pressable onPress={() => router.back()} style={styles.roundButton}><ArrowLeft size={20} color="#334139" /></Pressable>
+            <View style={styles.topActions}>
+              <Pressable onPress={share} style={styles.roundButton}><Share2 size={19} color="#334139" /></Pressable>
+              <Pressable onPress={toggleFavorite} style={[styles.roundButton, favorite && styles.favoriteButton]}><Heart size={19} color={favorite ? '#fff' : '#334139'} fill={favorite ? '#fff' : 'transparent'} /></Pressable>
+            </View>
+          </View>
 
-  try {
-    const { error } = await supabase
-      .from('properties')
-      .delete()
-      .eq('id', property.id)
+          <View style={[styles.heroGrid, desktop && styles.heroGridDesktop]}>
+            <View style={styles.heroMain}>
+              {images[activeImage] ? <Image source={{ uri: images[activeImage] }} contentFit="cover" style={styles.heroImage} /> : <View style={[styles.heroImage, styles.placeholder]} />}
+              <View style={styles.heroBadge}><Text style={styles.heroBadgeText}>{(property.listing_type || 'Eladó').toUpperCase()}</Text></View>
+            </View>
+            {desktop && images.length > 1 && <View style={styles.sideImages}>{images.slice(1, 3).map((uri, i) => <Pressable key={uri} style={styles.sideImageWrap} onPress={() => setActiveImage(i + 1)}><Image source={{ uri }} contentFit="cover" style={styles.sideImage} /></Pressable>)}</View>}
+          </View>
 
-    if (error) {
-      alert(error.message)
-      return
-    }
+          {images.length > 1 && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbs}>{images.map((uri, i) => <Pressable key={`${uri}-${i}`} onPress={() => setActiveImage(i)} style={[styles.thumbWrap, activeImage === i && styles.thumbActive]}><Image source={{ uri }} contentFit="cover" style={styles.thumb} /></Pressable>)}</ScrollView>}
 
-    alert('Az ingatlan törölve lett.')
-    router.replace('/')
-  } catch (error) {
-    console.log(error)
-  }
-}}
-    
-                    
-          
-          
-          
-          
-          onFavorite={toggleFavorite}
-        />
+          <View style={[styles.contentGrid, desktop && styles.contentGridDesktop]}>
+            <View style={styles.mainContent}>
+              <Text style={styles.eyebrow}>{property.category || 'Ingatlan'}</Text>
+              <Text style={styles.title}>{property.title}</Text>
+              <View style={styles.locationRow}><MapPin size={17} color="#8B6338" /><Text style={styles.location}>{property.location}</Text></View>
+              <Text style={styles.price}>{Number(property.price).toLocaleString('hu-HU')} Ft</Text>
 
+              <View style={styles.stats}>
+                <Stat icon={<BedDouble size={21} color="#6B7B71" />} value={property.bedrooms || 0} label="Szoba" />
+                <Stat icon={<Bath size={21} color="#6B7B71" />} value={property.bathrooms || 0} label="Fürdő" />
+                <Stat icon={<Maximize size={21} color="#6B7B71" />} value={`${property.area || 0} m²`} label="Alapterület" />
+                <Stat icon={<Car size={21} color="#6B7B71" />} value={property.parking || 0} label="Parkoló" />
+              </View>
 
-        <View
-          style={{
-            paddingHorizontal: 24,
-            marginTop: 20,
-          }}
-        >
-          {property.location && (
-            <Text
-              style={{
-                color: '#9CA3AF',
-                fontSize: 14,
-                marginBottom: 8,
-              }}
-            >
-              📍 {property.location}
-            </Text>
-          )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Az ingatlanról</Text>
+                <Text style={styles.description}>{property.description || 'A hirdető még nem adott meg részletes leírást.'}</Text>
+              </View>
 
-          {property.category && (
-            <Text
-              style={{
-                color: '#D6B07B',
-                fontSize: 16,
-                fontWeight: '700',
-              }}
-            >
-              {property.category}
-            </Text>
-          )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Elhelyezkedés</Text>
+                <Pressable onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`)} style={styles.mapCard}>
+                  <View style={styles.mapIcon}><MapPin size={24} color="#fff" /></View>
+                  <View style={{ flex: 1 }}><Text style={styles.mapTitle}>{property.location}</Text><Text style={styles.mapText}>Megnyitás a térképen →</Text></View>
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={[styles.contactCard, desktop && styles.contactCardDesktop]}>
+              <Text style={styles.contactEyebrow}>ÉRDEKEL AZ INGATLAN?</Text>
+              <Text style={styles.contactTitle}>Kérj további információt</Text>
+              <Text style={styles.contactText}>Küldj üzenetet a hirdetőnek, és egyeztessetek a részletekről vagy a megtekintésről.</Text>
+              <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>Érdeklődés küldése</Text></Pressable>
+              {ownProperty && <>
+                <View style={styles.ownerDivider} />
+                <Text style={styles.ownerLabel}>Ez a saját hirdetésed</Text>
+                <Pressable onPress={() => router.push(`/property/edit/${property.id}`)} style={styles.editButton}><Pencil size={17} color="#455149" /><Text style={styles.editText}>Szerkesztés</Text></Pressable>
+                <Pressable onPress={removeProperty} style={styles.deleteButton}><Trash2 size={17} color="#A64D49" /><Text style={styles.deleteText}>Hirdetés törlése</Text></Pressable>
+              </>}
+            </View>
+          </View>
         </View>
-
-        <PropertyGallery
-          images={galleryImages}
-          currentImage={currentImage}
-          onSelectImage={(index) => {
-            setCurrentImage(index)
-            setGalleryVisible(true)
-          }}
-        />
-
-        <PropertyStats
-          bedrooms={property.bedrooms}
-          bathrooms={property.bathrooms}
-          size={property.area ?? property.size}
-          parking={property.parking}
-        />
-
-        <PropertyAgent />
-
-        <PropertyDescription
-          description={
-            property.description
-          }
-        />
-
-        <PropertyLocation
-          neighborhood={
-            property.neighborhood
-          }
-          location={property.location}
-          onOpenMap={openMap}
-        />
-
-        <Pressable
-          onPress={() =>
-            setInquiryVisible(true)
-          }
-          style={{
-            backgroundColor: '#D6B07B',
-            marginHorizontal: 24,
-            marginTop: 28,
-            marginBottom: 40,
-            paddingVertical: 20,
-            borderRadius: 22,
-            alignItems: 'center',
-          }}
-        >
-          <Text
-            style={{
-              color: '#000',
-              fontSize: 18,
-              fontWeight: '800',
-            }}
-          >
-            Kapcsolat / Érdeklődés
-          </Text>
-        </Pressable>
-      </Animated.ScrollView>
-
-      <FullscreenGalleryModal
-        visible={galleryVisible}
-        images={galleryImages}
-        currentImage={currentImage}
-        onClose={() =>
-          setGalleryVisible(false)
-        }
-        onSelectImage={(index) => {
-          setCurrentImage(index)
-        }}
-      />
-
-      <InquiryModal
-        visible={inquiryVisible}
-        onClose={() =>
-          setInquiryVisible(false)
-        }
-        propertyId={property.id}
-        propertyTitle={property.title}
-      />
+      </ScrollView>
+      <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} />
     </>
   )
 }
+
+function Stat({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
+  return <View style={styles.stat}>{icon}<Text style={styles.statValue}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>
+}
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: '#F4F1EB' },
+  pageContent: { paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 26 : 60, paddingBottom: 120 },
+  shell: { width: '100%', maxWidth: 1240, alignSelf: 'center' },
+  loading: { flex: 1, backgroundColor: '#F4F1EB', alignItems: 'center', justifyContent: 'center', gap: 15 },
+  loadingText: { color: '#68736C', fontSize: 16 },
+  notFound: { color: '#1D2923', fontSize: 25, fontWeight: '800' },
+  backLink: { color: '#8B6338', fontWeight: '800' },
+  topbar: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  topActions: { flexDirection: 'row', gap: 9 },
+  roundButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E0DBD3', alignItems: 'center', justifyContent: 'center' },
+  favoriteButton: { backgroundColor: '#2E4639', borderColor: '#2E4639' },
+  heroGrid: { gap: 10 },
+  heroGridDesktop: { flexDirection: 'row', height: 570 },
+  heroMain: { flex: 2, height: 470, borderRadius: 25, overflow: 'hidden', backgroundColor: '#E7E1D7' },
+  heroImage: { width: '100%', height: '100%' },
+  placeholder: { backgroundColor: '#E7E1D7' },
+  heroBadge: { position: 'absolute', left: 18, top: 18, backgroundColor: '#F8F0E4', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99 },
+  heroBadgeText: { color: '#79542F', fontSize: 11, fontWeight: '900', letterSpacing: 1 },
+  sideImages: { flex: 1, gap: 10 },
+  sideImageWrap: { flex: 1, borderRadius: 22, overflow: 'hidden' },
+  sideImage: { width: '100%', height: '100%' },
+  thumbs: { gap: 9, paddingVertical: 12 },
+  thumbWrap: { width: 88, height: 64, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+  thumbActive: { borderColor: '#8B6338' },
+  thumb: { width: '100%', height: '100%' },
+  contentGrid: { gap: 28, marginTop: 28 },
+  contentGridDesktop: { flexDirection: 'row', alignItems: 'flex-start' },
+  mainContent: { flex: 1 },
+  eyebrow: { color: '#9B7141', fontSize: 12, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
+  title: { color: '#1D2923', fontSize: Platform.OS === 'web' ? 46 : 35, lineHeight: Platform.OS === 'web' ? 53 : 42, fontWeight: '800', letterSpacing: -1.5, marginTop: 9 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 13 },
+  location: { color: '#69746D', fontSize: 16 },
+  price: { color: '#2E4639', fontSize: 30, fontWeight: '800', marginTop: 21 },
+  stats: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 28, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 19, paddingVertical: 20 },
+  stat: { flex: 1, minWidth: 110, alignItems: 'center', gap: 5 },
+  statValue: { color: '#27342D', fontSize: 18, fontWeight: '800' },
+  statLabel: { color: '#858C87', fontSize: 12 },
+  section: { marginTop: 36 },
+  sectionTitle: { color: '#1D2923', fontSize: 25, fontWeight: '800', marginBottom: 14 },
+  description: { color: '#626E67', fontSize: 17, lineHeight: 30 },
+  mapCard: { backgroundColor: '#E7EDE8', borderRadius: 18, padding: 20, flexDirection: 'row', gap: 15, alignItems: 'center' },
+  mapIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#486052', alignItems: 'center', justifyContent: 'center' },
+  mapTitle: { color: '#2A3931', fontWeight: '800', fontSize: 17 },
+  mapText: { color: '#758078', marginTop: 5 },
+  contactCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 22, padding: 24 },
+  contactCardDesktop: { width: 350, position: 'sticky' as any, top: 24 },
+  contactEyebrow: { color: '#9B7141', fontSize: 11, fontWeight: '900', letterSpacing: 1.4 },
+  contactTitle: { color: '#1D2923', fontSize: 24, lineHeight: 30, fontWeight: '800', marginTop: 10 },
+  contactText: { color: '#6B756F', lineHeight: 23, marginTop: 11 },
+  contactButton: { backgroundColor: '#2E4639', minHeight: 55, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 20 },
+  contactButtonText: { color: '#fff', fontWeight: '800' },
+  ownerDivider: { height: 1, backgroundColor: '#E5E0D9', marginVertical: 20 },
+  ownerLabel: { color: '#7A837D', fontSize: 12, fontWeight: '700', marginBottom: 10 },
+  editButton: { minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: '#CFC9C0', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+  editText: { color: '#455149', fontWeight: '800' },
+  deleteButton: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', marginTop: 7 },
+  deleteText: { color: '#A64D49', fontWeight: '700', fontSize: 13 },
+})
