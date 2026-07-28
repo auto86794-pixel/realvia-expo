@@ -32,8 +32,6 @@ import PropertyCardSkeleton from '@/components/PropertyCardSkeleton'
 
 import { supabase } from '../../src/services/supabase'
 
-import { useProtectedRoute } from '../../src/hooks/useProtectedRoute'
-
 import { useAuth } from '../../src/providers/AuthProvider'
 
 import {
@@ -45,8 +43,6 @@ import {
 import { hu } from '@/constants/translations'
 
 export default function Home() {
-  useProtectedRoute()
-
   const { session } = useAuth()
   const { width } = useWindowDimensions()
 
