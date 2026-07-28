@@ -6,9 +6,11 @@ import {
   ImageBackground,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import { LinearGradient } from 'expo-linear-gradient'
@@ -28,6 +30,10 @@ import {
 } from '@/constants/theme'
 
 export default function LoginScreen() {
+  const { width, height } =
+    useWindowDimensions()
+  const isMobile = width < 768
+
   const [email, setEmail] =
     useState('')
 
@@ -36,10 +42,17 @@ export default function LoginScreen() {
 
   const [loading, setLoading] =
     useState(false)
+  const [message, setMessage] =
+    useState('')
 
   async function handleLogin() {
     try {
+      setMessage('')
+
       if (!email || !password) {
+        setMessage(
+          'Add meg az email címed és a jelszavad.'
+        )
         Alert.alert(
           'Hiányzó adatok',
           'Add meg az email címed és a jelszavad.'
@@ -53,12 +66,15 @@ export default function LoginScreen() {
       const { error } =
         await supabase.auth.signInWithPassword(
           {
-            email,
+            email: email.trim(),
             password,
           }
         )
 
       if (error) {
+        setMessage(
+          'Sikertelen belépés. Ellenőrizd az email címet, a jelszót és hogy megerősítetted-e az emailedet.'
+        )
         Alert.alert(
           'Sikertelen belépés',
           'Ellenőrizd az email címet és a jelszót.'
@@ -70,6 +86,9 @@ export default function LoginScreen() {
       router.replace('/(tabs)' as any)
     } catch (error) {
       console.log(error)
+      setMessage(
+        'Váratlan hiba történt. Ellenőrizd az internetkapcsolatot, majd próbáld újra.'
+      )
 
       Alert.alert(
         'Hiba',
@@ -85,9 +104,24 @@ export default function LoginScreen() {
       source={require('../../assets/images/realvia-welcome.png')}
       style={{
         flex: 1,
+        width: '100%',
+        minHeight: height,
+        backgroundColor: '#05060A',
+      }}
+      imageStyle={{
+        width: '100%',
+        height: '100%',
       }}
       resizeMode="cover"
     >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          width: '100%',
+          minHeight: height,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
       <LinearGradient
         colors={[
           'rgba(0,0,0,0.20)',
@@ -104,6 +138,8 @@ export default function LoginScreen() {
           paddingHorizontal: 24,
 
           paddingVertical: 54,
+          width: '100%',
+          minHeight: height,
         }}
       >
         <Animated.View
@@ -123,9 +159,7 @@ export default function LoginScreen() {
               color: 'white',
 
               fontSize:
-                Platform.OS === 'web'
-                  ? 62
-                  : 44,
+                isMobile ? 42 : 62,
 
               fontWeight: '900',
 
@@ -264,6 +298,20 @@ export default function LoginScreen() {
             )}
           </Pressable>
 
+          {message ? (
+            <Text
+              role="alert"
+              style={{
+                color: '#FFD6D6',
+                fontSize: 14,
+                lineHeight: 21,
+                textAlign: 'center',
+              }}
+            >
+              {message}
+            </Text>
+          ) : null}
+
           <Pressable
             onPress={() =>
               router.push('/register')
@@ -299,6 +347,7 @@ export default function LoginScreen() {
           </Pressable>
         </Animated.View>
       </LinearGradient>
+      </ScrollView>
     </ImageBackground>
   )
 }

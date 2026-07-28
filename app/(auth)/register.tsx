@@ -6,9 +6,11 @@ import {
   ImageBackground,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import { LinearGradient } from 'expo-linear-gradient'
@@ -28,6 +30,10 @@ import {
 } from '@/constants/theme'
 
 export default function RegisterScreen() {
+  const { width, height } =
+    useWindowDimensions()
+  const isMobile = width < 768
+
   const [email, setEmail] =
     useState('')
 
@@ -36,10 +42,20 @@ export default function RegisterScreen() {
 
   const [loading, setLoading] =
     useState(false)
+  const [message, setMessage] =
+    useState('')
+  const [isSuccess, setIsSuccess] =
+    useState(false)
 
   async function handleRegister() {
     try {
+      setMessage('')
+      setIsSuccess(false)
+
       if (!email || !password) {
+        setMessage(
+          'Add meg az email címet és a jelszót.'
+        )
         Alert.alert(
           'Hiányzó adatok',
           'Add meg az email címet és a jelszót.'
@@ -56,6 +72,9 @@ export default function RegisterScreen() {
           email.trim()
         )
       ) {
+        setMessage(
+          'Adj meg egy valós email címet.'
+        )
         Alert.alert(
           'Érvénytelen email',
           'Adj meg egy valós email címet.'
@@ -65,6 +84,9 @@ export default function RegisterScreen() {
       }
 
       if (password.length < 8) {
+        setMessage(
+          'A jelszónak legalább 8 karakterből kell állnia.'
+        )
         Alert.alert(
           'Gyenge jelszó',
           'A jelszónak legalább 8 karakterből kell állnia.'
@@ -75,13 +97,14 @@ export default function RegisterScreen() {
 
       setLoading(true)
 
-      const { error } =
+      const { data, error } =
         await supabase.auth.signUp({
           email: email.trim(),
           password,
         })
 
       if (error) {
+        setMessage(error.message)
         Alert.alert(
           'Sikertelen regisztráció',
           error.message
@@ -90,14 +113,35 @@ export default function RegisterScreen() {
         return
       }
 
+      if (
+        data.user &&
+        data.user.identities?.length === 0
+      ) {
+        setMessage(
+          'Ehhez az email címhez már tartozik fiók. Próbálj meg belépni.'
+        )
+        return
+      }
+
+      if (data.session) {
+        router.replace('/(tabs)' as any)
+        return
+      }
+
+      setIsSuccess(true)
+      setMessage(
+        'Sikeres regisztráció! Nyisd meg a megerősítő levelet, majd jelentkezz be.'
+      )
       Alert.alert(
         'Sikeres regisztráció',
         'Ellenőrizd az emailedet és erősítsd meg a regisztrációt.'
       )
 
-      router.replace('/login')
     } catch (error) {
       console.log(error)
+      setMessage(
+        'Váratlan hiba történt. Ellenőrizd az internetkapcsolatot, majd próbáld újra.'
+      )
 
       Alert.alert(
         'Hiba',
@@ -113,9 +157,24 @@ export default function RegisterScreen() {
       source={require('../../assets/images/realvia-welcome.png')}
       style={{
         flex: 1,
+        width: '100%',
+        minHeight: height,
+        backgroundColor: '#05060A',
+      }}
+      imageStyle={{
+        width: '100%',
+        height: '100%',
       }}
       resizeMode="cover"
     >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          width: '100%',
+          minHeight: height,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
       <LinearGradient
         colors={[
           'rgba(0,0,0,0.20)',
@@ -128,6 +187,8 @@ export default function RegisterScreen() {
           alignItems: 'center',
           paddingHorizontal: 24,
           paddingVertical: 54,
+          width: '100%',
+          minHeight: height,
         }}
       >
         <Animated.View
@@ -143,9 +204,7 @@ export default function RegisterScreen() {
             style={{
               color: 'white',
               fontSize:
-                Platform.OS === 'web'
-                  ? 62
-                  : 44,
+                isMobile ? 42 : 62,
               fontWeight: '900',
               letterSpacing: -2.5,
               textAlign: 'center',
@@ -260,6 +319,22 @@ export default function RegisterScreen() {
             )}
           </Pressable>
 
+          {message ? (
+            <Text
+              role="alert"
+              style={{
+                color: isSuccess
+                  ? '#BBF7D0'
+                  : '#FFD6D6',
+                fontSize: 14,
+                lineHeight: 21,
+                textAlign: 'center',
+              }}
+            >
+              {message}
+            </Text>
+          ) : null}
+
           <Pressable
             onPress={() =>
               router.push('/login')
@@ -288,6 +363,7 @@ export default function RegisterScreen() {
           </Pressable>
         </Animated.View>
       </LinearGradient>
+      </ScrollView>
     </ImageBackground>
   )
 }
