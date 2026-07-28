@@ -4,6 +4,7 @@ import {
   Pressable,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import { LinearGradient } from 'expo-linear-gradient'
@@ -14,22 +15,26 @@ import Animated, {
   FadeInDown,
 } from 'react-native-reanimated'
 
-const isMobile =
-  Platform.OS !== 'web'
-
 export default function Welcome() {
+  const { width, height } =
+    useWindowDimensions()
+  const isMobile = width < 768
+
   return (
     <ImageBackground
-  source={require('../../assets/images/realvia-welcome.png')}
-  resizeMode="cover"
-  style={{
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  }}
->
+      source={require('../../assets/images/realvia-welcome.png')}
+      resizeMode="cover"
+      style={{
+        flex: 1,
+        width: '100%',
+        minHeight: height,
+        backgroundColor: '#05060A',
+      }}
+      imageStyle={{
+        width: '100%',
+        height: '100%',
+      }}
+    >
       
     
       <LinearGradient
@@ -45,6 +50,8 @@ export default function Welcome() {
             ? 24
             : 54,
           overflow: 'hidden',
+          width: '100%',
+          minHeight: height,
         }}
       >
         <Animated.View
