@@ -26,30 +26,22 @@ async function verifyUser(request: any) {
     throw new Error('Unauthorized')
   }
 
-  const sessionResponse = await fetch(
-    `${getAuthBaseUrl()}/get-session`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: authorization,
-        Accept: 'application/json',
-      },
-    }
+  const token = authorization.slice(7)
+
+  // jose is ESM-only. A dynamic import keeps Vercel from compiling it
+  // into CommonJS require(), which caused ERR_REQUIRE_ESM.
+  const {
+    createRemoteJWKSet,
+    jwtVerify,
+  } = await import('jose')
+
+  const jwks = createRemoteJWKSet(
+    new URL(
+      `${getAuthBaseUrl()}/.well-known/jwks.json`
+    )
   )
 
-  if (!sessionResponse.ok) {
-    throw new Error('Unauthorized')
-  }
-
-  const sessionData =
-    await sessionResponse.json()
-
-  if (
-    !sessionData?.user &&
-    !sessionData?.session?.user
-  ) {
-    throw new Error('Unauthorized')
-  }
+  await jwtVerify(token, jwks)
 }
 
 export default async function handler(
