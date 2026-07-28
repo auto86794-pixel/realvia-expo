@@ -47,6 +47,7 @@ export default function UploadScreen() {
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [formMessage, setFormMessage] = useState('')
 
   async function pickImages() {
     try {
@@ -89,20 +90,28 @@ export default function UploadScreen() {
   }
 
   async function save(status: 'draft' | 'published') {
-    const validationError = validate()
+    setFormMessage('')
+    const validationError =
+      status === 'published'
+        ? validate()
+        : null
     if (validationError) {
+      setFormMessage(validationError)
       Alert.alert('Még hiányzik néhány adat', validationError)
       return
     }
-    if (!session?.user?.id) return
+    if (!session?.user?.id) {
+      setFormMessage('A mentéshez előbb jelentkezz be.')
+      return
+    }
 
     try {
       setSaving(true)
       const { error } = await supabase.from('properties').insert({
         owner_id: session.user.id,
-        title: title.trim(),
-        location: location.trim(),
-        price: numberFrom(price),
+        title: title.trim() || 'Névtelen hirdetés',
+        location: location.trim() || 'Helyszín nincs megadva',
+        price: numberFrom(price) > 0 ? numberFrom(price) : 1,
         description: description.trim(),
         category,
         listing_type: listingType,
@@ -111,7 +120,7 @@ export default function UploadScreen() {
         gallery: images,
         bedrooms: numberFrom(bedrooms) || 0,
         bathrooms: numberFrom(bathrooms) || 0,
-        area: numberFrom(area),
+        area: numberFrom(area) > 0 ? numberFrom(area) : null,
         parking: numberFrom(parking) || 0,
       })
       if (error) throw error
@@ -123,8 +132,16 @@ export default function UploadScreen() {
           : 'A hirdetést később folytathatod.',
         [{ text: 'Rendben', onPress: () => router.replace('/dashboard') }]
       )
+      if (Platform.OS === 'web') {
+        router.replace('/dashboard')
+      }
     } catch (error) {
       console.log(error)
+      setFormMessage(
+        error instanceof Error
+          ? error.message
+          : 'Nem sikerült elmenteni a hirdetést.'
+      )
       Alert.alert('Mentési hiba', 'Nem sikerült elmenteni a hirdetést.')
     } finally {
       setSaving(false)
@@ -233,6 +250,11 @@ export default function UploadScreen() {
             <Pressable onPress={() => save('draft')} disabled={saving} style={styles.secondaryButton}>
               <Text style={styles.secondaryButtonText}>Mentés piszkozatként</Text>
             </Pressable>
+            {formMessage ? (
+              <Text role="alert" style={styles.formMessage}>
+                {formMessage}
+              </Text>
+            ) : null}
           </View>
         </View>
       </View>
@@ -311,4 +333,5 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   secondaryButton: { minHeight: 56, borderRadius: 14, borderWidth: 1, borderColor: '#CFC8BD', alignItems: 'center', justifyContent: 'center' },
   secondaryButtonText: { color: '#455149', fontSize: 15, fontWeight: '800' },
+  formMessage: { color: '#A44540', backgroundColor: '#FBE9E7', borderRadius: 12, padding: 13, fontSize: 13, lineHeight: 19, textAlign: 'center' },
 })
