@@ -21,6 +21,7 @@ import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
 
 const statuses = [
   { value: 'published', label: 'Publikus', help: 'Mindenki láthatja' },
+  { value: 'sold', label: 'Eladva', help: 'Piros jelzés a nyilvános hirdetésen' },
   { value: 'draft', label: 'Piszkozat', help: 'Csak te látod' },
   { value: 'inactive', label: 'Inaktív', help: 'Ideiglenesen rejtett' },
 ]

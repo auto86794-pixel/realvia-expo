@@ -24,7 +24,7 @@ type Property = {
   location: string
   price: number | string
   image?: string
-  status?: 'draft' | 'published' | 'inactive'
+  status?: 'draft' | 'published' | 'inactive' | 'sold'
   created_at?: string
 }
 
@@ -158,7 +158,8 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function Status({ status }: { status: string }) {
   const draft = status === 'draft'
   const inactive = status === 'inactive'
-  return <View style={[styles.badge, draft && styles.badgeDraft, inactive && styles.badgeInactive]}><View style={[styles.dot, draft && styles.dotDraft, inactive && styles.dotInactive]} /><Text style={[styles.badgeText, draft && styles.badgeTextDraft, inactive && styles.badgeTextInactive]}>{draft ? 'Piszkozat' : inactive ? 'Inaktív' : 'Publikus'}</Text></View>
+  const sold = status === 'sold'
+  return <View style={[styles.badge, draft && styles.badgeDraft, inactive && styles.badgeInactive, sold && styles.badgeSold]}><View style={[styles.dot, draft && styles.dotDraft, inactive && styles.dotInactive, sold && styles.dotSold]} /><Text style={[styles.badgeText, draft && styles.badgeTextDraft, inactive && styles.badgeTextInactive, sold && styles.badgeTextSold]}>{draft ? 'Piszkozat' : inactive ? 'Inaktív' : sold ? 'Eladva' : 'Publikus'}</Text></View>
 }
 
 const styles = StyleSheet.create({
@@ -197,12 +198,15 @@ const styles = StyleSheet.create({
   badge: { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: '#E6F1E9', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 99, alignSelf: 'flex-start' },
   badgeDraft: { backgroundColor: '#F4EBDD' },
   badgeInactive: { backgroundColor: '#ECECEC' },
+  badgeSold: { backgroundColor: '#FBE5E3' },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#4E8961' },
   dotDraft: { backgroundColor: '#A9793E' },
   dotInactive: { backgroundColor: '#858585' },
+  dotSold: { backgroundColor: '#C73E3A' },
   badgeText: { color: '#3F7550', fontSize: 11, fontWeight: '800' },
   badgeTextDraft: { color: '#8B6338' },
   badgeTextInactive: { color: '#696969' },
+  badgeTextSold: { color: '#A72F2B' },
   date: { color: '#9A9F9C', fontSize: 12 },
   cardTitle: { color: '#1D2923', fontSize: 20, fontWeight: '800', marginTop: 11 },
   location: { color: '#7A827D', marginTop: 5 },

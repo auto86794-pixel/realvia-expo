@@ -10,7 +10,7 @@ export const hu = {
       'Város, kerület vagy ingatlantípus...',
 
     luxuryProperties:
-      'Exkluzív Ingatlanok',
+      'Kiemelt Ingatlanok',
 
     handpicked:
       'Válogatott prémium ajánlatok',

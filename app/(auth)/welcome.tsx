@@ -10,10 +10,19 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
+import { supabase } from '@/src/services/supabase'
 
 export default function Welcome() {
   const { width, height } = useWindowDimensions()
   const mobile = width < 768
+
+  async function browseAsGuest() {
+    try {
+      await supabase.auth.signOut()
+    } finally {
+      router.replace('/(tabs)')
+    }
+  }
 
   return (
     <ImageBackground
@@ -41,7 +50,7 @@ export default function Welcome() {
             <Pressable onPress={() => router.push('/register')} style={styles.secondary}>
               <Text style={styles.secondaryText}>REGISZTRÁCIÓ</Text>
             </Pressable>
-            <Pressable onPress={() => router.replace('/(tabs)')} style={styles.guest}>
+            <Pressable onPress={browseAsGuest} style={styles.guest}>
               <Text style={styles.guestText}>Böngészés vendégként →</Text>
             </Pressable>
           </View>

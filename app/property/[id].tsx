@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Bath, BedDouble, Car, Heart, MapPin, Maximize, Pencil, Share2, Trash2 } from 'lucide-react-native'
+import { ArrowLeft, Bath, BedDouble, Car, ChevronLeft, ChevronRight, Heart, MapPin, Maximize, Pencil, Share2, Trash2 } from 'lucide-react-native'
 
 import InquiryModal from '@/components/InquiryModal'
 import { supabase } from '@/src/services/supabase'
@@ -34,6 +34,7 @@ type Property = {
   parking?: number
   category?: string
   listing_type?: string
+  status?: string
 }
 
 export default function PropertyDetail() {
@@ -60,6 +61,23 @@ export default function PropertyDetail() {
   }, [property])
 
   const ownProperty = !!session?.user?.id && property?.owner_id === session.user.id
+  const sold = property?.status === 'sold'
+
+  function previousImage() {
+    setActiveImage((current) =>
+      current === 0
+        ? images.length - 1
+        : current - 1
+    )
+  }
+
+  function nextImage() {
+    setActiveImage((current) =>
+      current === images.length - 1
+        ? 0
+        : current + 1
+    )
+  }
 
   useEffect(() => {
     async function load() {
@@ -140,7 +158,18 @@ export default function PropertyDetail() {
           <View style={[styles.heroGrid, desktop && styles.heroGridDesktop]}>
             <View style={styles.heroMain}>
               {images[activeImage] ? <Image source={{ uri: images[activeImage] }} contentFit="cover" style={styles.heroImage} /> : <View style={[styles.heroImage, styles.placeholder]} />}
-              <View style={styles.heroBadge}><Text style={styles.heroBadgeText}>{(property.listing_type || 'Eladó').toUpperCase()}</Text></View>
+              <View style={[styles.heroBadge, sold && styles.soldBadge]}><Text style={[styles.heroBadgeText, sold && styles.soldBadgeText]}>{sold ? 'ELADVA' : (property.listing_type || 'Eladó').toUpperCase()}</Text></View>
+              {images.length > 1 && (
+                <View style={styles.galleryArrows}>
+                  <Pressable onPress={previousImage} style={styles.galleryArrow}>
+                    <ChevronLeft size={23} color="#24332B" />
+                  </Pressable>
+                  <Text style={styles.imageCounter}>{activeImage + 1} / {images.length}</Text>
+                  <Pressable onPress={nextImage} style={styles.galleryArrow}>
+                    <ChevronRight size={23} color="#24332B" />
+                  </Pressable>
+                </View>
+              )}
             </View>
             {desktop && images.length > 1 && <View style={styles.sideImages}>{images.slice(1, 3).map((uri, i) => <Pressable key={uri} style={styles.sideImageWrap} onPress={() => setActiveImage(i + 1)}><Image source={{ uri }} contentFit="cover" style={styles.sideImage} /></Pressable>)}</View>}
           </View>
@@ -218,6 +247,11 @@ const styles = StyleSheet.create({
   placeholder: { backgroundColor: '#E7E1D7' },
   heroBadge: { position: 'absolute', left: 18, top: 18, backgroundColor: '#F8F0E4', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99 },
   heroBadgeText: { color: '#79542F', fontSize: 11, fontWeight: '900', letterSpacing: 1 },
+  soldBadge: { backgroundColor: '#C73E3A' },
+  soldBadgeText: { color: '#FFFFFF' },
+  galleryArrows: { position: 'absolute', left: 18, right: 18, bottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  galleryArrow: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,253,249,0.92)', alignItems: 'center', justifyContent: 'center' },
+  imageCounter: { color: '#FFFFFF', backgroundColor: 'rgba(29,41,35,0.72)', paddingHorizontal: 13, paddingVertical: 7, borderRadius: 99, fontSize: 12, fontWeight: '800' },
   sideImages: { flex: 1, gap: 10 },
   sideImageWrap: { flex: 1, borderRadius: 22, overflow: 'hidden' },
   sideImage: { width: '100%', height: '100%' },

@@ -105,7 +105,7 @@ export default function Home() {
         await supabase
           .from('properties')
           .select('*')
-          .eq('status', 'published')
+          .in('status', ['published', 'sold'])
           .order('id', {
             ascending: false,
           })
