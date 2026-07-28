@@ -105,6 +105,7 @@ export default function Home() {
         await supabase
           .from('properties')
           .select('*')
+          .eq('status', 'published')
           .order('id', {
             ascending: false,
           })
