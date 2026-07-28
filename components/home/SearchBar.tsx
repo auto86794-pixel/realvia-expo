@@ -42,8 +42,8 @@ export default function SearchBar({
       style={{
         backgroundColor:
           focused
-            ? 'rgba(255,255,255,0.10)'
-            : 'rgba(255,255,255,0.06)',
+            ? 'rgba(255,255,255,0.96)'
+            : 'rgba(255,255,255,0.88)',
 
         borderRadius:
           Radius.full,
@@ -58,8 +58,8 @@ export default function SearchBar({
         borderWidth: 1,
 
         borderColor: focused
-          ? 'rgba(214,176,123,0.35)'
-          : 'rgba(255,255,255,0.08)',
+          ? '#CDBA9F'
+          : 'rgba(255,255,255,0.72)',
 
         flexDirection: 'row',
 
@@ -82,7 +82,7 @@ export default function SearchBar({
           borderRadius: 999,
 
           backgroundColor:
-            'rgba(255,255,255,0.08)',
+            '#F0E5D6',
 
           alignItems: 'center',
 
@@ -94,8 +94,8 @@ export default function SearchBar({
           size={20}
           color={
             focused
-              ? Colors.dark.primary
-              : '#9CA3AF'
+              ? '#8B6338'
+              : '#68756D'
           }
         />
       </View>
@@ -110,12 +110,12 @@ export default function SearchBar({
         onBlur={() =>
           setFocused(false)
         }
-        placeholder="Search luxury properties..."
-        placeholderTextColor="#71717A"
+        placeholder="Keress település vagy ingatlan neve alapján..."
+        placeholderTextColor="#78817B"
         style={{
           flex: 1,
 
-          color: 'white',
+          color: '#1D2923',
 
           fontSize:
             Platform.OS === 'web'

@@ -78,14 +78,14 @@ export default function CategoryTabs({
                 paddingVertical: 16,
                 borderRadius: Radius.full,
                 backgroundColor: active
-                  ? Colors.dark.primary
+                  ? '#2E4639'
                   : isHovered
-                  ? 'rgba(255,255,255,0.10)'
-                  : 'rgba(255,255,255,0.06)',
+                  ? '#F0E9DE'
+                  : '#FFFDFC',
                 borderWidth: 1,
                 borderColor: active
-                  ? 'rgba(214,176,123,0.45)'
-                  : 'rgba(255,255,255,0.08)',
+                  ? '#2E4639'
+                  : '#DDD7CE',
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: 58,
@@ -95,8 +95,8 @@ export default function CategoryTabs({
               <Text
                 style={{
                   color: active
-                    ? '#000'
-                    : '#FFF',
+                    ? '#FFF'
+                    : '#455149',
                   fontWeight: '800',
                   fontSize: 15,
                   letterSpacing: 0.3,

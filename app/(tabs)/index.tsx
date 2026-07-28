@@ -209,15 +209,13 @@ return (
     <View
       style={{
         flex: 1,
-        backgroundColor:
-          Colors.dark.background,
+        backgroundColor: '#F4F1EB',
       }}
     >
       <ScrollView
         style={{
           flex: 1,
-          backgroundColor:
-            Colors.dark.background,
+          backgroundColor: '#F4F1EB',
         }}
         contentContainerStyle={{
           paddingBottom: 180,
@@ -244,7 +242,7 @@ return (
         
           <Image
             
-  source={require('../../assets/images/luxury-placeholder.png')}
+  source={require('../../assets/images/realvia-home-sunrise.png')}
   contentFit="cover"
   style={{
     width: '100%',
@@ -260,8 +258,7 @@ return (
               width: '100%',
               height: '100%',
 
-              backgroundColor:
-                'rgba(0,0,0,0.58)',
+              backgroundColor: 'rgba(25,38,31,0.34)',
             }}
           />
 
@@ -382,7 +379,7 @@ return (
             <View>
               <Text
                 style={{
-                  color: 'white',
+                  color: '#1D2923',
 
                   fontSize: isMobile
                     ? 30
@@ -403,8 +400,7 @@ return (
 
               <Text
                 style={{
-                  color:
-                    Colors.dark.muted,
+                  color: '#6E7872',
 
                   marginTop: 8,
 
@@ -417,8 +413,7 @@ return (
 
             <Text
               style={{
-                color:
-                  Colors.dark.primary,
+                  color: '#8B6338',
 
                 fontSize: 16,
 
@@ -510,7 +505,7 @@ return (
 >
   <Text
     style={{
-      color: 'white',
+      color: '#1D2923',
       fontSize: 38,
       lineHeight: isMobile ? 38 : 46,
       fontWeight: '900',
@@ -524,16 +519,16 @@ return (
   {favoriteProperties.length === 0 ? (
     <View
       style={{
-        backgroundColor: Colors.dark.surface,
+        backgroundColor: '#FFFDFC',
         borderRadius: Radius.lg,
         padding: 32,
         borderWidth: 1,
-        borderColor: Colors.dark.border,
+        borderColor: '#E3DED5',
       }}
     >
       <Text
         style={{
-          color: Colors.dark.muted,
+          color: '#66716A',
           fontSize: 17,
           lineHeight: 28,
         }}
@@ -588,8 +583,7 @@ return (
             style={{
               marginTop: 72,
 
-              backgroundColor:
-                Colors.dark.surface,
+              backgroundColor: '#FFFDFC',
 
               borderRadius:
                 Radius.full,
@@ -600,15 +594,14 @@ return (
 
               borderWidth: 1,
 
-              borderColor:
-                Colors.dark.border,
+              borderColor: '#D9D4CC',
 
               ...Shadows.luxury,
             }}
           >
             <Text
               style={{
-                color: 'white',
+                color: '#455149',
 
                 fontSize: 17,
 
@@ -632,8 +625,7 @@ return (
           right: isMobile ? 16 : 28,
           bottom: isMobile ? 108 : 34,
 
-          backgroundColor:
-            Colors.dark.primary,
+          backgroundColor: '#2E4639',
 
           paddingHorizontal: isMobile ? 20 : 28,
           paddingVertical: isMobile ? 15 : 18,
@@ -650,7 +642,7 @@ return (
       >
         <Text
           style={{
-            color: '#000',
+            color: '#FFFFFF',
 
             fontSize: 15,
 

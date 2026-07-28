@@ -2,303 +2,72 @@ import {
   ImageBackground,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native'
-
 import { LinearGradient } from 'expo-linear-gradient'
-
 import { router } from 'expo-router'
-
-import Animated, {
-  FadeInDown,
-} from 'react-native-reanimated'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 
 export default function Welcome() {
-  const { width, height } =
-    useWindowDimensions()
-  const isMobile = width < 768
+  const { width, height } = useWindowDimensions()
+  const mobile = width < 768
 
   return (
     <ImageBackground
-      source={require('../../assets/images/realvia-welcome.png')}
+      source={require('../../assets/images/realvia-welcome-sunrise.png')}
       resizeMode="cover"
-      style={{
-        flex: 1,
-        width: '100%',
-        minHeight: height,
-        backgroundColor: '#05060A',
-      }}
-      imageStyle={{
-        width: '100%',
-        height: '100%',
-      }}
+      style={[styles.background, { minHeight: height }]}
     >
-      
-    
       <LinearGradient
-        colors={[
-          'rgba(0,0,0,0.25)',
-          'rgba(0,0,0,0.94)',
-        ]}
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-          paddingHorizontal: 28,
-          paddingBottom: isMobile
-            ? 24
-            : 54,
-          overflow: 'hidden',
-          width: '100%',
-          minHeight: height,
-        }}
+        colors={['rgba(255,250,240,0.05)', 'rgba(35,48,40,0.18)', 'rgba(24,35,29,0.60)']}
+        locations={[0, 0.5, 1]}
+        style={[styles.overlay, { minHeight: height }]}
       >
-        <Animated.View
-          entering={FadeInDown.springify()}
-          style={{
-            marginBottom: isMobile
-              ? 24
-              : 42,
-            alignItems: 'center',
-          }}
-        >
-          <View
-            style={{
-              width: isMobile
-                ? 48
-                : 54,
-              height: isMobile
-                ? 48
-                : 54,
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.85)',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}
-          >
-            <Text
-              style={{
-                color: '#F2E6CF',
-                fontSize: isMobile
-                  ? 28
-                  : 34,
-                fontWeight: '400',
-                letterSpacing: 1,
-                fontFamily:
-                  Platform.OS ===
-                  'ios'
-                    ? 'Didot'
-                    : Platform.OS ===
-                      'android'
-                    ? 'serif'
-                    : 'Didot, serif',
-              }}
-            >
-              R
-            </Text>
+        <Animated.View entering={FadeInDown.springify()} style={[styles.panel, mobile && styles.panelMobile]}>
+          <View style={styles.mark}><Text style={styles.markText}>R</Text></View>
+          <Text style={[styles.brand, mobile && styles.brandMobile]}>REALVIA</Text>
+          <Text style={styles.kicker}>EGY LÉPÉSSEL KÖZELEBB AZ OTTHONODHOZ</Text>
+          <View style={styles.rule} />
+          <Text style={styles.description}>
+            Fedezd fel a hozzád illő otthont, vagy mutasd meg saját ingatlanodat.
+          </Text>
+          <View style={styles.actions}>
+            <Pressable onPress={() => router.push('/login')} style={styles.primary}>
+              <Text style={styles.primaryText}>BELÉPÉS</Text>
+            </Pressable>
+            <Pressable onPress={() => router.push('/register')} style={styles.secondary}>
+              <Text style={styles.secondaryText}>REGISZTRÁCIÓ</Text>
+            </Pressable>
+            <Pressable onPress={() => router.replace('/(tabs)')} style={styles.guest}>
+              <Text style={styles.guestText}>Böngészés vendégként →</Text>
+            </Pressable>
           </View>
-
-          <Text
-            style={{
-              color: '#F2E6CF',
-              fontSize: isMobile
-                ? 48
-                : 64,
-              fontWeight: '300',
-              letterSpacing: 3,
-              textAlign: 'center',
-              fontFamily:
-                Platform.OS ===
-                'ios'
-                  ? 'Didot'
-                  : Platform.OS ===
-                    'android'
-                  ? 'serif'
-                  : 'Didot, serif',
-              marginBottom: 6,
-            }}
-          >
-            REALVIA
-          </Text>
-
-          <Text
-            style={{
-              color: '#E8D3AE',
-              fontSize: isMobile
-                ? 16
-                : 18,
-              fontWeight: '600',
-              letterSpacing: 1.2,
-              textAlign: 'center',
-              marginTop: 6,
-            }}
-          >
-            EGY LÉPÉSSEL KÖZELEBB
-            {'\n'}
-            AZ OTTHONODHOZ
-          </Text>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 14,
-              marginBottom: 14,
-            }}
-          >
-            <View
-              style={{
-                height: 1,
-                width: 42,
-                backgroundColor:
-                  'rgba(230,201,152,0.45)',
-              }}
-            />
-
-            <View
-              style={{
-                width: 10,
-              }}
-            />
-
-            <View
-              style={{
-                height: 1,
-                width: 42,
-                backgroundColor:
-                  'rgba(230,201,152,0.45)',
-              }}
-            />
-          </View>
-
-          <Text
-            style={{
-              color: '#D4D4D8',
-              fontSize: isMobile
-                ? 16
-                : 18,
-              lineHeight: isMobile
-                ? 24
-                : 30,
-              textAlign: 'center',
-              maxWidth: 340,
-            }}
-          >
-            Kivételes ingatlanok.
-            {'\n'}
-            Kivételes életstílus.
-          </Text>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(
-            120
-          ).springify()}
-          style={{
-            width: '100%',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <Pressable
-            onPress={() =>
-              router.push('/login')
-            }
-            style={{
-              backgroundColor:
-                '#E6C998',
-              paddingVertical: isMobile
-                ? 18
-                : 22,
-              borderRadius: 999,
-              alignItems: 'center',
-              width: '100%',
-              maxWidth: 420,
-              shadowColor: '#E6C998',
-              shadowOffset: {
-                width: 0,
-                height: 8,
-              },
-              shadowOpacity: 0.22,
-              shadowRadius: 24,
-              elevation: 10,
-            }}
-          >
-            <Text
-              style={{
-                color: '#000',
-                fontSize: isMobile
-                  ? 18
-                  : 20,
-                fontWeight: '800',
-                letterSpacing: 2,
-              }}
-            >
-              BELÉPÉS
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() =>
-              router.push(
-                '/register'
-              )
-            }
-            style={{
-              paddingVertical: isMobile
-                ? 16
-                : 20,
-              borderRadius: 999,
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor:
-                'rgba(230,201,152,0.45)',
-              backgroundColor:
-                'rgba(255,255,255,0.02)',
-              width: '100%',
-              maxWidth: 420,
-            }}
-          >
-            <Text
-              style={{
-                color: '#E6C998',
-                fontSize: isMobile
-                  ? 16
-                  : 18,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-              }}
-            >
-              REGISZTRÁCIÓ
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() =>
-              router.replace(
-                '/(tabs)'
-              )
-            }
-            style={{
-              marginTop: 4,
-            }}
-          >
-            <Text
-              style={{
-                color:
-                  'rgba(230,201,152,0.72)',
-                fontSize: 15,
-                letterSpacing: 0.6,
-              }}
-            >
-              Vendégként böngészem →
-            </Text>
-          </Pressable>
         </Animated.View>
       </LinearGradient>
     </ImageBackground>
   )
 }
+
+const styles = StyleSheet.create({
+  background: { flex: 1, width: '100%', backgroundColor: '#E9E1D4' },
+  overlay: { flex: 1, width: '100%', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 20, paddingVertical: Platform.OS === 'web' ? 42 : 28 },
+  panel: { width: '100%', maxWidth: 500, alignItems: 'center', backgroundColor: 'rgba(251,248,241,0.92)', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.72)', paddingHorizontal: 38, paddingVertical: 34, shadowColor: '#1F2F27', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.18, shadowRadius: 35, elevation: 14 },
+  panelMobile: { paddingHorizontal: 24, paddingVertical: 28, borderRadius: 24 },
+  mark: { width: 48, height: 48, borderWidth: 1, borderColor: '#9B7141', alignItems: 'center', justifyContent: 'center' },
+  markText: { color: '#73502D', fontSize: 29, fontFamily: Platform.OS === 'web' ? 'Georgia, serif' : 'serif' },
+  brand: { color: '#1D2923', fontSize: 53, fontWeight: '400', letterSpacing: 5, marginTop: 13, fontFamily: Platform.OS === 'web' ? 'Georgia, serif' : 'serif' },
+  brandMobile: { fontSize: 42 },
+  kicker: { color: '#8B6338', fontSize: 12, lineHeight: 18, fontWeight: '800', letterSpacing: 1.4, textAlign: 'center', marginTop: 7 },
+  rule: { width: 48, height: 1, backgroundColor: '#CDBA9F', marginVertical: 17 },
+  description: { color: '#627068', fontSize: 16, lineHeight: 24, textAlign: 'center', maxWidth: 370 },
+  actions: { width: '100%', gap: 11, marginTop: 24 },
+  primary: { minHeight: 56, borderRadius: 14, backgroundColor: '#2E4639', alignItems: 'center', justifyContent: 'center' },
+  primaryText: { color: '#fff', fontSize: 15, fontWeight: '800', letterSpacing: 1.5 },
+  secondary: { minHeight: 54, borderRadius: 14, borderWidth: 1, borderColor: '#BCA98E', backgroundColor: 'rgba(255,255,255,.45)', alignItems: 'center', justifyContent: 'center' },
+  secondaryText: { color: '#61482F', fontSize: 14, fontWeight: '800', letterSpacing: 1.2 },
+  guest: { alignItems: 'center', paddingTop: 8, paddingBottom: 2 },
+  guestText: { color: '#65736B', fontSize: 14, fontWeight: '600' },
+})
