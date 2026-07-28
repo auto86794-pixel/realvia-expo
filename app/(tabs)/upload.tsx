@@ -20,9 +20,8 @@ import * as ImagePicker from 'expo-image-picker'
 
 import { Image } from 'expo-image'
 
-import { decode } from 'base64-arraybuffer'
-
 import { supabase } from '@/src/services/supabase'
+import { uploadPropertyImage } from '@/src/services/blob'
 
 import {
   Colors,
@@ -96,45 +95,14 @@ const [parking, setParking] =
         []
 
       for (const asset of result.assets) {
-        const fileExt =
-          asset.uri
-            .split('.')
-            .pop() || 'jpg'
+        const imageUrl =
+          await uploadPropertyImage(
+            asset.uri,
+            asset.mimeType ||
+              'image/jpeg'
+          )
 
-        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`
-
-        const filePath = `${fileName}`
-
-        const { error } =
-          await supabase.storage
-            .from('properties')
-            .upload(
-              filePath,
-              decode(
-                asset.base64 || ''
-              ),
-              {
-                contentType:
-                  asset.mimeType ||
-                  'image/jpeg',
-              }
-            )
-
-        if (error) {
-          console.log(error)
-          continue
-        }
-
-        const { data } =
-          supabase.storage
-            .from('properties')
-            .getPublicUrl(
-              filePath
-            )
-
-        uploadedImages.push(
-          data.publicUrl
-        )
+        uploadedImages.push(imageUrl)
       }
 
       setImages(uploadedImages)

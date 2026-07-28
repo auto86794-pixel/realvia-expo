@@ -1,5 +1,3 @@
-import { Session } from '@supabase/supabase-js'
-
 import {
   createContext,
   useContext,
@@ -10,7 +8,7 @@ import {
 import { supabase } from '../services/supabase'
 
 type AuthContextType = {
-  session: Session | null
+  session: any | null
   loading: boolean
 }
 
@@ -26,7 +24,7 @@ export function AuthProvider({
   children: React.ReactNode
 }) {
   const [session, setSession] =
-    useState<Session | null>(null)
+    useState<any | null>(null)
 
   const [loading, setLoading] =
     useState(true)

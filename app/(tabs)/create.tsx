@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { supabase } from '@/src/services/supabase'
+import { uploadPropertyImage } from '@/src/services/blob'
 import { useProtectedRoute } from '../../src/hooks/useProtectedRoute'
 import { useAuth } from '../../src/providers/AuthProvider'
 
@@ -78,28 +79,7 @@ export default function CreateScreen() {
   const coverImage = galleryImages[0] || ''
 
   async function uploadImage(uri: string) {
-    const response = await fetch(uri)
-    const blob = await response.blob()
-
-    const fileName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2)}.jpg`
-
-    const { error } = await supabase.storage
-      .from('properties')
-      .upload(fileName, blob, {
-        contentType: 'image/jpeg',
-      })
-
-    if (error) {
-      throw error
-    }
-
-    const { data } = supabase.storage
-      .from('properties')
-      .getPublicUrl(fileName)
-
-    return data.publicUrl
+    return uploadPropertyImage(uri)
   }
 
   async function requestPermission() {
