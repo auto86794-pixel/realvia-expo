@@ -146,7 +146,8 @@ export default function PropertyDetail() {
     const url = `https://www.realvia.hu/property/${property?.id || id}`
     const price = property ? `${Number(property.price).toLocaleString('hu-HU')} Ft` : ''
     const title = property?.title || 'Realvia ingatlan'
-    const text = `${title}\n${property?.location || ''}${price ? ` • ${price}` : ''}\n\nNézd meg a Realvián:\n${url}`
+    const location = property?.location || ''
+    const text = `Találtam egy ingatlant a Realvián, amely szerintem érdekes lehet számodra.\n\n🏡 ${title}\n📍 ${location}\n💰 ${price}\n\nAz ingatlan részletei és fotói itt tekinthetők meg:\n${url}`
     return { url, title, text }
   }
 
@@ -177,9 +178,10 @@ export default function PropertyDetail() {
   }
 
   async function shareByEmail() {
-    const { title, text } = shareContent()
+    const { text } = shareContent()
+    const location = property?.location || 'egy remek helyen'
     await Linking.openURL(
-      `mailto:?subject=${encodeURIComponent(`Ingatlanajánlat – ${title}`)}&body=${encodeURIComponent(`Szia!\n\nEzt az ingatlant szeretném megmutatni neked:\n\n${text}\n\nÜdvözlettel`)}`
+      `mailto:?subject=${encodeURIComponent(`Ingatlanajánlat a Realviától – ${location}`)}&body=${encodeURIComponent(`Szia!\n\n${text}`)}`
     )
     setShareOpen(false)
   }
