@@ -208,7 +208,7 @@ export default function PropertyDetail() {
               <Text style={styles.contactEyebrow}>{sold ? 'EZ AZ INGATLAN ELKELT' : 'ÉRDEKEL AZ INGATLAN?'}</Text>
               <Text style={styles.contactTitle}>{sold ? 'Sikeresen értékesítve' : 'Egyeztess megtekintést'}</Text>
               <Text style={styles.contactText}>{sold ? 'Ez a hirdetés referenciaértékkel továbbra is megtekinthető, de új érdeklődést már nem fogad.' : 'Kérj visszahívást, további információt vagy adj meg számodra megfelelő megtekintési időpontokat.'}</Text>
-              {!sold && !ownProperty && <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>Megtekintés vagy érdeklődés</Text></Pressable>}
+              {!ownProperty && <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>{sold ? 'Hasonló ingatlant keresek' : 'Megtekintés vagy érdeklődés'}</Text></Pressable>}
               {ownProperty && <>
                 <View style={styles.ownerDivider} />
                 <Text style={styles.ownerLabel}>Ez a saját hirdetésed</Text>
@@ -219,7 +219,7 @@ export default function PropertyDetail() {
           </View>
         </View>
       </ScrollView>
-      <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} propertyOwnerId={property.owner_id} />
+      <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} propertyOwnerId={property.owner_id} soldProperty={sold} />
     </>
   )
 }

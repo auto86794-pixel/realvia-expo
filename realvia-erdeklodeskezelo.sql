@@ -54,7 +54,7 @@ begin
     into new.owner_id
   from public.properties p
   where p.id = new.property_id
-    and p.status = 'published';
+    and p.status in ('published', 'sold');
 
   if new.owner_id is null then
     raise exception 'A hirdetés nem fogad új érdeklődést.';

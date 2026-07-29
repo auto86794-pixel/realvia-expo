@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ImageBackground,
   Platform,
   Pressable,
@@ -7,6 +8,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
+import { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -15,12 +17,25 @@ import { supabase } from '@/src/services/supabase'
 export default function Welcome() {
   const { width, height } = useWindowDimensions()
   const mobile = width < 768
+  const [guestLoading, setGuestLoading] = useState(false)
+  const [guestError, setGuestError] = useState('')
 
   async function browseAsGuest() {
     try {
-      await supabase.auth.signOut()
-    } finally {
+      setGuestLoading(true)
+      setGuestError('')
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      const { data } = await supabase.auth.getSession({ forceFetch: true })
+      if (data?.session) throw new Error('A munkamenet még aktív.')
+
       router.replace('/(tabs)')
+    } catch (error) {
+      console.error('Guest sign-out failed:', error)
+      setGuestError('A vendég mód indítása nem sikerült. Próbáld újra, vagy nyisd meg az oldalt privát ablakban.')
+    } finally {
+      setGuestLoading(false)
     }
   }
 
@@ -50,9 +65,10 @@ export default function Welcome() {
             <Pressable onPress={() => router.push('/register')} style={styles.secondary}>
               <Text style={styles.secondaryText}>REGISZTRÁCIÓ</Text>
             </Pressable>
-            <Pressable onPress={browseAsGuest} style={styles.guest}>
-              <Text style={styles.guestText}>Böngészés vendégként →</Text>
+            <Pressable onPress={browseAsGuest} disabled={guestLoading} style={styles.guest}>
+              {guestLoading ? <ActivityIndicator size="small" color="#65736B" /> : <Text style={styles.guestText}>Böngészés vendégként →</Text>}
             </Pressable>
+            {!!guestError && <Text style={styles.guestError}>{guestError}</Text>}
           </View>
         </Animated.View>
       </LinearGradient>
@@ -79,4 +95,5 @@ const styles = StyleSheet.create({
   secondaryText: { color: '#61482F', fontSize: 14, fontWeight: '800', letterSpacing: 1.2 },
   guest: { alignItems: 'center', paddingTop: 8, paddingBottom: 2 },
   guestText: { color: '#65736B', fontSize: 14, fontWeight: '600' },
+  guestError: { color: '#A64D49', fontSize: 12, lineHeight: 17, textAlign: 'center' },
 })

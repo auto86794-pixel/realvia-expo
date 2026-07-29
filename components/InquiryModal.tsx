@@ -21,6 +21,7 @@ interface Props {
   propertyId: number
   propertyTitle: string
   propertyOwnerId?: string
+  soldProperty?: boolean
 }
 
 const inquiryTypes = [
@@ -35,6 +36,7 @@ export default function InquiryModal({
   propertyId,
   propertyTitle,
   propertyOwnerId,
+  soldProperty = false,
 }: Props) {
   const { width } = useWindowDimensions()
   const compact = width < 640
@@ -50,14 +52,16 @@ export default function InquiryModal({
   const [sent, setSent] = useState(false)
 
   useEffect(() => {
-    if (!visible) {
+    if (visible) {
+      setType(soldProperty ? 'information' : 'viewing')
+    } else {
       setErrorText('')
       setSent(false)
     }
-  }, [visible])
+  }, [soldProperty, visible])
 
   function resetAndClose() {
-    setType('viewing')
+    setType(soldProperty ? 'information' : 'viewing')
     setName('')
     setEmail('')
     setPhone('')
@@ -137,10 +141,14 @@ export default function InquiryModal({
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.form}>
               <Text style={styles.eyebrow}>KAPCSOLAT A HIRDETŐVEL</Text>
-              <Text style={styles.title}>Miben segíthetünk?</Text>
+              <Text style={styles.title}>{soldProperty ? 'Hasonló otthont keresel?' : 'Miben segíthetünk?'}</Text>
               <Text style={styles.propertyTitle} numberOfLines={2}>{propertyTitle}</Text>
 
-              <View style={[styles.typeGrid, compact && styles.typeGridCompact]}>
+              {soldProperty ? (
+                <View style={styles.soldNotice}>
+                  <Text style={styles.soldNoticeText}>Ez az ingatlan már elkelt, de a hirdető felveheti veled a kapcsolatot hasonló lehetőségekkel.</Text>
+                </View>
+              ) : <View style={[styles.typeGrid, compact && styles.typeGridCompact]}>
                 {inquiryTypes.map((item) => {
                   const Icon = item.icon
                   const selected = type === item.value
@@ -155,7 +163,7 @@ export default function InquiryModal({
                     </Pressable>
                   )
                 })}
-              </View>
+              </View>}
 
               <View style={[styles.row, compact && styles.rowCompact]}>
                 <Field label="Név *" value={name} onChangeText={setName} placeholder="Teljes név" />
@@ -179,7 +187,9 @@ export default function InquiryModal({
                 value={message}
                 onChangeText={setMessage}
                 placeholder={
-                  type === 'callback'
+                  soldProperty
+                    ? 'Írd le röviden, milyen hasonló ingatlant keresel.'
+                    : type === 'callback'
                     ? 'Mikor hívhat a hirdető?'
                     : type === 'information'
                       ? 'Milyen információra vagy kíváncsi?'
@@ -232,6 +242,8 @@ const styles = StyleSheet.create({
   typeButtonSelected: { backgroundColor: '#2E4B3C', borderColor: '#2E4B3C' },
   typeText: { color: '#536058', fontSize: 13, fontWeight: '800' },
   typeTextSelected: { color: '#FFFFFF' },
+  soldNotice: { marginTop: 20, borderRadius: 15, backgroundColor: '#FCEBE9', borderWidth: 1, borderColor: '#F3D1CE', padding: 15 },
+  soldNoticeText: { color: '#88413D', fontSize: 13, lineHeight: 20 },
   row: { flexDirection: 'row', gap: 12 },
   rowCompact: { flexDirection: 'column' },
   field: { flex: 1, marginTop: 17 },
