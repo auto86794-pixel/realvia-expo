@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, Mail, MessageSquare, Phone } from 'lucide-react-native'
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, ExternalLink, Mail, MessageSquare, Phone, Trophy } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
@@ -28,7 +28,7 @@ type Inquiry = {
   preferred_time_one?: string
   preferred_time_two?: string
   message?: string
-  status?: 'new' | 'contacted' | 'scheduled' | 'closed'
+  status?: 'new' | 'contacted' | 'scheduled' | 'successful' | 'closed'
   read_at?: string | null
   created_at?: string
 }
@@ -37,6 +37,7 @@ const statusOptions = [
   { value: 'new', label: 'Új' },
   { value: 'contacted', label: 'Kapcsolatfelvétel' },
   { value: 'scheduled', label: 'Időpont egyeztetve' },
+  { value: 'successful', label: 'Sikeres' },
   { value: 'closed', label: 'Lezárva' },
 ]
 
@@ -91,6 +92,7 @@ export default function InquiriesScreen() {
   const unreadCount = inquiries.filter((item) => !item.read_at).length
   const newCount = inquiries.filter((item) => (item.status || 'new') === 'new').length
   const scheduledCount = inquiries.filter((item) => item.status === 'scheduled').length
+  const successfulCount = inquiries.filter((item) => item.status === 'successful').length
 
   async function updateStatus(id: number, status: string) {
     try {
@@ -148,7 +150,7 @@ export default function InquiriesScreen() {
             <MiniStat label="Olvasatlan" value={unreadCount} alert={unreadCount > 0} />
             <MiniStat label="Új" value={newCount} />
             <MiniStat label="Egyeztetve" value={scheduledCount} />
-            <MiniStat label="Összes" value={inquiries.length} />
+            <MiniStat label="Sikeres" value={successfulCount} success={successfulCount > 0} />
           </View>
         </View>
 
@@ -200,6 +202,7 @@ export default function InquiriesScreen() {
 
                   <View style={[styles.cardGrid, mobile && styles.cardGridMobile]}>
                     <View style={styles.customer}>
+                      <Text style={styles.customerEyebrow}>ÉRDEKLŐDŐ ADATLAPJA</Text>
                       <Text style={styles.customerName}>{inquiry.customer_name}</Text>
                       <Pressable onPress={() => Linking.openURL(`tel:${inquiry.customer_phone}`)} style={styles.contactLine}>
                         <Phone size={16} color="#7B654B" /><Text style={styles.contactText}>{inquiry.customer_phone}</Text>
@@ -207,6 +210,17 @@ export default function InquiriesScreen() {
                       <Pressable onPress={() => Linking.openURL(`mailto:${inquiry.customer_email}`)} style={styles.contactLine}>
                         <Mail size={16} color="#7B654B" /><Text style={styles.contactText}>{inquiry.customer_email}</Text>
                       </Pressable>
+                      <View style={styles.quickActions}>
+                        <Pressable onPress={() => Linking.openURL(`tel:${inquiry.customer_phone}`)} style={styles.quickActionPrimary}>
+                          <Phone size={16} color="#FFFFFF" /><Text style={styles.quickActionPrimaryText}>Hívás</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => Linking.openURL(`mailto:${inquiry.customer_email}?subject=${encodeURIComponent(`Realvia – ${inquiry.property_title}`)}`)}
+                          style={styles.quickAction}
+                        >
+                          <Mail size={16} color="#496052" /><Text style={styles.quickActionText}>E-mail</Text>
+                        </Pressable>
+                      </View>
                     </View>
 
                     <View style={styles.details}>
@@ -229,7 +243,10 @@ export default function InquiriesScreen() {
                   <View style={styles.workflow}>
                     <View style={styles.workflowHeader}>
                       <Text style={styles.workflowLabel}>Állapot módosítása</Text>
-                      {unread && <Pressable disabled={updating} onPress={() => markAsRead(inquiry.id)} style={styles.readButton}><CheckCircle2 size={15} color="#496052" /><Text style={styles.readButtonText}>Olvasottnak jelölöm</Text></Pressable>}
+                      <View style={styles.workflowHeaderActions}>
+                        {!!inquiry.property_id && <Pressable onPress={() => router.push(`/property/${inquiry.property_id}`)} style={styles.propertyButton}><ExternalLink size={14} color="#496052" /><Text style={styles.propertyButtonText}>Ingatlan megnyitása</Text></Pressable>}
+                        {unread && <Pressable disabled={updating} onPress={() => markAsRead(inquiry.id)} style={styles.readButton}><CheckCircle2 size={15} color="#496052" /><Text style={styles.readButtonText}>Olvasottnak jelölöm</Text></Pressable>}
+                      </View>
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.workflowButtons}>
                       {statusOptions.map((item) => (
@@ -239,7 +256,7 @@ export default function InquiriesScreen() {
                           onPress={() => updateStatus(inquiry.id, item.value)}
                           style={[styles.workflowButton, status === item.value && styles.workflowButtonActive]}
                         >
-                          {updating && status !== item.value ? null : item.value === 'scheduled' ? <Clock3 size={15} color={status === item.value ? '#FFFFFF' : '#647068'} /> : item.value === 'closed' ? <CheckCircle2 size={15} color={status === item.value ? '#FFFFFF' : '#647068'} /> : null}
+                          {updating && status !== item.value ? null : item.value === 'scheduled' ? <Clock3 size={15} color={status === item.value ? '#FFFFFF' : '#647068'} /> : item.value === 'successful' ? <Trophy size={15} color={status === item.value ? '#FFFFFF' : '#647068'} /> : item.value === 'closed' ? <CheckCircle2 size={15} color={status === item.value ? '#FFFFFF' : '#647068'} /> : null}
                           <Text style={[styles.workflowText, status === item.value && styles.workflowTextActive]}>{item.label}</Text>
                         </Pressable>
                       ))}
@@ -255,8 +272,8 @@ export default function InquiriesScreen() {
   )
 }
 
-function MiniStat({ label, value, alert = false }: { label: string; value: number; alert?: boolean }) {
-  return <View style={[styles.miniStat, alert && styles.miniStatAlert]}><Text style={[styles.miniStatValue, alert && styles.miniStatValueAlert]}>{value}</Text><Text style={[styles.miniStatLabel, alert && styles.miniStatLabelAlert]}>{label}</Text></View>
+function MiniStat({ label, value, alert = false, success = false }: { label: string; value: number; alert?: boolean; success?: boolean }) {
+  return <View style={[styles.miniStat, alert && styles.miniStatAlert, success && styles.miniStatSuccess]}><Text style={[styles.miniStatValue, alert && styles.miniStatValueAlert, success && styles.miniStatValueSuccess]}>{value}</Text><Text style={[styles.miniStatLabel, alert && styles.miniStatLabelAlert]}>{label}</Text></View>
 }
 
 function FilterButton({ active, label, count, onPress, alert = false }: { active: boolean; label: string; count: number; onPress: () => void; alert?: boolean }) {
@@ -265,7 +282,7 @@ function FilterButton({ active, label, count, onPress, alert = false }: { active
 
 function StatusBadge({ status }: { status: string }) {
   const option = statusOptions.find((item) => item.value === status)
-  return <View style={[styles.statusBadge, status === 'new' && styles.statusNew, status === 'scheduled' && styles.statusScheduled, status === 'closed' && styles.statusClosed]}><Text style={[styles.statusText, status === 'new' && styles.statusNewText]}>{option?.label || 'Új'}</Text></View>
+  return <View style={[styles.statusBadge, status === 'new' && styles.statusNew, status === 'scheduled' && styles.statusScheduled, status === 'successful' && styles.statusSuccessful, status === 'closed' && styles.statusClosed]}><Text style={[styles.statusText, status === 'new' && styles.statusNewText, status === 'successful' && styles.statusSuccessfulText]}>{option?.label || 'Új'}</Text></View>
 }
 
 const styles = StyleSheet.create({
@@ -283,8 +300,10 @@ const styles = StyleSheet.create({
   headerStats: { flexDirection: 'row', gap: 9 },
   miniStat: { minWidth: 86, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 15, padding: 13, alignItems: 'center' },
   miniStatAlert: { backgroundColor: '#FCEBE9', borderColor: '#F0C8C4' },
+  miniStatSuccess: { backgroundColor: '#E4F0E7', borderColor: '#C7DDCD' },
   miniStatValue: { color: '#2E4639', fontSize: 23, fontWeight: '900' },
   miniStatValueAlert: { color: '#B53D37' },
+  miniStatValueSuccess: { color: '#2E6A43' },
   miniStatLabel: { color: '#858C87', fontSize: 11, marginTop: 2 },
   miniStatLabelAlert: { color: '#934A45' },
   filters: { gap: 9, paddingVertical: 30 },
@@ -318,17 +337,25 @@ const styles = StyleSheet.create({
   statusBadge: { backgroundColor: '#ECEFEB', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
   statusNew: { backgroundColor: '#FBE5E3' },
   statusScheduled: { backgroundColor: '#E3EEE6' },
+  statusSuccessful: { backgroundColor: '#DCEEDF' },
   statusClosed: { backgroundColor: '#E9E9E9' },
   statusText: { color: '#5E6A63', fontSize: 11, fontWeight: '900' },
   statusNewText: { color: '#A6403B' },
+  statusSuccessfulText: { color: '#2E6A43' },
   propertyTitle: { color: '#1D2923', fontSize: 20, fontWeight: '800', marginTop: 10 },
   date: { color: '#959B97', fontSize: 12 },
   cardGrid: { flexDirection: 'row', gap: 16, marginTop: 20 },
   cardGridMobile: { flexDirection: 'column' },
   customer: { width: 270, maxWidth: '100%', backgroundColor: '#F7F3EC', borderRadius: 15, padding: 16 },
+  customerEyebrow: { color: '#9B7141', fontSize: 10, fontWeight: '900', letterSpacing: 1.2, marginBottom: 7 },
   customerName: { color: '#27372E', fontSize: 18, fontWeight: '800', marginBottom: 11 },
   contactLine: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5 },
   contactText: { color: '#5F6B64', fontSize: 14 },
+  quickActions: { flexDirection: 'row', gap: 8, marginTop: 13 },
+  quickActionPrimary: { flex: 1, minHeight: 40, borderRadius: 11, backgroundColor: '#2E4B3C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  quickActionPrimaryText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+  quickAction: { flex: 1, minHeight: 40, borderRadius: 11, borderWidth: 1, borderColor: '#CAD7CE', backgroundColor: '#FFFDFC', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  quickActionText: { color: '#496052', fontSize: 12, fontWeight: '900' },
   details: { flex: 1, gap: 10 },
   timeCard: { backgroundColor: '#EAF0EB', borderRadius: 15, padding: 15 },
   messageCard: { backgroundColor: '#F8F6F1', borderRadius: 15, padding: 15, borderWidth: 1, borderColor: '#E7E1D8' },
@@ -338,7 +365,10 @@ const styles = StyleSheet.create({
   message: { color: '#66716A', fontSize: 14, lineHeight: 21, marginTop: 7 },
   workflow: { borderTopWidth: 1, borderTopColor: '#E7E1D8', marginTop: 18, paddingTop: 15 },
   workflowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 9 },
+  workflowHeaderActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 7, flexWrap: 'wrap' },
   workflowLabel: { color: '#707A74', fontSize: 12, fontWeight: '800' },
+  propertyButton: { minHeight: 34, borderRadius: 10, borderWidth: 1, borderColor: '#DAD5CD', backgroundColor: '#FFFDFC', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  propertyButtonText: { color: '#496052', fontSize: 11, fontWeight: '900' },
   readButton: { minHeight: 34, borderRadius: 10, borderWidth: 1, borderColor: '#CAD7CE', backgroundColor: '#EAF0EB', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
   readButtonText: { color: '#496052', fontSize: 11, fontWeight: '900' },
   workflowButtons: { flexDirection: 'row', gap: 8 },
