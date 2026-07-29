@@ -34,6 +34,7 @@ export default function EditProperty() {
   const desktop = width >= 850
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
   const [price, setPrice] = useState('')
@@ -78,6 +79,8 @@ export default function EditProperty() {
   }, [id, session?.user?.id])
 
   async function save() {
+    setSaveError('')
+
     if (!title.trim() || !location.trim() || Number(price) <= 0 || Number(area) <= 0) {
       Alert.alert('Hiányzó adatok', 'A cím, helyszín, ár és alapterület kitöltése kötelező.')
       return
@@ -100,7 +103,12 @@ export default function EditProperty() {
       if (error) throw error
       Alert.alert('Mentve', 'A hirdetés módosításai sikeresen elmentve.', [{ text: 'Rendben', onPress: () => router.replace('/dashboard') }])
     } catch (error) {
-      console.log(error)
+      console.error('Property update failed:', error)
+      setSaveError(
+        status === 'sold'
+          ? 'Az „Eladva” állapotot az adatbázis még nem engedélyezi. Futtasd le a mellékelt Neon SQL-frissítést.'
+          : 'A módosításokat nem sikerült elmenteni. Próbáld újra.'
+      )
       Alert.alert('Mentési hiba', 'A módosításokat nem sikerült elmenteni.')
     } finally {
       setSaving(false)
@@ -146,7 +154,7 @@ export default function EditProperty() {
             </View>
           </View>
 
-          <View style={styles.sidebar}>
+          <View style={[styles.sidebar, desktop && styles.sidebarDesktop]}>
             {image ? <Image source={{ uri: image }} contentFit="cover" style={styles.preview} /> : null}
             <View style={styles.statusCard}>
               <Text style={styles.cardTitle}>Hirdetés állapota</Text>
@@ -160,6 +168,7 @@ export default function EditProperty() {
             <Pressable onPress={save} disabled={saving} style={styles.save}>
               {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Módosítások mentése</Text>}
             </Pressable>
+            {!!saveError && <Text style={styles.saveError}>{saveError}</Text>}
           </View>
         </View>
       </View>
@@ -195,6 +204,7 @@ const styles = StyleSheet.create({
   input: { minHeight: 55, borderRadius: 13, borderWidth: 1, borderColor: '#D8D2C9', backgroundColor: '#FAF9F6', color: '#1D2923', paddingHorizontal: 16, fontSize: 15, outlineStyle: 'none' as any },
   textarea: { minHeight: 150, paddingTop: 15, lineHeight: 23 },
   sidebar: { width: '100%', gap: 13 },
+  sidebarDesktop: { width: 360, flexShrink: 0 },
   preview: { width: '100%', height: 220, borderRadius: 20 },
   statusCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 21, padding: 18, gap: 9 },
   statusOption: { borderWidth: 1, borderColor: '#DDD7CF', borderRadius: 13, padding: 14, flexDirection: 'row', alignItems: 'center' },
@@ -205,4 +215,5 @@ const styles = StyleSheet.create({
   statusHelpSelected: { color: '#CFD9D2' },
   save: { minHeight: 57, borderRadius: 14, backgroundColor: '#2E4639', alignItems: 'center', justifyContent: 'center' },
   saveText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  saveError: { color: '#A64D49', fontSize: 13, lineHeight: 19, textAlign: 'center', paddingHorizontal: 8 },
 })

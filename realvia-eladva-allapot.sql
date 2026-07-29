@@ -1,5 +1,5 @@
--- Realvia: "Eladva" hirdetésállapot
--- Egyszer kell lefuttatni a Neon SQL Editorban.
+-- Realvia: az "Eladva" hirdetésállapot engedélyezése
+-- Ezt egyszer kell lefuttatni a Neon SQL Editorban.
 
 alter table public.properties
   drop constraint if exists properties_status_check;
