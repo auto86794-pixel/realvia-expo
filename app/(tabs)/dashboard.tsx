@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useFocusEffect } from 'expo-router'
-import { Building2, Eye, FilePenLine, HardDrive, MessageSquare, Plus, Trash2, Users } from 'lucide-react-native'
+import { ArrowLeft, Building2, Eye, FilePenLine, HardDrive, MessageSquare, Plus, Trash2, Users } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
@@ -103,6 +103,10 @@ export default function Dashboard() {
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       <View style={styles.shell}>
+        <Pressable onPress={() => router.push('/')} style={styles.backButton}>
+          <ArrowLeft size={18} color="#455149" />
+          <Text style={styles.backButtonText}>Vissza a főoldalra</Text>
+        </Pressable>
         <View style={[styles.header, mobile && styles.headerMobile]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>SAJÁT FIÓK</Text>
@@ -194,6 +198,8 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#F4F1EB' },
   content: { paddingHorizontal: 20, paddingTop: Platform.OS === 'web' ? 60 : 85, paddingBottom: 150 },
   shell: { width: '100%', maxWidth: 1180, alignSelf: 'center' },
+  backButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', minHeight: 42, paddingHorizontal: 13, marginBottom: 18, borderRadius: 12, borderWidth: 1, borderColor: '#DED8CF', backgroundColor: '#FFFDFC' },
+  backButtonText: { color: '#455149', fontSize: 13, fontWeight: '800' },
   header: { flexDirection: 'row', alignItems: 'flex-end', gap: 28 },
   headerMobile: { flexDirection: 'column', alignItems: 'stretch' },
   eyebrow: { color: '#9B7141', fontSize: 12, fontWeight: '800', letterSpacing: 2 },
