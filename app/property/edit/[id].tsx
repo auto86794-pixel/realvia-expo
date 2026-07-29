@@ -12,12 +12,14 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { Image } from 'expo-image'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react-native'
+import * as ImagePicker from 'expo-image-picker'
+import { ArrowLeft, Camera, CheckCircle2, X } from 'lucide-react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
 import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
+import { syncPropertyImages, uploadPropertyImage } from '@/src/services/blob'
 
 const statuses = [
   { value: 'published', label: 'Publikus', help: 'Mindenki láthatja' },
@@ -46,7 +48,8 @@ export default function EditProperty() {
   const [area, setArea] = useState('')
   const [parking, setParking] = useState('')
   const [status, setStatus] = useState('published')
-  const [image, setImage] = useState('')
+  const [images, setImages] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -66,7 +69,15 @@ export default function EditProperty() {
         setArea(String(data.area || ''))
         setParking(String(data.parking || '0'))
         setStatus(data.status || 'published')
-        setImage(data.image || '')
+        let gallery: string[] = []
+        if (Array.isArray(data.gallery)) gallery = data.gallery
+        else if (typeof data.gallery === 'string') {
+          try {
+            const parsed = JSON.parse(data.gallery)
+            if (Array.isArray(parsed)) gallery = parsed
+          } catch {}
+        }
+        setImages(gallery.length ? gallery : data.image ? [data.image] : [])
       } catch (error) {
         console.log(error)
         Alert.alert('Nem szerkeszthető', 'A hirdetés nem található, vagy nem a saját hirdetésed.')
@@ -78,11 +89,44 @@ export default function EditProperty() {
     load()
   }, [id, session?.user?.id])
 
+  async function pickImages() {
+    if (images.length >= 10) {
+      Alert.alert('Képlimit', 'Legfeljebb 10 képet tölthetsz fel.')
+      return
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: 10 - images.length,
+        quality: 0.9,
+      })
+      if (result.canceled) return
+
+      setUploadingImages(true)
+      const urls = await Promise.all(
+        result.assets
+          .slice(0, 10 - images.length)
+          .map((asset) => uploadPropertyImage(asset.uri, asset.mimeType || 'image/jpeg'))
+      )
+      setImages((current) => [...current, ...urls])
+    } catch (error) {
+      console.error('Property image upload failed:', error)
+      Alert.alert('Feltöltési hiba', 'A képeket nem sikerült feltölteni.')
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
   async function save() {
     setSaveError('')
 
     if (!title.trim() || !location.trim() || Number(price) <= 0 || Number(area) <= 0) {
       Alert.alert('Hiányzó adatok', 'A cím, helyszín, ár és alapterület kitöltése kötelező.')
+      return
+    }
+    if (!images.length) {
+      Alert.alert('Hiányzó kép', 'A hirdetéshez legalább egy kép szükséges.')
       return
     }
     try {
@@ -101,6 +145,7 @@ export default function EditProperty() {
         status,
       }).eq('id', id).eq('owner_id', session?.user?.id)
       if (error) throw error
+      await syncPropertyImages(String(id), images)
       Alert.alert('Mentve', 'A hirdetés módosításai sikeresen elmentve.', [{ text: 'Rendben', onPress: () => router.replace('/dashboard') }])
     } catch (error) {
       console.error('Property update failed:', error)
@@ -155,7 +200,26 @@ export default function EditProperty() {
           </View>
 
           <View style={[styles.sidebar, desktop && styles.sidebarDesktop]}>
-            {image ? <Image source={{ uri: image }} contentFit="cover" style={styles.preview} /> : null}
+            {images[0] ? <Image source={{ uri: images[0] }} contentFit="cover" style={styles.preview} /> : null}
+            <View style={styles.imageCard}>
+              <Text style={styles.cardTitle}>Fotók</Text>
+              <Text style={styles.imageHelp}>Az első kép a borítókép. Legfeljebb 10 kép tölthető fel.</Text>
+              <Pressable onPress={pickImages} disabled={uploadingImages} style={styles.imagePicker}>
+                {uploadingImages ? <ActivityIndicator color="#8B6338" /> : <Camera size={20} color="#8B6338" />}
+                <Text style={styles.imagePickerText}>{uploadingImages ? 'Képek optimalizálása…' : 'Új képek hozzáadása'}</Text>
+              </Pressable>
+              <View style={styles.gallery}>
+                {images.map((uri, index) => (
+                  <View key={uri} style={styles.thumbWrap}>
+                    <Image source={{ uri }} contentFit="cover" style={styles.thumb} />
+                    {index === 0 && <Text style={styles.coverLabel}>BORÍTÓ</Text>}
+                    <Pressable onPress={() => setImages((current) => current.filter((_, itemIndex) => itemIndex !== index))} style={styles.removeImage}>
+                      <X size={13} color="#FFFFFF" />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            </View>
             <View style={styles.statusCard}>
               <Text style={styles.cardTitle}>Hirdetés állapota</Text>
               {statuses.map((item) => (
@@ -206,6 +270,15 @@ const styles = StyleSheet.create({
   sidebar: { width: '100%', gap: 13 },
   sidebarDesktop: { width: 360, flexShrink: 0 },
   preview: { width: '100%', height: 220, borderRadius: 20 },
+  imageCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 21, padding: 18, gap: 12 },
+  imageHelp: { color: '#7A837D', fontSize: 12, lineHeight: 18 },
+  imagePicker: { minHeight: 48, borderRadius: 13, borderWidth: 1, borderStyle: 'dashed', borderColor: '#CDBB9F', backgroundColor: '#FAF6EF', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+  imagePickerText: { color: '#6E5A40', fontSize: 13, fontWeight: '800' },
+  gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  thumbWrap: { width: 92, height: 68, borderRadius: 10, overflow: 'hidden' },
+  thumb: { width: '100%', height: '100%' },
+  coverLabel: { position: 'absolute', left: 5, bottom: 5, color: '#FFFFFF', backgroundColor: '#2E4639', borderRadius: 5, paddingHorizontal: 5, paddingVertical: 3, fontSize: 8, fontWeight: '900' },
+  removeImage: { position: 'absolute', right: 4, top: 4, width: 23, height: 23, borderRadius: 12, backgroundColor: 'rgba(0,0,0,.68)', alignItems: 'center', justifyContent: 'center' },
   statusCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 21, padding: 18, gap: 9 },
   statusOption: { borderWidth: 1, borderColor: '#DDD7CF', borderRadius: 13, padding: 14, flexDirection: 'row', alignItems: 'center' },
   statusSelected: { backgroundColor: '#2E4639', borderColor: '#2E4639' },

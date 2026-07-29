@@ -41,7 +41,9 @@ async function verifyUser(request: any) {
     )
   )
 
-  await jwtVerify(token, jwks)
+  const { payload } = await jwtVerify(token, jwks)
+  if (!payload.sub) throw new Error('Unauthorized')
+  return payload.sub
 }
 
 export default async function handler(
@@ -56,7 +58,7 @@ export default async function handler(
       return
     }
 
-    await verifyUser(request)
+    const userId = await verifyUser(request)
 
     const contentType = String(
       request.headers['content-type'] || 'image/jpeg'
@@ -92,7 +94,7 @@ export default async function handler(
     const extension =
       contentType.split('/')[1].replace('jpeg', 'jpg')
     const pathname =
-      `properties/${Date.now()}-${Math.random()
+      `properties/${userId}/${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}.${extension}`
 

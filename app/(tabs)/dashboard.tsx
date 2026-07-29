@@ -12,11 +12,12 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useFocusEffect } from 'expo-router'
-import { Building2, Eye, FilePenLine, MessageSquare, Plus, Trash2 } from 'lucide-react-native'
+import { Building2, Eye, FilePenLine, HardDrive, MessageSquare, Plus, Trash2 } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
 import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
+import { deletePropertyWithImages, getBlobUsage } from '@/src/services/blob'
 
 type Property = {
   id: string | number
@@ -36,6 +37,7 @@ export default function Dashboard() {
   const [properties, setProperties] = useState<Property[]>([])
   const [unreadInquiries, setUnreadInquiries] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [storage, setStorage] = useState({ megabytes: 0, files: 0 })
 
   const loadProperties = useCallback(async () => {
     if (!session?.user?.id) return
@@ -55,6 +57,12 @@ export default function Dashboard() {
         .eq('owner_id', session.user.id)
         .is('read_at', null)
       if (!unreadError) setUnreadInquiries((unreadData || []).length)
+
+      try {
+        setStorage(await getBlobUsage())
+      } catch (storageError) {
+        console.log('Blob usage unavailable:', storageError)
+      }
     } catch (error) {
       console.log(error)
       Alert.alert('Hiba', 'A saját hirdetéseid most nem tölthetők be.')
@@ -67,16 +75,16 @@ export default function Dashboard() {
 
   async function removeProperty(id: string | number) {
     const remove = async () => {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', id)
-        .eq('owner_id', session?.user?.id)
-      if (error) {
+      try {
+        await deletePropertyWithImages(id)
+      } catch (error) {
         Alert.alert('Hiba', 'A hirdetést nem sikerült törölni.')
         return
       }
       setProperties((current) => current.filter((item) => item.id !== id))
+      try {
+        setStorage(await getBlobUsage())
+      } catch {}
     }
 
     if (Platform.OS === 'web') {
@@ -118,6 +126,7 @@ export default function Dashboard() {
           <Stat icon={<Building2 size={20} color="#496052" />} label="Összes hirdetés" value={properties.length} />
           <Stat icon={<Eye size={20} color="#496052" />} label="Publikus" value={published} />
           <Stat icon={<FilePenLine size={20} color="#496052" />} label="Piszkozat" value={drafts} />
+          <Stat icon={<HardDrive size={20} color="#496052" />} label={`${storage.files} tárolt kép`} value={`${storage.megabytes} MB / 1024 MB`} />
         </View>
 
         <View style={styles.listHeader}>
@@ -166,7 +175,7 @@ export default function Dashboard() {
   )
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return <View style={styles.stat}><View style={styles.statIcon}>{icon}</View><View><Text style={styles.statValue}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View></View>
 }
 

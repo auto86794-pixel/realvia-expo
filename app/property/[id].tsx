@@ -18,6 +18,7 @@ import { ArrowLeft, Bath, BedDouble, Car, ChevronLeft, ChevronRight, Heart, MapP
 import InquiryModal from '@/components/InquiryModal'
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
+import { deletePropertyWithImages } from '@/src/services/blob'
 
 type Property = {
   id: number
@@ -121,8 +122,11 @@ export default function PropertyDetail() {
   async function removeProperty() {
     if (!property || !ownProperty) return
     const remove = async () => {
-      const { error } = await supabase.from('properties').delete().eq('id', property.id).eq('owner_id', session.user.id)
-      if (error) return Alert.alert('Hiba', 'A hirdetést nem sikerült törölni.')
+      try {
+        await deletePropertyWithImages(property.id)
+      } catch {
+        return Alert.alert('Hiba', 'A hirdetést és a képeit nem sikerült törölni.')
+      }
       router.replace('/dashboard')
     }
     if (Platform.OS === 'web') {
