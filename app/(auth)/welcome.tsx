@@ -12,10 +12,11 @@ import { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { supabase } from '@/src/services/supabase'
+import { useAuth } from '@/src/providers/AuthProvider'
 
 export default function Welcome() {
   const { width, height } = useWindowDimensions()
+  const { signOut } = useAuth()
   const mobile = width < 768
   const [guestLoading, setGuestLoading] = useState(false)
   const [guestError, setGuestError] = useState('')
@@ -24,12 +25,7 @@ export default function Welcome() {
     try {
       setGuestLoading(true)
       setGuestError('')
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-
-      const { data } = await supabase.auth.getSession({ forceFetch: true })
-      if (data?.session) throw new Error('A munkamenet még aktív.')
-
+      await signOut()
       router.replace('/(tabs)')
     } catch (error) {
       console.error('Guest sign-out failed:', error)

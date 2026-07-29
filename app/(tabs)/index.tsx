@@ -43,7 +43,7 @@ import {
 import { hu } from '@/constants/translations'
 
 export default function Home() {
-  const { session } = useAuth()
+  const { session, signOut } = useAuth()
   const { width } = useWindowDimensions()
 
   const isMobile = width < 768
@@ -85,7 +85,7 @@ export default function Home() {
 
   async function handleLogout() {
     try {
-      await supabase.auth.signOut()
+      await signOut()
 
       router.replace('/welcome')
     } catch (error) {
@@ -575,9 +575,9 @@ return (
             
         
 
-          {/* LOGOUT */}
+          {/* AUTH ACTION */}
           <Pressable
-            onPress={handleLogout}
+            onPress={session?.user ? handleLogout : () => router.push('/login')}
             style={{
               marginTop: 72,
 
@@ -606,7 +606,7 @@ return (
                 fontWeight: '800',
               }}
             >
-              {hu.home.logout}
+              {session?.user ? hu.home.logout : 'Belépés / regisztráció'}
             </Text>
           </Pressable>
         </View>
@@ -615,7 +615,7 @@ return (
       {/* FLOATING UPLOAD BUTTON */}
       <Pressable
         onPress={() =>
-          router.push('/upload')
+          router.push(session?.user ? '/upload' : '/login')
         }
         style={{
           position: 'absolute',
@@ -647,7 +647,7 @@ return (
             fontWeight: '900',
           }}
         >
-          + Új ingatlan
+          {session?.user ? '+ Új ingatlan' : 'Hirdetés feladása'}
         </Text>
       </Pressable>
     </View>

@@ -12,6 +12,7 @@ type AuthContextType = {
   session: any | null
   loading: boolean
   refreshSession: () => Promise<any | null>
+  signOut: () => Promise<void>
 }
 
 const AuthContext =
@@ -19,6 +20,7 @@ const AuthContext =
     session: null,
     loading: true,
     refreshSession: async () => null,
+    signOut: async () => {},
   })
 
 export function AuthProvider({
@@ -50,6 +52,15 @@ export function AuthProvider({
 
       return nextSession
     }, [])
+
+  const signOut = useCallback(async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+
+    // A Neon Auth eseménye böngészőtől függően késhet. A helyi állapotot
+    // azonnal töröljük, hogy a vendég nézet soha ne örökölje a tulajdonost.
+    setSession(null)
+  }, [])
 
   useEffect(() => {
     async function loadSession() {
@@ -84,6 +95,7 @@ export function AuthProvider({
         session,
         loading,
         refreshSession,
+        signOut,
       }}
     >
       {children}

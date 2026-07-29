@@ -205,13 +205,12 @@ export default function PropertyDetail() {
             </View>
 
             <View style={[styles.contactCard, desktop && styles.contactCardDesktop]}>
-              <Text style={styles.contactEyebrow}>{sold ? 'EZ AZ INGATLAN ELKELT' : 'ÉRDEKEL AZ INGATLAN?'}</Text>
-              <Text style={styles.contactTitle}>{sold ? 'Sikeresen értékesítve' : 'Egyeztess megtekintést'}</Text>
-              <Text style={styles.contactText}>{sold ? 'Ez a hirdetés referenciaértékkel továbbra is megtekinthető, de új érdeklődést már nem fogad.' : 'Kérj visszahívást, további információt vagy adj meg számodra megfelelő megtekintési időpontokat.'}</Text>
+              <Text style={styles.contactEyebrow}>{ownProperty ? 'TULAJDONOSI NÉZET' : sold ? 'EZ AZ INGATLAN ELKELT' : 'ÉRDEKEL AZ INGATLAN?'}</Text>
+              <Text style={styles.contactTitle}>{ownProperty ? 'Saját hirdetésed' : sold ? 'Sikeresen értékesítve' : 'Egyeztess megtekintést'}</Text>
+              <Text style={styles.contactText}>{ownProperty ? 'Itt szerkesztheted vagy törölheted a hirdetést. A beérkezett megkereséseket az Érdeklődések oldalon kezelheted.' : sold ? 'Ez a hirdetés referenciaértékkel továbbra is megtekinthető. Hasonló ingatlan iránt továbbra is jelezheted az érdeklődésed.' : 'Kérj visszahívást, további információt vagy adj meg számodra megfelelő megtekintési időpontokat.'}</Text>
               {!ownProperty && <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>{sold ? 'Hasonló ingatlant keresek' : 'Megtekintés vagy érdeklődés'}</Text></Pressable>}
               {ownProperty && <>
                 <View style={styles.ownerDivider} />
-                <Text style={styles.ownerLabel}>Ez a saját hirdetésed</Text>
                 <Pressable onPress={() => router.push(`/property/edit/${property.id}`)} style={styles.editButton}><Pencil size={17} color="#455149" /><Text style={styles.editText}>Szerkesztés</Text></Pressable>
                 <Pressable onPress={removeProperty} style={styles.deleteButton}><Trash2 size={17} color="#A64D49" /><Text style={styles.deleteText}>Hirdetés törlése</Text></Pressable>
               </>}
