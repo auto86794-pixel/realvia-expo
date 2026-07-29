@@ -208,6 +208,55 @@ return (
         backgroundColor: '#F4F1EB',
       }}
     >
+      {session?.user && (
+        <View
+          style={{
+            position: 'absolute',
+            zIndex: 50,
+            top: Platform.OS === 'web' ? 18 : 54,
+            right: isMobile ? 14 : 28,
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <Pressable
+            onPress={() => router.push('/dashboard')}
+            style={{
+              minHeight: 44,
+              paddingHorizontal: isMobile ? 13 : 18,
+              borderRadius: 22,
+              backgroundColor: 'rgba(255,253,252,0.94)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.75)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              ...Shadows.luxury,
+            }}
+          >
+            <Text style={{ color: '#2E4639', fontSize: 13, fontWeight: '900' }}>
+              {isMobile ? 'Hirdetéseim' : 'Saját hirdetéseim'}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/inquiries')}
+            style={{
+              minHeight: 44,
+              paddingHorizontal: isMobile ? 13 : 18,
+              borderRadius: 22,
+              backgroundColor: '#2E4639',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.18)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              ...Shadows.luxury,
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '900' }}>
+              Érdeklődések
+            </Text>
+          </Pressable>
+        </View>
+      )}
       <ScrollView
         style={{
           flex: 1,
