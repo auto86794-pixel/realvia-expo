@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -13,7 +14,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
-import { ArrowLeft, Bath, BedDouble, Car, ChevronLeft, ChevronRight, Heart, MapPin, Maximize, Pencil, Share2, Trash2 } from 'lucide-react-native'
+import { ArrowLeft, Bath, BedDouble, Car, ChevronLeft, ChevronRight, Copy, Heart, Mail, MapPin, Maximize, MessageCircle, Pencil, Share2, Trash2, X } from 'lucide-react-native'
 
 import InquiryModal from '@/components/InquiryModal'
 import { supabase } from '@/src/services/supabase'
@@ -48,6 +49,8 @@ export default function PropertyDetail() {
   const [favorite, setFavorite] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
   const [inquiryOpen, setInquiryOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareNotice, setShareNotice] = useState('')
 
   const images = useMemo(() => {
     if (!property) return []
@@ -139,9 +142,52 @@ export default function PropertyDetail() {
     }
   }
 
-  async function share() {
-    const url = Platform.OS === 'web' ? globalThis.location?.href : `https://www.realvia.hu/property/${id}`
-    if (url) await Linking.openURL(`mailto:?subject=${encodeURIComponent(property?.title || 'Realvia ingatlan')}&body=${encodeURIComponent(url)}`)
+  function shareContent() {
+    const url = `https://www.realvia.hu/property/${property?.id || id}`
+    const price = property ? `${Number(property.price).toLocaleString('hu-HU')} Ft` : ''
+    const title = property?.title || 'Realvia ingatlan'
+    const text = `${title}\n${property?.location || ''}${price ? ` • ${price}` : ''}\n\nNézd meg a Realvián:\n${url}`
+    return { url, title, text }
+  }
+
+  async function systemShare() {
+    const content = shareContent()
+    const navigator = (globalThis as any).navigator
+    try {
+      if (navigator?.share) {
+        await navigator.share(content)
+        setShareOpen(false)
+        return
+      }
+      await copyShareLink()
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') setShareNotice('A megosztás most nem sikerült.')
+    }
+  }
+
+  async function copyShareLink() {
+    const { url } = shareContent()
+    const navigator = (globalThis as any).navigator
+    try {
+      await navigator?.clipboard?.writeText(url)
+      setShareNotice('A linket a vágólapra másoltuk.')
+    } catch {
+      setShareNotice(`Másold ki ezt a linket: ${url}`)
+    }
+  }
+
+  async function shareByEmail() {
+    const { title, text } = shareContent()
+    await Linking.openURL(
+      `mailto:?subject=${encodeURIComponent(`Ingatlanajánlat – ${title}`)}&body=${encodeURIComponent(`Szia!\n\nEzt az ingatlant szeretném megmutatni neked:\n\n${text}\n\nÜdvözlettel`)}`
+    )
+    setShareOpen(false)
+  }
+
+  async function shareOnWhatsApp() {
+    const { text } = shareContent()
+    await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`)
+    setShareOpen(false)
   }
 
   if (loading) return <View style={styles.loading}><ActivityIndicator size="large" color="#8B6338" /><Text style={styles.loadingText}>Ingatlan betöltése…</Text></View>
@@ -154,7 +200,7 @@ export default function PropertyDetail() {
           <View style={styles.topbar}>
             <Pressable onPress={() => router.back()} style={styles.roundButton}><ArrowLeft size={20} color="#334139" /></Pressable>
             <View style={styles.topActions}>
-              <Pressable onPress={share} style={styles.roundButton}><Share2 size={19} color="#334139" /></Pressable>
+              <Pressable onPress={() => { setShareNotice(''); setShareOpen(true) }} style={styles.roundButton}><Share2 size={19} color="#334139" /></Pressable>
               <Pressable onPress={toggleFavorite} style={[styles.roundButton, favorite && styles.favoriteButton]}><Heart size={19} color={favorite ? '#fff' : '#334139'} fill={favorite ? '#fff' : 'transparent'} /></Pressable>
             </View>
           </View>
@@ -223,6 +269,33 @@ export default function PropertyDetail() {
         </View>
       </ScrollView>
       <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} propertyOwnerId={property.owner_id} soldProperty={sold} />
+      <Modal visible={shareOpen} transparent animationType="fade" onRequestClose={() => setShareOpen(false)}>
+        <Pressable style={styles.shareOverlay} onPress={() => setShareOpen(false)}>
+          <Pressable style={styles.shareModal} onPress={(event) => event.stopPropagation()}>
+            <Pressable onPress={() => setShareOpen(false)} style={styles.shareClose}>
+              <X size={19} color="#3D4A42" />
+            </Pressable>
+            <Text style={styles.shareEyebrow}>INGATLAN MEGOSZTÁSA</Text>
+            <Text style={styles.shareTitle}>Küldd tovább egyetlen érintéssel</Text>
+            <Text style={styles.shareProperty} numberOfLines={2}>{property.title}</Text>
+            <Pressable onPress={systemShare} style={styles.sharePrimary}>
+              <Share2 size={18} color="#FFFFFF" /><Text style={styles.sharePrimaryText}>Megosztás</Text>
+            </Pressable>
+            <View style={styles.shareOptions}>
+              <Pressable onPress={shareByEmail} style={styles.shareOption}>
+                <Mail size={20} color="#496052" /><Text style={styles.shareOptionText}>E-mail</Text>
+              </Pressable>
+              <Pressable onPress={shareOnWhatsApp} style={styles.shareOption}>
+                <MessageCircle size={20} color="#496052" /><Text style={styles.shareOptionText}>WhatsApp</Text>
+              </Pressable>
+              <Pressable onPress={copyShareLink} style={styles.shareOption}>
+                <Copy size={20} color="#496052" /><Text style={styles.shareOptionText}>Link másolása</Text>
+              </Pressable>
+            </View>
+            {!!shareNotice && <Text style={styles.shareNotice}>{shareNotice}</Text>}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   )
 }
@@ -296,4 +369,16 @@ const styles = StyleSheet.create({
   editText: { color: '#455149', fontWeight: '800' },
   deleteButton: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', marginTop: 7 },
   deleteText: { color: '#A64D49', fontWeight: '700', fontSize: 13 },
+  shareOverlay: { flex: 1, backgroundColor: 'rgba(24,35,29,0.58)', alignItems: 'center', justifyContent: 'center', padding: 18 },
+  shareModal: { width: '100%', maxWidth: 560, borderRadius: 26, backgroundColor: '#F8F5EF', padding: 28, ...Platform.select({ web: { boxShadow: '0 25px 80px rgba(20,30,24,.28)' } as any, default: {} }) },
+  shareClose: { position: 'absolute', zIndex: 2, right: 16, top: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1DCD4', alignItems: 'center', justifyContent: 'center' },
+  shareEyebrow: { color: '#9B7141', fontSize: 11, fontWeight: '900', letterSpacing: 1.6 },
+  shareTitle: { color: '#1D2923', fontSize: 28, lineHeight: 34, fontWeight: '800', marginTop: 9, paddingRight: 42 },
+  shareProperty: { color: '#6B756F', fontSize: 14, lineHeight: 21, marginTop: 8, paddingRight: 35 },
+  sharePrimary: { minHeight: 56, borderRadius: 14, backgroundColor: '#2E4639', flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center', marginTop: 22 },
+  sharePrimaryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '900' },
+  shareOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginTop: 10 },
+  shareOption: { flex: 1, minWidth: 135, minHeight: 55, borderRadius: 13, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#DDD7CF', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  shareOptionText: { color: '#496052', fontSize: 13, fontWeight: '800' },
+  shareNotice: { color: '#496052', backgroundColor: '#E7EFE9', borderRadius: 11, padding: 11, textAlign: 'center', marginTop: 12, fontSize: 12, lineHeight: 18 },
 })
