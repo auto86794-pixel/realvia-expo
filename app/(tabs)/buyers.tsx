@@ -177,7 +177,7 @@ export default function BuyersScreen() {
               <Field label="Telefonszám" value={form.customer_phone} onChangeText={(v) => setForm({ ...form, customer_phone: v })} placeholder="+36 30..." />
             </View>
             <Field label="Keresett település vagy kerület *" value={form.locations} onChangeText={(v) => setForm({ ...form, locations: v })} placeholder="pl. Debrecen, Mikepércs" />
-            <Text style={styles.label}>Ingatlantípus</Text>
+            <Text style={[styles.label, styles.propertyTypeLabel]}>Ingatlantípus</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
               {propertyTypes.map((type) => <Pressable key={type} onPress={() => setForm({ ...form, propertyType: form.propertyType === type ? '' : type })} style={[styles.chip, form.propertyType === type && styles.chipActive]}><Text style={[styles.chipText, form.propertyType === type && styles.chipTextActive]}>{type}</Text></Pressable>)}
             </ScrollView>
@@ -238,6 +238,7 @@ const styles = StyleSheet.create({
   error: { color: '#A64D49', backgroundColor: '#FCEBE9', borderRadius: 13, padding: 14, textAlign: 'center', marginBottom: 16 }, formCard: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 22, padding: 24, gap: 15, marginBottom: 26 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 }, iconCircle: { width: 45, height: 45, borderRadius: 23, backgroundColor: '#F1E7D8', alignItems: 'center', justifyContent: 'center' }, sectionTitle: { color: '#1D2923', fontSize: 22, fontWeight: '900' }, hint: { color: '#778078', fontSize: 14, lineHeight: 21 },
   row: { flexDirection: 'row', gap: 12 }, field: { flex: 1, minWidth: 0 }, label: { color: '#35463D', fontSize: 12, fontWeight: '900', marginBottom: 7 }, input: { minHeight: 52, borderRadius: 13, borderWidth: 1, borderColor: '#DDD6CC', backgroundColor: '#FCFAF7', paddingHorizontal: 15, color: '#24332B', fontSize: 14 },
+  propertyTypeLabel: { marginTop: 12, marginBottom: 3 },
   chips: { gap: 8 }, chip: { minHeight: 40, borderRadius: 20, borderWidth: 1, borderColor: '#DAD4CB', paddingHorizontal: 15, alignItems: 'center', justifyContent: 'center' }, chipActive: { backgroundColor: '#2E4B3C', borderColor: '#2E4B3C' }, chipText: { color: '#66716A', fontWeight: '800', fontSize: 12 }, chipTextActive: { color: '#fff' },
   save: { minHeight: 55, borderRadius: 14, backgroundColor: '#2E4B3C', flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   empty: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 22, padding: 46, alignItems: 'center', gap: 10 }, emptyTitle: { color: '#1D2923', fontSize: 22, fontWeight: '900' },
