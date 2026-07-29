@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useFocusEffect } from 'expo-router'
-import { Building2, Eye, FilePenLine, Plus, Trash2 } from 'lucide-react-native'
+import { Building2, Eye, FilePenLine, MessageSquare, Plus, Trash2 } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
@@ -93,10 +93,16 @@ export default function Dashboard() {
             <Text style={styles.title}>Saját hirdetéseim</Text>
             <Text style={styles.subtitle}>Itt követheted, szerkesztheted és kezelheted az ingatlanjaidat.</Text>
           </View>
-          <Pressable onPress={() => router.push('/upload')} style={styles.addButton}>
-            <Plus size={19} color="#fff" />
-            <Text style={styles.addButtonText}>Új hirdetés</Text>
-          </Pressable>
+          <View style={[styles.headerActions, mobile && styles.headerActionsMobile]}>
+            <Pressable onPress={() => router.push('/inquiries')} style={styles.inquiryButton}>
+              <MessageSquare size={18} color="#2E4639" />
+              <Text style={styles.inquiryButtonText}>Érdeklődések</Text>
+            </Pressable>
+            <Pressable onPress={() => router.push('/upload')} style={styles.addButton}>
+              <Plus size={19} color="#fff" />
+              <Text style={styles.addButtonText}>Új hirdetés</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.stats}>
@@ -171,6 +177,10 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#9B7141', fontSize: 12, fontWeight: '800', letterSpacing: 2 },
   title: { color: '#1D2923', fontSize: Platform.OS === 'web' ? 48 : 37, lineHeight: Platform.OS === 'web' ? 56 : 44, fontWeight: '800', letterSpacing: -1.5, marginTop: 10 },
   subtitle: { color: '#66716A', fontSize: 16, lineHeight: 25, marginTop: 10, maxWidth: 620 },
+  headerActions: { flexDirection: 'row', gap: 10 },
+  headerActionsMobile: { width: '100%' },
+  inquiryButton: { minHeight: 54, paddingHorizontal: 20, borderRadius: 14, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#D9D3CA', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+  inquiryButtonText: { color: '#2E4639', fontSize: 14, fontWeight: '800' },
   addButton: { minHeight: 54, paddingHorizontal: 23, borderRadius: 14, backgroundColor: '#2E4639', flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },
   addButtonText: { color: '#fff', fontSize: 15, fontWeight: '800' },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 38 },

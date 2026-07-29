@@ -6,6 +6,7 @@ import {
   Heart,
   Home,
   LayoutDashboard,
+  MessageSquare,
   Plus,
 } from 'lucide-react-native'
 
@@ -252,7 +253,7 @@ function TabsContent() {
       color,
       focused,
     }) => (
-      <LayoutDashboard
+      <MessageSquare
         color={color}
         size={
           focused

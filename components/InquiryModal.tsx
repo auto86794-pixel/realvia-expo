@@ -1,459 +1,253 @@
-import React, {
-  useState,
-} from 'react'
-
+import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
-  Linking,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
-
-import {
-  Mail,
-  MessageCircle,
-  Phone,
-} from 'lucide-react-native'
+import { CalendarDays, CheckCircle2, Info, Phone, X } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
-
-const AGENT_PHONE =
-  '+36307833456'
-
-const AGENT_EMAIL =
-  'info@realvia.hu'
 
 interface Props {
   visible: boolean
   onClose: () => void
   propertyId: number
   propertyTitle: string
+  propertyOwnerId?: string
 }
+
+const inquiryTypes = [
+  { value: 'viewing', label: 'Megtekinteném', icon: CalendarDays },
+  { value: 'callback', label: 'Visszahívást kérek', icon: Phone },
+  { value: 'information', label: 'Információt kérek', icon: Info },
+]
 
 export default function InquiryModal({
   visible,
   onClose,
   propertyId,
   propertyTitle,
+  propertyOwnerId,
 }: Props) {
-  const [name, setName] =
-    useState('')
+  const { width } = useWindowDimensions()
+  const compact = width < 640
+  const [type, setType] = useState('viewing')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [preferredTimeOne, setPreferredTimeOne] = useState('')
+  const [preferredTimeTwo, setPreferredTimeTwo] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [errorText, setErrorText] = useState('')
+  const [sent, setSent] = useState(false)
 
-  const [email, setEmail] =
-    useState('')
+  useEffect(() => {
+    if (!visible) {
+      setErrorText('')
+      setSent(false)
+    }
+  }, [visible])
 
-  const [phone, setPhone] =
-    useState('')
-
-  const [message, setMessage] =
-    useState('')
-
-  const [loading, setLoading] =
-    useState(false)
+  function resetAndClose() {
+    setType('viewing')
+    setName('')
+    setEmail('')
+    setPhone('')
+    setPreferredTimeOne('')
+    setPreferredTimeTwo('')
+    setMessage('')
+    setErrorText('')
+    setSent(false)
+    onClose()
+  }
 
   async function submitInquiry() {
-     console.log('SUBMIT INQUIRY')
+    setErrorText('')
+    const cleanName = name.trim()
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPhone = phone.replace(/[^\d+]/g, '')
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  console.log({
-    name,
-    email,
-    phone,
-    message,
-    nameType: typeof name,
-    emailType: typeof email,
-    phoneType: typeof phone,
-    messageType: typeof message,
-  })
+    if (!cleanName || !cleanEmail || !cleanPhone) {
+      setErrorText('A név, az email-cím és a telefonszám megadása kötelező.')
+      return
+    }
+
+    if (!emailRegex.test(cleanEmail)) {
+      setErrorText('Kérlek, érvényes email-címet adj meg.')
+      return
+    }
+
+    if (type === 'viewing' && !preferredTimeOne.trim()) {
+      setErrorText('Megtekintéshez adj meg legalább egy megfelelő időpontot.')
+      return
+    }
 
     try {
-      if (!name || !email) {
-        Alert.alert(
-          'Hiba',
-          'A név és email kötelező.'
-        )
-        return
-      }
-
-      const emailRegex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-      if (!emailRegex.test(email)) {
-        Alert.alert(
-          'Hiba',
-          'Adj meg érvényes email címet.'
-        )
-        return
-      }
-
       setLoading(true)
+      const { error } = await supabase.from('inquiries').insert({
+        property_id: propertyId,
+        property_title: propertyTitle,
+        owner_id: propertyOwnerId,
+        inquiry_type: type,
+        customer_name: cleanName,
+        customer_email: cleanEmail,
+        customer_phone: cleanPhone,
+        preferred_time_one: preferredTimeOne.trim(),
+        preferred_time_two: preferredTimeTwo.trim(),
+        message: message.trim(),
+        status: 'new',
+      })
 
-      const cleanedPhone =
-        phone.replace(/[^\d+]/g, '')
-
-      const { error } =
-        await supabase
-          .from('inquiries')
-          .insert({
-            property_id: propertyId,
-            property_title: propertyTitle,
-            customer_name: name.trim(),
-            customer_email: email.trim(),
-            customer_phone:
-              cleanedPhone,
-            message: message.trim(),
-          })
-
-      if (error) {
-        console.log(error)
-
-        Alert.alert(
-          'Hiba',
-          error.message
-        )
-
-        return
-      }
-      console.log('INSERT SIKERES')
-
-if (Platform.OS === 'web') {
-  alert('Az érdeklődés elküldve.')
-} else {
-  Alert.alert(
-    'Siker',
-    'Az érdeklődés elküldve.'
-  )
-}
-
-      
-        
-
-      setName('')
-      setEmail('')
-      setPhone('')
-      setMessage('')
-
-      onClose()
+      if (error) throw error
+      setSent(true)
     } catch (error) {
-      console.log(error)
-
-      Alert.alert(
-        'Hiba',
-        'Váratlan hiba történt.'
-      )
+      console.error('Inquiry submission failed:', error)
+      setErrorText('Az érdeklődést most nem sikerült elküldeni. Próbáld újra néhány pillanat múlva.')
     } finally {
       setLoading(false)
     }
   }
 
-  function openPhone() {
-    Linking.openURL(
-      `tel:${AGENT_PHONE}`
-    )
-  }
-
-  function openEmail() {
-    Linking.openURL(
-      `mailto:${AGENT_EMAIL}`
-    )
-  }
-
-  async function openWhatsApp() {
-    try {
-      const text =
-        `Szia! Érdeklődöm az ingatlan iránt: ${propertyTitle}`
-
-      const url =
-        `https://wa.me/${AGENT_PHONE.replace(
-          '+',
-          ''
-        )}?text=${encodeURIComponent(
-          text
-        )}`
-
-      const supported =
-        await Linking.canOpenURL(url)
-
-      if (!supported) {
-        Alert.alert(
-          'Hiba',
-          'A WhatsApp nem található.'
-        )
-        return
-      }
-
-      await Linking.openURL(url)
-    } catch (error) {
-      Alert.alert(
-        'Hiba',
-        'Nem sikerült megnyitni a WhatsAppot.'
-      )
-    }
-  }
-
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-    >
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-          backgroundColor: 'rgba(26,38,31,0.48)',
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: '#F8F5EF',
-            borderTopLeftRadius: 32,
-            borderTopRightRadius: 32,
-            padding: 24,
-            paddingBottom: 40,
-          }}
-        >
-          <Text
-            style={{
-              color: '#1D2923',
-              fontSize: 28,
-              fontWeight: '700',
-              marginBottom: 8,
-            }}
-          >
-            Kapcsolat
-          </Text>
-
-          <Text
-            style={{
-              color: '#737D77',
-              marginBottom: 24,
-            }}
-          >
-            {propertyTitle}
-          </Text>
-
-          <View
-            style={{
-              gap: 14,
-              marginBottom: 24,
-            }}
-          >
-            <Pressable
-              onPress={openPhone}
-              style={{
-                backgroundColor:
-                  '#FFFDFC',
-                borderRadius: 18,
-                padding: 18,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-                borderWidth: 1,
-                borderColor: '#DDD7CF',
-              }}
-            >
-              <Phone
-                size={22}
-                color="#8B6338"
-              />
-
-              <Text
-                style={{
-                  color: '#354139',
-                  fontSize: 16,
-                  fontWeight: '700',
-                }}
-              >
-                Telefonhívás
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={openEmail}
-              style={{
-                backgroundColor:
-                  '#FFFDFC',
-                borderRadius: 18,
-                padding: 18,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-                borderWidth: 1,
-                borderColor: '#DDD7CF',
-              }}
-            >
-              <Mail
-                size={22}
-                color="#8B6338"
-              />
-
-              <Text
-                style={{
-                  color: '#354139',
-                  fontSize: 16,
-                  fontWeight: '700',
-                }}
-              >
-                Email küldése
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={openWhatsApp}
-              style={{
-                backgroundColor: '#2E4639',
-                borderRadius: 18,
-                padding: 18,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 14,
-              }}
-            >
-              <MessageCircle
-                size={22}
-                color="#FFF"
-              />
-
-              <Text
-                style={{
-                  color: '#FFF',
-                  fontSize: 16,
-                  fontWeight: '800',
-                }}
-              >
-                WhatsApp
-              </Text>
-            </Pressable>
-          </View>
-
-          <TextInput
-            placeholder="Név"
-            placeholderTextColor="#666"
-            value={name}
-            onChangeText={setName}
-            style={{
-              backgroundColor: '#FFFDFC',
-              color: '#1D2923',
-              borderWidth: 1,
-              borderColor: '#DDD7CF',
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 14,
-            }}
-          />
-
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#666"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={{
-              backgroundColor: '#FFFDFC',
-              color: '#1D2923',
-              borderWidth: 1,
-              borderColor: '#DDD7CF',
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 14,
-            }}
-          />
-
-          <TextInput
-            placeholder="Telefon"
-            placeholderTextColor="#666"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            style={{
-              backgroundColor: '#FFFDFC',
-              color: '#1D2923',
-              borderWidth: 1,
-              borderColor: '#DDD7CF',
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 14,
-            }}
-          />
-
-          <TextInput
-            placeholder="Üzenet"
-            placeholderTextColor="#666"
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            style={{
-              backgroundColor: '#FFFDFC',
-              color: '#1D2923',
-              borderWidth: 1,
-              borderColor: '#DDD7CF',
-              borderRadius: 16,
-              padding: 16,
-              height: 120,
-              marginBottom: 20,
-            }}
-          />
-
-          <Pressable
-            onPress={submitInquiry}
-            disabled={loading}
-            style={{
-              backgroundColor: '#2E4639',
-              padding: 18,
-              borderRadius: 18,
-              alignItems: 'center',
-              opacity: loading
-                ? 0.6
-                : 1,
-            }}
-          >
-            {loading ? (
-              <ActivityIndicator
-                color="#FFF"
-              />
-            ) : (
-              <Text
-                style={{
-                  color: '#FFF',
-                  fontWeight: '800',
-                  fontSize: 16,
-                }}
-              >
-                Érdeklődés küldése
-              </Text>
-            )}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={resetAndClose}>
+      <View style={styles.overlay}>
+        <View style={[styles.modal, compact && styles.modalCompact]}>
+          <Pressable onPress={resetAndClose} style={styles.closeButton}>
+            <X size={20} color="#425148" />
           </Pressable>
 
-          <Pressable
-            onPress={() => {
-              if (!loading) {
-                onClose()
-              }
-            }}
-            style={{
-              marginTop: 16,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                color: '#68736C',
-              }}
-            >
-              Bezárás
-            </Text>
-          </Pressable>
+          {sent ? (
+            <View style={styles.success}>
+              <View style={styles.successIcon}><CheckCircle2 size={38} color="#FFFFFF" /></View>
+              <Text style={styles.successTitle}>Az érdeklődésed megérkezett</Text>
+              <Text style={styles.successText}>A hirdető megkapta a megkeresésedet, és a megadott elérhetőségeiden tud válaszolni.</Text>
+              <Pressable onPress={resetAndClose} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Rendben</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.form}>
+              <Text style={styles.eyebrow}>KAPCSOLAT A HIRDETŐVEL</Text>
+              <Text style={styles.title}>Miben segíthetünk?</Text>
+              <Text style={styles.propertyTitle} numberOfLines={2}>{propertyTitle}</Text>
+
+              <View style={[styles.typeGrid, compact && styles.typeGridCompact]}>
+                {inquiryTypes.map((item) => {
+                  const Icon = item.icon
+                  const selected = type === item.value
+                  return (
+                    <Pressable
+                      key={item.value}
+                      onPress={() => setType(item.value)}
+                      style={[styles.typeButton, selected && styles.typeButtonSelected]}
+                    >
+                      <Icon size={19} color={selected ? '#FFFFFF' : '#6D7A72'} />
+                      <Text style={[styles.typeText, selected && styles.typeTextSelected]}>{item.label}</Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+
+              <View style={[styles.row, compact && styles.rowCompact]}>
+                <Field label="Név *" value={name} onChangeText={setName} placeholder="Teljes név" />
+                <Field label="Telefonszám *" value={phone} onChangeText={setPhone} placeholder="+36 30 123 4567" keyboardType="phone-pad" />
+              </View>
+              <Field label="Email-cím *" value={email} onChangeText={setEmail} placeholder="email@pelda.hu" keyboardType="email-address" autoCapitalize="none" />
+
+              {type === 'viewing' && (
+                <View style={styles.timeBox}>
+                  <Text style={styles.timeTitle}>Mikor lenne megfelelő?</Text>
+                  <Text style={styles.timeHelp}>Adj meg egy vagy két lehetséges időpontot. A hirdető ezek alapján egyeztet veled.</Text>
+                  <View style={[styles.row, compact && styles.rowCompact]}>
+                    <Field label="Első időpont *" value={preferredTimeOne} onChangeText={setPreferredTimeOne} placeholder="pl. péntek 17:00" />
+                    <Field label="Második időpont" value={preferredTimeTwo} onChangeText={setPreferredTimeTwo} placeholder="pl. szombat 10:00" />
+                  </View>
+                </View>
+              )}
+
+              <Field
+                label="Üzenet"
+                value={message}
+                onChangeText={setMessage}
+                placeholder={
+                  type === 'callback'
+                    ? 'Mikor hívhat a hirdető?'
+                    : type === 'information'
+                      ? 'Milyen információra vagy kíváncsi?'
+                      : 'Van valamilyen kérdésed a megtekintés előtt?'
+                }
+                multiline
+              />
+
+              {!!errorText && <Text style={styles.error}>{errorText}</Text>}
+
+              <Pressable onPress={submitInquiry} disabled={loading} style={[styles.primaryButton, loading && styles.buttonDisabled]}>
+                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Megkeresés elküldése</Text>}
+              </Pressable>
+              <Text style={styles.privacy}>Az adataidat kizárólag az adott ingatlan hirdetője kapja meg kapcsolatfelvétel céljából.</Text>
+            </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
   )
 }
+
+function Field({ label, multiline, ...props }: any) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        {...props}
+        multiline={multiline}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        placeholderTextColor="#999E9A"
+        style={[styles.input, multiline && styles.textarea]}
+      />
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(24,35,29,0.58)', alignItems: 'center', justifyContent: 'center', padding: 18 },
+  modal: { width: '100%', maxWidth: 760, maxHeight: '92%', backgroundColor: '#F8F5EF', borderRadius: 28, overflow: 'hidden', ...Platform.select({ web: { boxShadow: '0 25px 80px rgba(20,30,24,.28)' } as any, default: {} }) },
+  modalCompact: { maxHeight: '95%', borderRadius: 22 },
+  closeButton: { position: 'absolute', zIndex: 5, right: 18, top: 18, width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1DCD4', alignItems: 'center', justifyContent: 'center' },
+  form: { padding: 30, paddingTop: 35 },
+  eyebrow: { color: '#9A7040', fontSize: 11, fontWeight: '900', letterSpacing: 1.8 },
+  title: { color: '#1D2923', fontSize: 32, fontWeight: '800', letterSpacing: -0.8, marginTop: 8, paddingRight: 50 },
+  propertyTitle: { color: '#6E7872', fontSize: 15, lineHeight: 21, marginTop: 7, paddingRight: 45 },
+  typeGrid: { flexDirection: 'row', gap: 9, marginTop: 24 },
+  typeGridCompact: { flexDirection: 'column' },
+  typeButton: { flex: 1, minHeight: 58, borderRadius: 14, borderWidth: 1, borderColor: '#DBD5CC', backgroundColor: '#FFFDFC', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 11 },
+  typeButtonSelected: { backgroundColor: '#2E4B3C', borderColor: '#2E4B3C' },
+  typeText: { color: '#536058', fontSize: 13, fontWeight: '800' },
+  typeTextSelected: { color: '#FFFFFF' },
+  row: { flexDirection: 'row', gap: 12 },
+  rowCompact: { flexDirection: 'column' },
+  field: { flex: 1, marginTop: 17 },
+  label: { color: '#3D4942', fontSize: 13, fontWeight: '800', marginBottom: 7 },
+  input: { minHeight: 54, borderRadius: 13, borderWidth: 1, borderColor: '#D8D2C9', backgroundColor: '#FFFDFC', color: '#1D2923', paddingHorizontal: 15, fontSize: 15, outlineStyle: 'none' as any },
+  textarea: { minHeight: 105, paddingTop: 14, lineHeight: 22 },
+  timeBox: { marginTop: 18, borderRadius: 17, backgroundColor: '#EAF0EB', padding: 17 },
+  timeTitle: { color: '#2E4639', fontSize: 16, fontWeight: '800' },
+  timeHelp: { color: '#6B776F', fontSize: 13, lineHeight: 19, marginTop: 4 },
+  error: { color: '#A64D49', backgroundColor: '#FCEBE9', borderRadius: 11, padding: 12, textAlign: 'center', fontSize: 13, lineHeight: 18, marginTop: 15 },
+  primaryButton: { minHeight: 57, borderRadius: 14, backgroundColor: '#2E4B3C', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
+  buttonDisabled: { opacity: 0.65 },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '900', letterSpacing: 0.2 },
+  privacy: { color: '#8A918C', textAlign: 'center', fontSize: 11, lineHeight: 16, marginTop: 11 },
+  success: { padding: 42, alignItems: 'center' },
+  successIcon: { width: 76, height: 76, borderRadius: 38, backgroundColor: '#2E4B3C', alignItems: 'center', justifyContent: 'center' },
+  successTitle: { color: '#1D2923', fontSize: 28, fontWeight: '800', textAlign: 'center', marginTop: 23 },
+  successText: { color: '#68736C', fontSize: 15, lineHeight: 23, textAlign: 'center', maxWidth: 490, marginTop: 10 },
+})

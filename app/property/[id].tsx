@@ -156,7 +156,7 @@ export default function PropertyDetail() {
           </View>
 
           <View style={[styles.heroGrid, desktop && styles.heroGridDesktop]}>
-            <View style={styles.heroMain}>
+            <View style={[styles.heroMain, desktop && styles.heroMainDesktop]}>
               {images[activeImage] ? <Image source={{ uri: images[activeImage] }} contentFit="cover" style={styles.heroImage} /> : <View style={[styles.heroImage, styles.placeholder]} />}
               <View style={[styles.heroBadge, sold && styles.soldBadge]}><Text style={[styles.heroBadgeText, sold && styles.soldBadgeText]}>{sold ? 'ELADVA' : (property.listing_type || 'Eladó').toUpperCase()}</Text></View>
               {images.length > 1 && (
@@ -179,7 +179,7 @@ export default function PropertyDetail() {
           <View style={[styles.contentGrid, desktop && styles.contentGridDesktop]}>
             <View style={styles.mainContent}>
               <Text style={styles.eyebrow}>{property.category || 'Ingatlan'}</Text>
-              <Text style={styles.title}>{property.title}</Text>
+              <Text style={[styles.title, !desktop && styles.titleMobile]}>{property.title}</Text>
               <View style={styles.locationRow}><MapPin size={17} color="#8B6338" /><Text style={styles.location}>{property.location}</Text></View>
               <Text style={styles.price}>{Number(property.price).toLocaleString('hu-HU')} Ft</Text>
 
@@ -205,10 +205,10 @@ export default function PropertyDetail() {
             </View>
 
             <View style={[styles.contactCard, desktop && styles.contactCardDesktop]}>
-              <Text style={styles.contactEyebrow}>ÉRDEKEL AZ INGATLAN?</Text>
-              <Text style={styles.contactTitle}>Kérj további információt</Text>
-              <Text style={styles.contactText}>Küldj üzenetet a hirdetőnek, és egyeztessetek a részletekről vagy a megtekintésről.</Text>
-              <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>Érdeklődés küldése</Text></Pressable>
+              <Text style={styles.contactEyebrow}>{sold ? 'EZ AZ INGATLAN ELKELT' : 'ÉRDEKEL AZ INGATLAN?'}</Text>
+              <Text style={styles.contactTitle}>{sold ? 'Sikeresen értékesítve' : 'Egyeztess megtekintést'}</Text>
+              <Text style={styles.contactText}>{sold ? 'Ez a hirdetés referenciaértékkel továbbra is megtekinthető, de új érdeklődést már nem fogad.' : 'Kérj visszahívást, további információt vagy adj meg számodra megfelelő megtekintési időpontokat.'}</Text>
+              {!sold && !ownProperty && <Pressable onPress={() => setInquiryOpen(true)} style={styles.contactButton}><Text style={styles.contactButtonText}>Megtekintés vagy érdeklődés</Text></Pressable>}
               {ownProperty && <>
                 <View style={styles.ownerDivider} />
                 <Text style={styles.ownerLabel}>Ez a saját hirdetésed</Text>
@@ -219,7 +219,7 @@ export default function PropertyDetail() {
           </View>
         </View>
       </ScrollView>
-      <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} />
+      <InquiryModal visible={inquiryOpen} onClose={() => setInquiryOpen(false)} propertyId={property.id} propertyTitle={property.title} propertyOwnerId={property.owner_id} />
     </>
   )
 }
@@ -242,7 +242,8 @@ const styles = StyleSheet.create({
   favoriteButton: { backgroundColor: '#2E4639', borderColor: '#2E4639' },
   heroGrid: { gap: 10 },
   heroGridDesktop: { flexDirection: 'row', height: 570 },
-  heroMain: { flex: 2, height: 470, borderRadius: 25, overflow: 'hidden', backgroundColor: '#E7E1D7' },
+  heroMain: { width: '100%', height: 360, borderRadius: 25, overflow: 'hidden', backgroundColor: '#E7E1D7' },
+  heroMainDesktop: { flex: 2, height: '100%' },
   heroImage: { width: '100%', height: '100%' },
   placeholder: { backgroundColor: '#E7E1D7' },
   heroBadge: { position: 'absolute', left: 18, top: 18, backgroundColor: '#F8F0E4', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99 },
@@ -264,6 +265,7 @@ const styles = StyleSheet.create({
   mainContent: { flex: 1 },
   eyebrow: { color: '#9B7141', fontSize: 12, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
   title: { color: '#1D2923', fontSize: Platform.OS === 'web' ? 46 : 35, lineHeight: Platform.OS === 'web' ? 53 : 42, fontWeight: '800', letterSpacing: -1.5, marginTop: 9 },
+  titleMobile: { fontSize: 30, lineHeight: 36, letterSpacing: -0.8 },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 13 },
   location: { color: '#69746D', fontSize: 16 },
   price: { color: '#2E4639', fontSize: 30, fontWeight: '800', marginTop: 21 },
