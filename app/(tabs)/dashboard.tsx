@@ -34,6 +34,7 @@ export default function Dashboard() {
   const { width } = useWindowDimensions()
   const mobile = width < 760
   const [properties, setProperties] = useState<Property[]>([])
+  const [unreadInquiries, setUnreadInquiries] = useState(0)
   const [loading, setLoading] = useState(true)
 
   const loadProperties = useCallback(async () => {
@@ -47,6 +48,13 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
       if (error) throw error
       setProperties((data || []) as Property[])
+
+      const { data: unreadData, error: unreadError } = await supabase
+        .from('inquiries')
+        .select('id')
+        .eq('owner_id', session.user.id)
+        .is('read_at', null)
+      if (!unreadError) setUnreadInquiries((unreadData || []).length)
     } catch (error) {
       console.log(error)
       Alert.alert('Hiba', 'A saját hirdetéseid most nem tölthetők be.')
@@ -97,6 +105,7 @@ export default function Dashboard() {
             <Pressable onPress={() => router.push('/inquiries')} style={styles.inquiryButton}>
               <MessageSquare size={18} color="#2E4639" />
               <Text style={styles.inquiryButtonText}>Érdeklődések</Text>
+              {unreadInquiries > 0 && <View style={styles.notificationBadge}><Text style={styles.notificationBadgeText}>{unreadInquiries > 99 ? '99+' : unreadInquiries}</Text></View>}
             </Pressable>
             <Pressable onPress={() => router.push('/upload')} style={styles.addButton}>
               <Plus size={19} color="#fff" />
@@ -181,6 +190,8 @@ const styles = StyleSheet.create({
   headerActionsMobile: { width: '100%' },
   inquiryButton: { minHeight: 54, paddingHorizontal: 20, borderRadius: 14, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#D9D3CA', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
   inquiryButtonText: { color: '#2E4639', fontSize: 14, fontWeight: '800' },
+  notificationBadge: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: '#D8423C', paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  notificationBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
   addButton: { minHeight: 54, paddingHorizontal: 23, borderRadius: 14, backgroundColor: '#2E4639', flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },
   addButtonText: { color: '#fff', fontSize: 15, fontWeight: '800' },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 38 },

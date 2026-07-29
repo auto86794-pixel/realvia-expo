@@ -7,6 +7,7 @@ alter table public.inquiries
   add column if not exists preferred_time_one text not null default '',
   add column if not exists preferred_time_two text not null default '',
   add column if not exists status text not null default 'new',
+  add column if not exists read_at timestamptz,
   add column if not exists updated_at timestamptz not null default now();
 
 update public.inquiries i
@@ -61,6 +62,7 @@ begin
   end if;
 
   new.status := 'new';
+  new.read_at := null;
   new.updated_at := now();
   return new;
 end;
@@ -109,6 +111,8 @@ create index if not exists inquiries_status_idx
   on public.inquiries(status);
 create index if not exists inquiries_owner_status_idx
   on public.inquiries(owner_id, status);
+create index if not exists inquiries_owner_unread_idx
+  on public.inquiries(owner_id, read_at);
 
 notify pgrst, 'reload schema';
 

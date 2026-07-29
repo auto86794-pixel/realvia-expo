@@ -29,6 +29,7 @@ type Inquiry = {
   preferred_time_two?: string
   message?: string
   status?: 'new' | 'contacted' | 'scheduled' | 'closed'
+  read_at?: string | null
   created_at?: string
 }
 
@@ -79,26 +80,51 @@ export default function InquiriesScreen() {
   useFocusEffect(useCallback(() => { loadInquiries() }, [loadInquiries]))
 
   const visibleInquiries = useMemo(
-    () => filter === 'all' ? inquiries : inquiries.filter((item) => (item.status || 'new') === filter),
+    () => filter === 'all'
+      ? inquiries
+      : filter === 'unread'
+        ? inquiries.filter((item) => !item.read_at)
+        : inquiries.filter((item) => (item.status || 'new') === filter),
     [filter, inquiries]
   )
 
+  const unreadCount = inquiries.filter((item) => !item.read_at).length
   const newCount = inquiries.filter((item) => (item.status || 'new') === 'new').length
   const scheduledCount = inquiries.filter((item) => item.status === 'scheduled').length
 
   async function updateStatus(id: number, status: string) {
     try {
       setUpdatingId(id)
+      const readAt = new Date().toISOString()
       const { error } = await supabase
         .from('inquiries')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ status, read_at: readAt, updated_at: readAt })
         .eq('id', id)
         .eq('owner_id', session?.user?.id)
       if (error) throw error
-      setInquiries((current) => current.map((item) => item.id === id ? { ...item, status: status as Inquiry['status'] } : item))
+      setInquiries((current) => current.map((item) => item.id === id ? { ...item, status: status as Inquiry['status'], read_at: readAt } : item))
     } catch (error) {
       console.error('Inquiry status update failed:', error)
       setErrorText('Az érdeklődés állapotát nem sikerült módosítani.')
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  async function markAsRead(id: number) {
+    try {
+      setUpdatingId(id)
+      const readAt = new Date().toISOString()
+      const { error } = await supabase
+        .from('inquiries')
+        .update({ read_at: readAt, updated_at: readAt })
+        .eq('id', id)
+        .eq('owner_id', session?.user?.id)
+      if (error) throw error
+      setInquiries((current) => current.map((item) => item.id === id ? { ...item, read_at: readAt } : item))
+    } catch (error) {
+      console.error('Inquiry read update failed:', error)
+      setErrorText('Az érdeklődést nem sikerült olvasottnak jelölni.')
     } finally {
       setUpdatingId(null)
     }
@@ -119,6 +145,7 @@ export default function InquiriesScreen() {
             <Text style={styles.subtitle}>Minden megkeresés egy helyen, az első érdeklődéstől az egyeztetett megtekintésig.</Text>
           </View>
           <View style={styles.headerStats}>
+            <MiniStat label="Olvasatlan" value={unreadCount} alert={unreadCount > 0} />
             <MiniStat label="Új" value={newCount} />
             <MiniStat label="Egyeztetve" value={scheduledCount} />
             <MiniStat label="Összes" value={inquiries.length} />
@@ -127,6 +154,7 @@ export default function InquiriesScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
           <FilterButton active={filter === 'all'} label="Összes" count={inquiries.length} onPress={() => setFilter('all')} />
+          <FilterButton active={filter === 'unread'} label="Olvasatlan" count={unreadCount} onPress={() => setFilter('unread')} alert={unreadCount > 0} />
           {statusOptions.map((item) => (
             <FilterButton
               key={item.value}
@@ -152,12 +180,14 @@ export default function InquiriesScreen() {
           <View style={styles.cards}>
             {visibleInquiries.map((inquiry) => {
               const status = inquiry.status || 'new'
+              const unread = !inquiry.read_at
               const updating = updatingId === inquiry.id
               return (
-                <View key={inquiry.id} style={styles.card}>
+                <View key={inquiry.id} style={[styles.card, unread && styles.cardUnread]}>
                   <View style={[styles.cardHeader, mobile && styles.cardHeaderMobile]}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.typeRow}>
+                        {unread && <View style={styles.unreadBadge}><View style={styles.unreadDot} /><Text style={styles.unreadText}>ÚJ ÉRDEKLŐDÉS</Text></View>}
                         <View style={styles.typeBadge}><Text style={styles.typeBadgeText}>{typeLabels[inquiry.inquiry_type || 'information']}</Text></View>
                         <StatusBadge status={status} />
                       </View>
@@ -197,7 +227,10 @@ export default function InquiriesScreen() {
                   </View>
 
                   <View style={styles.workflow}>
-                    <Text style={styles.workflowLabel}>Állapot módosítása</Text>
+                    <View style={styles.workflowHeader}>
+                      <Text style={styles.workflowLabel}>Állapot módosítása</Text>
+                      {unread && <Pressable disabled={updating} onPress={() => markAsRead(inquiry.id)} style={styles.readButton}><CheckCircle2 size={15} color="#496052" /><Text style={styles.readButtonText}>Olvasottnak jelölöm</Text></Pressable>}
+                    </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.workflowButtons}>
                       {statusOptions.map((item) => (
                         <Pressable
@@ -222,12 +255,12 @@ export default function InquiriesScreen() {
   )
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
-  return <View style={styles.miniStat}><Text style={styles.miniStatValue}>{value}</Text><Text style={styles.miniStatLabel}>{label}</Text></View>
+function MiniStat({ label, value, alert = false }: { label: string; value: number; alert?: boolean }) {
+  return <View style={[styles.miniStat, alert && styles.miniStatAlert]}><Text style={[styles.miniStatValue, alert && styles.miniStatValueAlert]}>{value}</Text><Text style={[styles.miniStatLabel, alert && styles.miniStatLabelAlert]}>{label}</Text></View>
 }
 
-function FilterButton({ active, label, count, onPress }: { active: boolean; label: string; count: number; onPress: () => void }) {
-  return <Pressable onPress={onPress} style={[styles.filter, active && styles.filterActive]}><Text style={[styles.filterText, active && styles.filterTextActive]}>{label}</Text><View style={[styles.filterCount, active && styles.filterCountActive]}><Text style={[styles.filterCountText, active && styles.filterCountTextActive]}>{count}</Text></View></Pressable>
+function FilterButton({ active, label, count, onPress, alert = false }: { active: boolean; label: string; count: number; onPress: () => void; alert?: boolean }) {
+  return <Pressable onPress={onPress} style={[styles.filter, active && styles.filterActive]}><Text style={[styles.filterText, active && styles.filterTextActive]}>{label}</Text><View style={[styles.filterCount, alert && !active && styles.filterCountAlert, active && styles.filterCountActive]}><Text style={[styles.filterCountText, alert && !active && styles.filterCountTextAlert, active && styles.filterCountTextActive]}>{count}</Text></View></Pressable>
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -249,8 +282,11 @@ const styles = StyleSheet.create({
   subtitle: { color: '#66716A', fontSize: 16, lineHeight: 24, maxWidth: 650, marginTop: 9 },
   headerStats: { flexDirection: 'row', gap: 9 },
   miniStat: { minWidth: 86, backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 15, padding: 13, alignItems: 'center' },
+  miniStatAlert: { backgroundColor: '#FCEBE9', borderColor: '#F0C8C4' },
   miniStatValue: { color: '#2E4639', fontSize: 23, fontWeight: '900' },
+  miniStatValueAlert: { color: '#B53D37' },
   miniStatLabel: { color: '#858C87', fontSize: 11, marginTop: 2 },
+  miniStatLabelAlert: { color: '#934A45' },
   filters: { gap: 9, paddingVertical: 30 },
   filter: { minHeight: 44, paddingHorizontal: 16, borderRadius: 22, borderWidth: 1, borderColor: '#DDD7CF', backgroundColor: '#FFFDFC', flexDirection: 'row', gap: 8, alignItems: 'center' },
   filterActive: { backgroundColor: '#2E4639', borderColor: '#2E4639' },
@@ -258,7 +294,9 @@ const styles = StyleSheet.create({
   filterTextActive: { color: '#FFFFFF' },
   filterCount: { minWidth: 23, height: 23, borderRadius: 12, backgroundColor: '#EEE9E1', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   filterCountActive: { backgroundColor: 'rgba(255,255,255,.18)' },
+  filterCountAlert: { backgroundColor: '#D8423C' },
   filterCountText: { color: '#6E7771', fontSize: 11, fontWeight: '800' },
+  filterCountTextAlert: { color: '#FFFFFF' },
   filterCountTextActive: { color: '#FFFFFF' },
   error: { color: '#A64D49', backgroundColor: '#FCEBE9', borderRadius: 13, padding: 14, textAlign: 'center', marginBottom: 16 },
   center: { paddingVertical: 90 },
@@ -268,9 +306,13 @@ const styles = StyleSheet.create({
   emptyText: { color: '#737C76', fontSize: 14, lineHeight: 21, marginTop: 8, textAlign: 'center' },
   cards: { gap: 15 },
   card: { backgroundColor: '#FFFDFC', borderWidth: 1, borderColor: '#E1DCD4', borderRadius: 20, padding: 20 },
+  cardUnread: { borderColor: '#D9A19C', borderLeftWidth: 5, backgroundColor: '#FFFCFA' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 20 },
   cardHeaderMobile: { flexDirection: 'column' },
   typeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  unreadBadge: { backgroundColor: '#D8423C', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  unreadDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFFFFF' },
+  unreadText: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   typeBadge: { backgroundColor: '#F1E7D8', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
   typeBadgeText: { color: '#8A6235', fontSize: 11, fontWeight: '900' },
   statusBadge: { backgroundColor: '#ECEFEB', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
@@ -295,7 +337,10 @@ const styles = StyleSheet.create({
   detailText: { color: '#657269', fontSize: 14, marginTop: 7 },
   message: { color: '#66716A', fontSize: 14, lineHeight: 21, marginTop: 7 },
   workflow: { borderTopWidth: 1, borderTopColor: '#E7E1D8', marginTop: 18, paddingTop: 15 },
-  workflowLabel: { color: '#707A74', fontSize: 12, fontWeight: '800', marginBottom: 9 },
+  workflowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 9 },
+  workflowLabel: { color: '#707A74', fontSize: 12, fontWeight: '800' },
+  readButton: { minHeight: 34, borderRadius: 10, borderWidth: 1, borderColor: '#CAD7CE', backgroundColor: '#EAF0EB', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  readButtonText: { color: '#496052', fontSize: 11, fontWeight: '900' },
   workflowButtons: { flexDirection: 'row', gap: 8 },
   workflowButton: { minHeight: 38, paddingHorizontal: 13, borderRadius: 11, borderWidth: 1, borderColor: '#DAD5CD', flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' },
   workflowButtonActive: { backgroundColor: '#2E4639', borderColor: '#2E4639' },
