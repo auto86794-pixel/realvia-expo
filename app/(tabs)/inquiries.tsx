@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, ExternalLink, Mail, MessageSquare, Phone, Trophy } from 'lucide-react-native'
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, ExternalLink, Mail, MessageSquare, Phone, Trophy, UserRoundPlus } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
@@ -244,6 +244,7 @@ export default function InquiriesScreen() {
                     <View style={styles.workflowHeader}>
                       <Text style={styles.workflowLabel}>Állapot módosítása</Text>
                       <View style={styles.workflowHeaderActions}>
+                        <Pressable onPress={() => router.push(`/buyers?inquiryId=${inquiry.id}` as any)} style={styles.profileButton}><UserRoundPlus size={14} color="#FFFFFF" /><Text style={styles.profileButtonText}>Vevőprofil és találatok</Text></Pressable>
                         {!!inquiry.property_id && <Pressable onPress={() => router.push(`/property/${inquiry.property_id}`)} style={styles.propertyButton}><ExternalLink size={14} color="#496052" /><Text style={styles.propertyButtonText}>Ingatlan megnyitása</Text></Pressable>}
                         {unread && <Pressable disabled={updating} onPress={() => markAsRead(inquiry.id)} style={styles.readButton}><CheckCircle2 size={15} color="#496052" /><Text style={styles.readButtonText}>Olvasottnak jelölöm</Text></Pressable>}
                       </View>
@@ -369,6 +370,8 @@ const styles = StyleSheet.create({
   workflowLabel: { color: '#707A74', fontSize: 12, fontWeight: '800' },
   propertyButton: { minHeight: 34, borderRadius: 10, borderWidth: 1, borderColor: '#DAD5CD', backgroundColor: '#FFFDFC', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
   propertyButtonText: { color: '#496052', fontSize: 11, fontWeight: '900' },
+  profileButton: { minHeight: 34, borderRadius: 10, backgroundColor: '#2E4B3C', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  profileButtonText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
   readButton: { minHeight: 34, borderRadius: 10, borderWidth: 1, borderColor: '#CAD7CE', backgroundColor: '#EAF0EB', paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
   readButtonText: { color: '#496052', fontSize: 11, fontWeight: '900' },
   workflowButtons: { flexDirection: 'row', gap: 8 },

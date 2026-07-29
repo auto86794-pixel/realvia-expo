@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { router, useFocusEffect } from 'expo-router'
-import { Building2, Eye, FilePenLine, HardDrive, MessageSquare, Plus, Trash2 } from 'lucide-react-native'
+import { Building2, Eye, FilePenLine, HardDrive, MessageSquare, Plus, Trash2, Users } from 'lucide-react-native'
 
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
@@ -110,6 +110,10 @@ export default function Dashboard() {
             <Text style={styles.subtitle}>Itt követheted, szerkesztheted és kezelheted az ingatlanjaidat.</Text>
           </View>
           <View style={[styles.headerActions, mobile && styles.headerActionsMobile]}>
+            <Pressable onPress={() => router.push('/buyers' as any)} style={styles.inquiryButton}>
+              <Users size={18} color="#2E4639" />
+              <Text style={styles.inquiryButtonText}>Vevők és találatok</Text>
+            </Pressable>
             <Pressable onPress={() => router.push('/inquiries')} style={styles.inquiryButton}>
               <MessageSquare size={18} color="#2E4639" />
               <Text style={styles.inquiryButtonText}>Érdeklődések</Text>
