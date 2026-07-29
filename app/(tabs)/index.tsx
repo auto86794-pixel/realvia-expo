@@ -477,6 +477,7 @@ return (
                       location={
                         property.location
                       }
+                      status={property.status}
                       images={
                         property.gallery
                           ?.length
@@ -557,6 +558,7 @@ return (
             title={property.title}
             price={property.price}
             location={property.location}
+            status={property.status}
             images={
               property.gallery?.length
                 ? property.gallery

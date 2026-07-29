@@ -30,6 +30,7 @@ type Props = {
   price: string
   location: string
   images: string[]
+  status?: string
 }
 
 const AnimatedPressable =
@@ -41,10 +42,12 @@ export default function PropertyCard({
   price,
   location,
   images,
+  status,
 }: Props) {
   const { width } = useWindowDimensions()
   const isMobile = width < 768
   const propertyId = String(id)
+  const sold = status === 'sold'
 
   const scale = useSharedValue(1)
   const imageScale = useSharedValue(1)
@@ -175,24 +178,24 @@ export default function PropertyCard({
           position: 'absolute',
           top: 22,
           left: 22,
-          backgroundColor: 'rgba(230,201,152,0.14)',
+          backgroundColor: sold ? '#D93632' : 'rgba(230,201,152,0.14)',
           borderRadius: 999,
           paddingHorizontal: 16,
           paddingVertical: 10,
           borderWidth: 1,
-          borderColor: 'rgba(230,201,152,0.22)',
+          borderColor: sold ? '#D93632' : 'rgba(230,201,152,0.22)',
         }}
       >
         <Text
           style={{
-            color: '#F2E6CF',
+            color: sold ? '#FFFFFF' : '#F2E6CF',
             fontSize: 12,
             fontWeight: '700',
             letterSpacing: 1.4,
             textTransform: 'uppercase',
           }}
         >
-          REALVIA EXCLUSIVE
+          {sold ? 'ELADVA' : 'REALVIA EXCLUSIVE'}
         </Text>
       </View>
 
