@@ -49,6 +49,22 @@ export default function UploadScreen() {
   const [saving, setSaving] = useState(false)
   const [formMessage, setFormMessage] = useState('')
 
+  function resetForm() {
+    setTitle('')
+    setLocation('')
+    setPrice('')
+    setDescription('')
+    setCategory(categories[0])
+    setListingType(listingTypes[0])
+    setBedrooms('')
+    setBathrooms('')
+    setArea('')
+    setParking('0')
+    setImages([])
+    setUploadingImages(false)
+    setFormMessage('')
+  }
+
   async function pickImages() {
     try {
       if (images.length >= 10) {
@@ -124,6 +140,10 @@ export default function UploadScreen() {
         parking: numberFrom(parking) || 0,
       })
       if (error) throw error
+
+      // A tab képernyője memóriában maradhat. Sikeres mentés után ürítjük,
+      // hogy a következő "Új ingatlan" valóban tiszta űrlapot nyisson.
+      resetForm()
 
       Alert.alert(
         status === 'published' ? 'Hirdetés közzétéve' : 'Piszkozat elmentve',
