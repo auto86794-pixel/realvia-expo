@@ -37,13 +37,17 @@ export default function Welcome() {
 
   return (
     <ImageBackground
-      source={require('../../assets/images/realvia-welcome-family-light.png')}
+      source={mobile
+        ? require('../../assets/images/realvia-welcome-family-mobile.png')
+        : require('../../assets/images/realvia-welcome-family-light.png')}
       resizeMode="cover"
       style={[styles.background, { minHeight: height }]}
     >
       <LinearGradient
-        colors={['rgba(255,252,245,0.02)', 'rgba(255,248,236,0.05)', 'rgba(38,51,43,0.20)']}
-        locations={[0, 0.58, 1]}
+        colors={mobile
+          ? ['rgba(255,252,245,0)', 'rgba(249,241,226,0.04)', 'rgba(239,225,202,0.72)']
+          : ['rgba(255,252,245,0.02)', 'rgba(255,248,236,0.10)', 'rgba(239,225,202,0.48)']}
+        locations={[0, mobile ? 0.55 : 0.48, 1]}
         style={[styles.overlay, mobile && styles.overlayMobile, { minHeight: height }]}
       >
         <Animated.View entering={FadeInDown.springify()} style={[styles.panel, mobile && styles.panelMobile]}>
@@ -76,8 +80,8 @@ const styles = StyleSheet.create({
   background: { flex: 1, width: '100%', backgroundColor: '#E9E1D4' },
   overlay: { flex: 1, width: '100%', justifyContent: 'center', alignItems: 'flex-start', paddingHorizontal: Platform.OS === 'web' ? '7%' : 20, paddingVertical: Platform.OS === 'web' ? 42 : 28 },
   overlayMobile: { justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 22 },
-  panel: { width: '100%', maxWidth: 470, alignItems: 'center', backgroundColor: 'rgba(251,248,241,0.94)', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.82)', paddingHorizontal: 36, paddingVertical: 31, shadowColor: '#1F2F27', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.16, shadowRadius: 35, elevation: 14 },
-  panelMobile: { maxWidth: 440, paddingHorizontal: 20, paddingVertical: 18, borderRadius: 24, backgroundColor: 'rgba(251,248,241,0.72)', borderColor: 'rgba(255,255,255,0.64)', shadowOpacity: 0.12 },
+  panel: { width: '100%', maxWidth: 470, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 },
+  panelMobile: { maxWidth: 440, paddingHorizontal: 12, paddingVertical: 8 },
   mark: { width: 48, height: 48, borderWidth: 1, borderColor: '#9B7141', alignItems: 'center', justifyContent: 'center' },
   markMobile: { width: 40, height: 40 },
   markText: { color: '#73502D', fontSize: 29, fontFamily: Platform.OS === 'web' ? 'Georgia, serif' : 'serif' },
