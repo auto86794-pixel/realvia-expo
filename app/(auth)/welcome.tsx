@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  ImageBackground,
   Platform,
   Pressable,
   StyleSheet,
@@ -8,6 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
+import { Image } from 'expo-image'
 import { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
@@ -38,14 +38,19 @@ export default function Welcome() {
   }
 
   return (
-    <ImageBackground
-      key={mobile ? 'welcome-mobile' : 'welcome-desktop'}
-      source={mobile
-        ? require('../../assets/images/realvia-welcome-family-mobile.png')
-        : require('../../assets/images/realvia-welcome-family-light.png')}
-      resizeMode="cover"
-      style={[styles.background, { minHeight: height }]}
-    >
+    <View style={[styles.background, { minHeight: height }]}>
+      <Image
+        source={require('../../assets/images/realvia-welcome-family-light.png')}
+        contentFit="cover"
+        transition={0}
+        style={[styles.backgroundImage, mobile && styles.hiddenImage]}
+      />
+      <Image
+        source={require('../../assets/images/realvia-welcome-family-mobile.png')}
+        contentFit="cover"
+        transition={0}
+        style={[styles.backgroundImage, !mobile && styles.hiddenImage]}
+      />
       <LinearGradient
         colors={mobile
           ? ['rgba(255,252,245,0)', 'rgba(249,241,226,0.04)', 'rgba(239,225,202,0.72)']
@@ -75,12 +80,14 @@ export default function Welcome() {
           </View>
         </Animated.View>
       </LinearGradient>
-    </ImageBackground>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   background: { flex: 1, width: '100%', backgroundColor: '#E9E1D4' },
+  backgroundImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  hiddenImage: { opacity: 0 },
   overlay: { flex: 1, width: '100%', justifyContent: 'center', alignItems: 'flex-start', paddingHorizontal: Platform.OS === 'web' ? '7%' : 20, paddingVertical: Platform.OS === 'web' ? 42 : 28 },
   overlayMobile: { justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 22 },
   panel: { width: '100%', maxWidth: 470, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 },
