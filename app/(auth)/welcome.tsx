@@ -17,7 +17,9 @@ import { useAuth } from '@/src/providers/AuthProvider'
 export default function Welcome() {
   const { width, height } = useWindowDimensions()
   const { signOut } = useAuth()
-  const mobile = width < 768
+  // Egyes mobilböngészők fizikai pixelszélességet adnak vissza, ezért
+  // az álló képarányt is figyeljük. Így biztosan a portré háttér töltődik be.
+  const mobile = width < 768 || height > width * 1.25
   const [guestLoading, setGuestLoading] = useState(false)
   const [guestError, setGuestError] = useState('')
 
