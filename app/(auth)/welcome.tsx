@@ -39,6 +39,7 @@ export default function Welcome() {
 
   return (
     <ImageBackground
+      key={mobile ? 'welcome-mobile' : 'welcome-desktop'}
       source={mobile
         ? require('../../assets/images/realvia-welcome-family-mobile.png')
         : require('../../assets/images/realvia-welcome-family-light.png')}
