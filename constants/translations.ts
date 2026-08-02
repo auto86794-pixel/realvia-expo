@@ -4,7 +4,7 @@ export const hu = {
       'Találd meg álmaid otthonát',
 
     heroSubtitle:
-      'Exkluzív villák, penthouse-ok és prémium otthonok Magyarország legjobb lokációiban.',
+      'Kiemelt ingatlanok Debrecenben és Hajdú-Biharban.',
 
     search:
       'Város, kerület vagy ingatlantípus...',
