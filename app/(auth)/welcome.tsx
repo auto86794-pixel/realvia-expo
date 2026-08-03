@@ -17,9 +17,9 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 export default function Welcome() {
   const { width, height } = useWindowDimensions()
   const { signOut } = useAuth()
-  // Egyes mobilböngészők fizikai pixelszélességet adnak vissza, ezért
-  // az álló képarányt is figyeljük. Így biztosan a portré háttér töltődik be.
+
   const mobile = width < 768 || height > width * 1.25
+
   const [guestLoading, setGuestLoading] = useState(false)
   const [guestError, setGuestError] = useState('')
 
@@ -27,11 +27,16 @@ export default function Welcome() {
     try {
       setGuestLoading(true)
       setGuestError('')
+
       await signOut()
+
       router.replace('/(tabs)')
     } catch (error) {
       console.error('Guest sign-out failed:', error)
-      setGuestError('A vendég mód indítása nem sikerült. Próbáld újra, vagy nyisd meg az oldalt privát ablakban.')
+
+      setGuestError(
+        'A vendég mód indítása nem sikerült. Próbáld újra, vagy nyisd meg az oldalt privát ablakban.'
+      )
     } finally {
       setGuestLoading(false)
     }
@@ -43,46 +48,117 @@ export default function Welcome() {
         source={require('../../assets/images/realvia-welcome-family-light.png')}
         contentFit="cover"
         transition={0}
-        style={[styles.backgroundImage, mobile && styles.hiddenImage]}
+        style={[
+          styles.backgroundImage,
+          mobile && styles.hiddenImage,
+        ]}
       />
+
       <Image
         source={require('../../assets/images/realvia-welcome-family-mobile.png')}
         contentFit="cover"
         transition={0}
-        style={[styles.backgroundImage, !mobile && styles.hiddenImage]}
+        style={[
+          styles.backgroundImage,
+          !mobile && styles.hiddenImage,
+        ]}
       />
+
       <LinearGradient
-        colors={mobile
-          ? ['rgba(255,252,245,0)', 'rgba(249,241,226,0.04)', 'rgba(239,225,202,0.72)']
-          : ['rgba(255,252,245,0.02)', 'rgba(255,248,236,0.10)', 'rgba(239,225,202,0.48)']}
+        colors={
+          mobile
+            ? [
+                'rgba(255,252,245,0)',
+                'rgba(249,241,226,0.04)',
+                'rgba(239,225,202,0.72)',
+              ]
+            : [
+                'rgba(255,252,245,0.02)',
+                'rgba(255,248,236,0.10)',
+                'rgba(239,225,202,0.48)',
+              ]
+        }
         locations={[0, mobile ? 0.55 : 0.48, 1]}
-        style={[styles.overlay, mobile && styles.overlayMobile, { minHeight: height }]}
+        style={[
+          styles.overlay,
+          mobile && styles.overlayMobile,
+          { minHeight: height },
+        ]}
       >
-        <Animated.View entering={FadeInDown.springify()} style={[styles.panel, mobile && styles.panelMobile]}>
-          <View style={[styles.mark, mobile && styles.markMobile]}>
-            <Text style={[styles.markText, mobile && styles.markTextMobile]}>R</Text>
+        <Animated.View
+          entering={FadeInDown.springify()}
+          style={[
+            styles.panel,
+            mobile && styles.panelMobile,
+          ]}
+        >
+          <View
+            style={[
+              styles.mark,
+              mobile && styles.markMobile,
+            ]}
+          >
+            <Text
+              style={[
+                styles.markText,
+                mobile && styles.markTextMobile,
+              ]}
+            >
+              R
+            </Text>
           </View>
 
-          <Text style={[styles.brand, mobile && styles.brandMobile]}>
+          <Text
+            style={[
+              styles.brand,
+              mobile && styles.brandMobile,
+            ]}
+          >
             REALVIA
           </Text>
 
-          <Text style={[styles.kicker, mobile && styles.kickerMobile]}>
+          <Text
+            style={[
+              styles.kicker,
+              mobile && styles.kickerMobile,
+            ]}
+          >
             EGY LÉPÉSSEL KÖZELEBB AZ OTTHONODHOZ
           </Text>
 
-          <View style={[styles.rule, mobile && styles.ruleMobile]} />
+          <View
+            style={[
+              styles.rule,
+              mobile && styles.ruleMobile,
+            ]}
+          />
 
-          <Text style={[styles.description, mobile && styles.descriptionMobile]}>
-            Fedezd fel a hozzád illő otthont, vagy mutasd meg saját ingatlanodat.
+          <Text
+            style={[
+              styles.description,
+              mobile && styles.descriptionMobile,
+            ]}
+          >
+            Fedezd fel a hozzád illő otthont, vagy mutasd
+            meg saját ingatlanodat.
           </Text>
 
-          <View style={[styles.actions, mobile && styles.actionsMobile]}>
+          <View
+            style={[
+              styles.actions,
+              mobile && styles.actionsMobile,
+            ]}
+          >
             <Pressable
               onPress={() => router.push('/login')}
-              style={[styles.primary, mobile && styles.buttonMobile]}
+              style={[
+                styles.primary,
+                mobile && styles.buttonMobile,
+              ]}
             >
-              <Text style={styles.primaryText}>BELÉPÉS</Text>
+              <Text style={styles.primaryText}>
+                BELÉPÉS
+              </Text>
             </Pressable>
 
             <Pressable
@@ -93,7 +169,9 @@ export default function Welcome() {
                 mobile && styles.buttonMobile,
               ]}
             >
-              <Text style={styles.secondaryText}>REGISZTRÁCIÓ</Text>
+              <Text style={styles.secondaryText}>
+                REGISZTRÁCIÓ
+              </Text>
             </Pressable>
 
             <Pressable
@@ -102,7 +180,10 @@ export default function Welcome() {
               style={styles.guest}
             >
               {guestLoading ? (
-                <ActivityIndicator size="small" color="#65736B" />
+                <ActivityIndicator
+                  size="small"
+                  color="#65736B"
+                />
               ) : (
                 <Text style={styles.guestText}>
                   Böngészés vendégként →
@@ -111,7 +192,9 @@ export default function Welcome() {
             </Pressable>
 
             {!!guestError && (
-              <Text style={styles.guestError}>{guestError}</Text>
+              <Text style={styles.guestError}>
+                {guestError}
+              </Text>
             )}
           </View>
         </Animated.View>
@@ -121,9 +204,21 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, width: '100%', backgroundColor: '#E9E1D4' },
-  backgroundImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  hiddenImage: { opacity: 0 },
+  background: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#E9E1D4',
+  },
+
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+
+  hiddenImage: {
+    opacity: 0,
+  },
 
   overlay: {
     flex: 1,
@@ -159,7 +254,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderWidth: 1,
-    borderColor: '#9B7141',
+    borderColor: 'rgba(255,255,255,0.72)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -170,9 +265,18 @@ const styles = StyleSheet.create({
   },
 
   markText: {
-    color: '#73502D',
+    color: '#FFFFFF',
     fontSize: 29,
-    fontFamily: Platform.OS === 'web' ? 'Georgia, serif' : 'serif',
+    fontFamily:
+      Platform.OS === 'web'
+        ? 'Georgia, serif'
+        : 'serif',
+    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    textShadowRadius: 4,
   },
 
   markTextMobile: {
@@ -180,43 +284,62 @@ const styles = StyleSheet.create({
   },
 
   brand: {
-    color: '#1D2923',
-    fontSize: 53,
+    color: '#FFFFFF',
+    fontSize: 56,
     fontWeight: '400',
     letterSpacing: 5,
     marginTop: 13,
-    fontFamily: Platform.OS === 'web' ? 'Georgia, serif' : 'serif',
+    fontFamily:
+      Platform.OS === 'web'
+        ? 'Georgia, serif'
+        : 'serif',
+    textShadowColor: 'rgba(0,0,0,0.68)',
+    textShadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    textShadowRadius: 7,
   },
 
   brandMobile: {
-    fontSize: 34,
+    fontSize: 46,
+    lineHeight: 55,
     marginTop: 9,
     letterSpacing: 4,
   },
 
-  // ⬇️ Csak ez változott
   kicker: {
-    color: '#8B6338',
+    color: '#FFFFFF',
     fontSize: 18,
     lineHeight: 26,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 1.8,
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 8,
+    textShadowColor: 'rgba(0,0,0,0.72)',
+    textShadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    textShadowRadius: 5,
   },
 
   kickerMobile: {
-    fontSize: 15,
-    lineHeight: 22,
-    letterSpacing: 1.4,
-    marginTop: 8,
+    fontSize: 17,
+    lineHeight: 24,
+    letterSpacing: 1.3,
+    marginTop: 6,
+    maxWidth: 360,
   },
 
   rule: {
     width: 48,
     height: 1,
-    backgroundColor: '#CDBA9F',
+    backgroundColor: 'rgba(255,255,255,0.75)',
     marginVertical: 14,
+    shadowColor: '#000000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 
   ruleMobile: {
@@ -224,18 +347,26 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color: '#627068',
-    fontSize: 16,
-    lineHeight: 24,
+    color: '#183F30',
+    fontSize: 17,
+    lineHeight: 25,
+    fontWeight: '700',
     textAlign: 'center',
-    maxWidth: 370,
+    maxWidth: 400,
+    textShadowColor: 'rgba(255,255,255,0.36)',
+    textShadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    textShadowRadius: 2,
   },
 
   descriptionMobile: {
-    color: '#4F5F56',
-    fontSize: 14,
-    lineHeight: 20,
-    maxWidth: 330,
+    color: '#173D2F',
+    fontSize: 16,
+    lineHeight: 23,
+    fontWeight: '800',
+    maxWidth: 350,
   },
 
   actions: {
@@ -263,7 +394,7 @@ const styles = StyleSheet.create({
   },
 
   primaryText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 1.5,
@@ -274,7 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#BCA98E',
-    backgroundColor: 'rgba(255,255,255,.45)',
+    backgroundColor: 'rgba(255,255,255,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
   },
