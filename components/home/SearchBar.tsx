@@ -2,6 +2,7 @@ import {
   Platform,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native'
 
 import {
@@ -17,7 +18,6 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import {
-  Colors,
   Radius,
   Shadows,
 } from '@/constants/theme'
@@ -34,6 +34,11 @@ export default function SearchBar({
   const [focused, setFocused] =
     useState(false)
 
+  const { width } =
+    useWindowDimensions()
+
+  const isMobile = width < 768
+
   return (
     <Animated.View
       entering={FadeInDown.delay(
@@ -48,36 +53,49 @@ export default function SearchBar({
         borderRadius:
           Radius.full,
 
-        paddingHorizontal: 26,
+        paddingHorizontal:
+          isMobile ? 16 : 26,
 
         paddingVertical:
-          Platform.OS === 'web'
-            ? 24
-            : 20,
+          isMobile
+            ? 15
+            : Platform.OS === 'web'
+              ? 24
+              : 20,
 
         borderWidth: 1,
 
-        borderColor: focused
-          ? '#CDBA9F'
-          : 'rgba(255,255,255,0.72)',
+        borderColor:
+          focused
+            ? '#CDBA9F'
+            : 'rgba(255,255,255,0.72)',
 
         flexDirection: 'row',
 
         alignItems: 'center',
 
-        gap: 16,
+        gap:
+          isMobile ? 11 : 16,
 
-        backdropFilter:
-          'blur(20px)',
+        ...(
+          Platform.OS === 'web'
+            ? ({
+                backdropFilter:
+                  'blur(20px)',
+              } as any)
+            : {}
+        ),
 
         ...Shadows.luxury,
       }}
     >
-      {/* ICON */}
       <View
         style={{
-          width: 42,
-          height: 42,
+          width:
+            isMobile ? 40 : 42,
+
+          height:
+            isMobile ? 40 : 42,
 
           borderRadius: 999,
 
@@ -88,6 +106,8 @@ export default function SearchBar({
 
           justifyContent:
             'center',
+
+          flexShrink: 0,
         }}
       >
         <Search
@@ -100,7 +120,6 @@ export default function SearchBar({
         />
       </View>
 
-      {/* INPUT */}
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -110,21 +129,33 @@ export default function SearchBar({
         onBlur={() =>
           setFocused(false)
         }
-        placeholder="Keress település vagy ingatlan neve alapján..."
-        placeholderTextColor="#78817B"
+        placeholder={
+          isMobile
+            ? 'Település vagy ingatlan neve...'
+            : 'Keress település vagy ingatlan neve alapján...'
+        }
+        placeholderTextColor="#66716A"
+        returnKeyType="search"
+        autoCapitalize="none"
+        autoCorrect={false}
         style={{
           flex: 1,
+
+          minWidth: 0,
 
           color: '#1D2923',
 
           fontSize:
-            Platform.OS === 'web'
-              ? 18
-              : 16,
+            isMobile ? 16 : 18,
 
-          fontWeight: '500',
+          lineHeight:
+            isMobile ? 22 : 25,
+
+          fontWeight: '600',
 
           paddingVertical: 2,
+
+          paddingHorizontal: 0,
         }}
       />
     </Animated.View>
