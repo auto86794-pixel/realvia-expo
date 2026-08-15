@@ -12,20 +12,29 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
+import Animated, {
+  FadeInDown,
+} from 'react-native-reanimated'
 
 export default function Welcome() {
-  const { width, height } = useWindowDimensions()
+  const { width, height } =
+    useWindowDimensions()
+
   const { signOut } = useAuth()
 
   const mobile =
-    width < 768 || height > width * 1.25
+    width < 768 ||
+    height > width * 1.25
 
-  const [guestLoading, setGuestLoading] =
-    useState(false)
+  const [
+    guestLoading,
+    setGuestLoading,
+  ] = useState(false)
 
-  const [guestError, setGuestError] =
-    useState('')
+  const [
+    guestError,
+    setGuestError,
+  ] = useState('')
 
   async function browseAsGuest() {
     try {
@@ -53,7 +62,9 @@ export default function Welcome() {
     <View
       style={[
         styles.background,
-        { minHeight: height },
+        {
+          minHeight: height,
+        },
       ]}
     >
       {/* DESKTOP HÁTTÉR */}
@@ -64,7 +75,8 @@ export default function Welcome() {
         transition={0}
         style={[
           styles.backgroundImage,
-          mobile && styles.hiddenImage,
+          mobile &&
+            styles.hiddenImage,
         ]}
       />
 
@@ -76,7 +88,8 @@ export default function Welcome() {
         transition={0}
         style={[
           styles.backgroundImage,
-          !mobile && styles.hiddenImage,
+          !mobile &&
+            styles.hiddenImage,
         ]}
       />
 
@@ -101,23 +114,30 @@ export default function Welcome() {
         ]}
         style={[
           styles.overlay,
-          mobile && styles.overlayMobile,
-          { minHeight: height },
+          mobile &&
+            styles.overlayMobile,
+          {
+            minHeight: height,
+          },
         ]}
       >
         <Animated.View
-          entering={FadeInDown.springify()}
+          entering={
+            FadeInDown.springify()
+          }
           style={[
             styles.panel,
-            mobile && styles.panelMobile,
+            mobile &&
+              styles.panelMobile,
           ]}
         >
-          {/* LOGÓJEL */}
+          {/* REALVIA JEL */}
 
           <View
             style={[
               styles.mark,
-              mobile && styles.markMobile,
+              mobile &&
+                styles.markMobile,
             ]}
           >
             <Text
@@ -131,23 +151,25 @@ export default function Welcome() {
             </Text>
           </View>
 
-          {/* MÁRKA */}
+          {/* MÁRKANÉV */}
 
           <Text
             style={[
               styles.brand,
-              mobile && styles.brandMobile,
+              mobile &&
+                styles.brandMobile,
             ]}
           >
             REALVIA
           </Text>
 
-          {/* FŐ ÜZENET */}
+          {/* SZLOGEN */}
 
           <Text
             style={[
               styles.kicker,
-              mobile && styles.kickerMobile,
+              mobile &&
+                styles.kickerMobile,
             ]}
           >
             EGY LÉPÉSSEL KÖZELEBB AZ
@@ -157,11 +179,12 @@ export default function Welcome() {
           <View
             style={[
               styles.rule,
-              mobile && styles.ruleMobile,
+              mobile &&
+                styles.ruleMobile,
             ]}
           />
 
-          {/* ÉRZELMI / FUNKCIONÁLIS ÜZENET */}
+          {/* FŐ ÜZENET */}
 
           <Text
             style={[
@@ -170,37 +193,35 @@ export default function Welcome() {
                 styles.descriptionMobile,
             ]}
           >
-            Fedezd fel azt a helyet, ahol a
-            következő történeted kezdődhet.
+            Fedezd fel azt a helyet,
+            ahol a következő történeted
+            kezdődhet.
           </Text>
 
-          <Text
-            style={[
-              styles.subDescription,
-              mobile &&
-                styles.subDescriptionMobile,
-            ]}
-          >
-            Keress otthont, vagy mutasd meg
-            saját ingatlanodat.
-          </Text>
-
-          {/* FŐ MŰVELETEK */}
+          {/* MŰVELETEK */}
 
           <View
             style={[
               styles.actions,
-              mobile && styles.actionsMobile,
+              mobile &&
+                styles.actionsMobile,
             ]}
           >
-            {/* ELSŐDLEGES: BÖNGÉSZÉS */}
+            {/* INGATLANOK BÖNGÉSZÉSE */}
 
             <Pressable
-              onPress={browseAsGuest}
-              disabled={guestLoading}
-              style={({ pressed }) => [
+              onPress={
+                browseAsGuest
+              }
+              disabled={
+                guestLoading
+              }
+              style={({
+                pressed,
+              }) => [
                 styles.primary,
-                mobile && styles.buttonMobile,
+                mobile &&
+                  styles.buttonMobile,
                 pressed &&
                   !guestLoading &&
                   styles.primaryPressed,
@@ -215,30 +236,39 @@ export default function Welcome() {
                 />
               ) : (
                 <Text
-                  style={styles.primaryText}
+                  style={
+                    styles.primaryText
+                  }
                 >
                   INGATLANOK BÖNGÉSZÉSE
                 </Text>
               )}
             </Pressable>
 
-            {/* MÁSODLAGOS: HIRDETÉS */}
+            {/* INGATLANT HIRDETEK */}
 
             <Pressable
               onPress={() =>
-                router.push('/register')
+                router.push(
+                  '/register'
+                )
               }
-              style={({ pressed }) => [
+              style={({
+                pressed,
+              }) => [
                 styles.secondary,
                 mobile &&
                   styles.secondaryMobile,
-                mobile && styles.buttonMobile,
+                mobile &&
+                  styles.buttonMobile,
                 pressed &&
                   styles.secondaryPressed,
               ]}
             >
               <Text
-                style={styles.secondaryText}
+                style={
+                  styles.secondaryText
+                }
               >
                 INGATLANT HIRDETEK
               </Text>
@@ -246,23 +276,37 @@ export default function Welcome() {
 
             {/* BELÉPÉS */}
 
-            <View style={styles.loginRow}>
-              <Text style={styles.loginHint}>
+            <View
+              style={
+                styles.loginRow
+              }
+            >
+              <Text
+                style={
+                  styles.loginHint
+                }
+              >
                 Már van fiókod?
               </Text>
 
               <Pressable
                 onPress={() =>
-                  router.push('/login')
+                  router.push(
+                    '/login'
+                  )
                 }
-                style={({ pressed }) => [
+                style={({
+                  pressed,
+                }) => [
                   styles.loginButton,
                   pressed &&
                     styles.loginButtonPressed,
                 ]}
               >
                 <Text
-                  style={styles.loginText}
+                  style={
+                    styles.loginText
+                  }
                 >
                   Belépés →
                 </Text>
@@ -271,7 +315,9 @@ export default function Welcome() {
 
             {!!guestError && (
               <Text
-                style={styles.guestError}
+                style={
+                  styles.guestError
+                }
               >
                 {guestError}
               </Text>
@@ -283,328 +329,334 @@ export default function Welcome() {
   )
 }
 
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#E9E1D4',
-  },
-
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-
-  hiddenImage: {
-    opacity: 0,
-  },
-
-  overlay: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    paddingHorizontal:
-      Platform.OS === 'web'
-        ? '7%'
-        : 20,
-    paddingVertical:
-      Platform.OS === 'web'
-        ? 42
-        : 28,
-  },
-
-  overlayMobile: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 22,
-  },
-
-  panel: {
-    width: '100%',
-    maxWidth: 470,
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-  },
-
-  panelMobile: {
-    maxWidth: 440,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-
-  mark: {
-    width: 48,
-    height: 48,
-    borderWidth: 1,
-    borderColor:
-      'rgba(255,255,255,0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  markMobile: {
-    width: 40,
-    height: 40,
-  },
-
-  markText: {
-    color: '#FFFFFF',
-    fontSize: 29,
-    fontFamily:
-      Platform.OS === 'web'
-        ? 'Georgia, serif'
-        : 'serif',
-    textShadowColor:
-      'rgba(0,0,0,0.55)',
-    textShadowOffset: {
-      width: 0,
-      height: 2,
+const styles =
+  StyleSheet.create({
+    background: {
+      flex: 1,
+      width: '100%',
+      backgroundColor:
+        '#E9E1D4',
     },
-    textShadowRadius: 4,
-  },
 
-  markTextMobile: {
-    fontSize: 24,
-  },
-
-  brand: {
-    color: '#FFFFFF',
-    fontSize: 56,
-    fontWeight: '400',
-    letterSpacing: 5,
-    marginTop: 13,
-    fontFamily:
-      Platform.OS === 'web'
-        ? 'Georgia, serif'
-        : 'serif',
-    textShadowColor:
-      'rgba(0,0,0,0.68)',
-    textShadowOffset: {
-      width: 0,
-      height: 3,
+    backgroundImage: {
+      ...StyleSheet.absoluteFillObject,
+      width: '100%',
+      height: '100%',
     },
-    textShadowRadius: 7,
-  },
 
-  brandMobile: {
-    fontSize: 46,
-    lineHeight: 55,
-    marginTop: 9,
-    letterSpacing: 4,
-  },
-
-  kicker: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '900',
-    letterSpacing: 1.8,
-    textAlign: 'center',
-    marginTop: 8,
-    textShadowColor:
-      'rgba(0,0,0,0.72)',
-    textShadowOffset: {
-      width: 0,
-      height: 2,
+    hiddenImage: {
+      opacity: 0,
     },
-    textShadowRadius: 5,
-  },
 
-  kickerMobile: {
-    fontSize: 17,
-    lineHeight: 24,
-    letterSpacing: 1.3,
-    marginTop: 6,
-    maxWidth: 360,
-  },
-
-  rule: {
-    width: 48,
-    height: 1,
-    backgroundColor:
-      'rgba(255,255,255,0.75)',
-    marginVertical: 14,
-    shadowColor: '#000000',
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-
-  ruleMobile: {
-    marginVertical: 10,
-  },
-
-  description: {
-    color: '#173D2F',
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '800',
-    textAlign: 'center',
-    maxWidth: 410,
-    textShadowColor:
-      'rgba(255,255,255,0.40)',
-    textShadowOffset: {
-      width: 0,
-      height: 1,
+    overlay: {
+      flex: 1,
+      width: '100%',
+      justifyContent:
+        'center',
+      alignItems:
+        'flex-start',
+      paddingHorizontal:
+        Platform.OS === 'web'
+          ? '7%'
+          : 20,
+      paddingVertical:
+        Platform.OS === 'web'
+          ? 42
+          : 28,
     },
-    textShadowRadius: 2,
-  },
 
-  descriptionMobile: {
-    fontSize: 16,
-    lineHeight: 23,
-    maxWidth: 350,
-  },
+    overlayMobile: {
+      justifyContent:
+        'flex-end',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingBottom: 22,
+    },
 
-  subDescription: {
-    color: '#53655B',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '600',
-    textAlign: 'center',
-    maxWidth: 380,
-    marginTop: 5,
-  },
+    panel: {
+      width: '100%',
+      maxWidth: 470,
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 20,
+    },
 
-  subDescriptionMobile: {
-    color: '#4A5E53',
-    fontSize: 13,
-    lineHeight: 19,
-    maxWidth: 340,
-  },
+    panelMobile: {
+      maxWidth: 440,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
 
-  actions: {
-    width: '100%',
-    gap: 9,
-    marginTop: 20,
-  },
+    mark: {
+      width: 48,
+      height: 48,
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.72)',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
 
-  actionsMobile: {
-    gap: 7,
-    marginTop: 14,
-  },
+    markMobile: {
+      width: 40,
+      height: 40,
+    },
 
-  primary: {
-    minHeight: 56,
-    borderRadius: 14,
-    backgroundColor: '#2E4639',
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-        boxShadow:
-          '0 10px 28px rgba(31,55,43,0.20)',
-      } as any,
-      default: {},
-    }),
-  },
-
-  primaryPressed: {
-    opacity: 0.9,
-    transform: [
-      {
-        scale: 0.995,
+    markText: {
+      color: '#FFFFFF',
+      fontSize: 29,
+      fontFamily:
+        Platform.OS ===
+        'web'
+          ? 'Georgia, serif'
+          : 'serif',
+      textShadowColor:
+        'rgba(0,0,0,0.55)',
+      textShadowOffset: {
+        width: 0,
+        height: 2,
       },
-    ],
-  },
+      textShadowRadius: 4,
+    },
 
-  buttonDisabled: {
-    opacity: 0.72,
-  },
+    markTextMobile: {
+      fontSize: 24,
+    },
 
-  buttonMobile: {
-    minHeight: 49,
-    borderRadius: 13,
-  },
+    brand: {
+      color: '#FFFFFF',
+      fontSize: 56,
+      fontWeight: '400',
+      letterSpacing: 5,
+      marginTop: 13,
+      fontFamily:
+        Platform.OS ===
+        'web'
+          ? 'Georgia, serif'
+          : 'serif',
+      textShadowColor:
+        'rgba(0,0,0,0.68)',
+      textShadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      textShadowRadius: 7,
+    },
 
-  primaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1.35,
-  },
+    brandMobile: {
+      fontSize: 46,
+      lineHeight: 55,
+      marginTop: 9,
+      letterSpacing: 4,
+    },
 
-  secondary: {
-    minHeight: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#BCA98E',
-    backgroundColor:
-      'rgba(255,255,255,0.48)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    kicker: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      lineHeight: 26,
+      fontWeight: '900',
+      letterSpacing: 1.8,
+      textAlign: 'center',
+      marginTop: 8,
+      textShadowColor:
+        'rgba(0,0,0,0.72)',
+      textShadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      textShadowRadius: 5,
+    },
 
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-      } as any,
-      default: {},
-    }),
-  },
+    kickerMobile: {
+      fontSize: 17,
+      lineHeight: 25,
+      letterSpacing: 1.3,
+      marginTop: 6,
+      maxWidth: 360,
+    },
 
-  secondaryMobile: {
-    backgroundColor:
-      'rgba(111,82,52,0.13)',
-    borderColor: '#A98257',
-  },
+    rule: {
+      width: 48,
+      height: 1,
+      backgroundColor:
+        'rgba(255,255,255,0.75)',
+      marginVertical: 14,
+      shadowColor:
+        '#000000',
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
 
-  secondaryPressed: {
-    opacity: 0.82,
-  },
+    ruleMobile: {
+      marginVertical: 10,
+    },
 
-  secondaryText: {
-    color: '#61482F',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-  },
+    description: {
+      color: '#173D2F',
+      fontSize: 18,
+      lineHeight: 27,
+      fontWeight: '800',
+      textAlign: 'center',
+      maxWidth: 410,
+      textShadowColor:
+        'rgba(255,255,255,0.40)',
+      textShadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      textShadowRadius: 2,
+    },
 
-  loginRow: {
-    minHeight: 34,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    marginTop: 2,
-  },
+    descriptionMobile: {
+      color: '#173D2F',
+      fontSize: 18,
+      lineHeight: 27,
+      fontWeight: '800',
+      maxWidth: 360,
+    },
 
-  loginHint: {
-    color: '#66746C',
-    fontSize: 13,
-    fontWeight: '500',
-  },
+    actions: {
+      width: '100%',
+      gap: 10,
+      marginTop: 20,
+    },
 
-  loginButton: {
-    paddingHorizontal: 3,
-    paddingVertical: 6,
+    actionsMobile: {
+      gap: 9,
+      marginTop: 17,
+    },
 
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-      } as any,
-      default: {},
-    }),
-  },
+    primary: {
+      minHeight: 56,
+      borderRadius: 14,
+      backgroundColor:
+        '#2E4639',
+      alignItems: 'center',
+      justifyContent:
+        'center',
 
-  loginButtonPressed: {
-    opacity: 0.65,
-  },
+      ...Platform.select({
+        web: {
+          cursor: 'pointer',
+          boxShadow:
+            '0 10px 28px rgba(31,55,43,0.20)',
+        } as any,
 
-  loginText: {
-    color: '#29483A',
-    fontSize: 13,
-    fontWeight: '800',
-  },
+        default: {},
+      }),
+    },
 
-  guestError: {
-    color: '#A64D49',
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: 'center',
-  },
-})
+    primaryPressed: {
+      opacity: 0.9,
+      transform: [
+        {
+          scale: 0.995,
+        },
+      ],
+    },
+
+    buttonDisabled: {
+      opacity: 0.72,
+    },
+
+    buttonMobile: {
+      minHeight: 54,
+      borderRadius: 13,
+    },
+
+    primaryText: {
+      color: '#FFFFFF',
+      fontSize: 15,
+      fontWeight: '800',
+      letterSpacing: 1.2,
+      textAlign: 'center',
+    },
+
+    secondary: {
+      minHeight: 54,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor:
+        '#BCA98E',
+      backgroundColor:
+        'rgba(255,255,255,0.48)',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      ...Platform.select({
+        web: {
+          cursor: 'pointer',
+        } as any,
+
+        default: {},
+      }),
+    },
+
+    secondaryMobile: {
+      backgroundColor:
+        'rgba(255,255,255,0.18)',
+      borderColor:
+        '#A98257',
+    },
+
+    secondaryPressed: {
+      opacity: 0.82,
+    },
+
+    secondaryText: {
+      color: '#29483A',
+      fontSize: 15,
+      fontWeight: '800',
+      letterSpacing: 1.1,
+      textAlign: 'center',
+    },
+
+    loginRow: {
+      minHeight: 40,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      gap: 5,
+      marginTop: 4,
+    },
+
+    loginHint: {
+      color: '#53655B',
+      fontSize: 15,
+      fontWeight: '600',
+    },
+
+    loginButton: {
+      paddingHorizontal: 4,
+      paddingVertical: 7,
+
+      ...Platform.select({
+        web: {
+          cursor: 'pointer',
+        } as any,
+
+        default: {},
+      }),
+    },
+
+    loginButtonPressed: {
+      opacity: 0.65,
+    },
+
+    loginText: {
+      color: '#29483A',
+      fontSize: 15,
+      fontWeight: '800',
+    },
+
+    guestError: {
+      color: '#A64D49',
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+  })
