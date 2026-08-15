@@ -362,7 +362,7 @@ export default function Home() {
             height:
               isMobile
                 ? 520
-                : 680,
+                : 600,
 
             borderBottomLeftRadius:
               Radius.xl,
@@ -441,12 +441,12 @@ export default function Home() {
                     fontSize:
                       isMobile
                         ? 42
-                        : 72,
+                        : 64,
 
                     lineHeight:
                       isMobile
                         ? 47
-                        : 78,
+                        : 70,
 
                     fontWeight:
                       '900',
@@ -454,7 +454,7 @@ export default function Home() {
                     letterSpacing:
                       isMobile
                         ? -2
-                        : -4,
+                        : -3,
 
                     maxWidth:
                       isMobile
@@ -507,10 +507,12 @@ export default function Home() {
                   marginTop:
                     isMobile
                       ? 28
-                      : 42,
+                      : 34,
 
                   maxWidth:
-                    520,
+                    isMobile
+                      ? 520
+                      : 680,
                 }}
               >
                 <SearchBar
@@ -535,7 +537,7 @@ export default function Home() {
             marginTop:
               isMobile
                 ? 28
-                : 42,
+                : 30,
 
             paddingHorizontal:
               pagePadding,
