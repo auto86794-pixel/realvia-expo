@@ -1,5 +1,5 @@
-import { del, list } from '@Vercel/blob'
 import { neon } from '@neondatabase/serverless'
+import { del, list } from '@vercel/blob'
 
 function getAuthBaseUrl() {
   const value =
