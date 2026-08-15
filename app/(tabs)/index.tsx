@@ -35,9 +35,8 @@ import { supabase } from '../../src/services/supabase'
 import { useAuth } from '../../src/providers/AuthProvider'
 
 import {
-  Colors,
   Radius,
-  Shadows,
+  Shadows
 } from '@/constants/theme'
 
 import { hu } from '@/constants/translations'
@@ -47,13 +46,18 @@ export default function Home() {
   const { width } = useWindowDimensions()
 
   const isMobile = width < 768
-  const isTablet = width >= 768 && width < 1180
-  const pagePadding = isMobile ? 16 : 32
-  const cardWidth = isMobile
-    ? '100%'
-    : isTablet
-      ? '48.5%'
-      : '31.5%'
+  const isTablet =
+    width >= 768 && width < 1180
+
+  const pagePadding =
+    isMobile ? 16 : 32
+
+  const cardWidth =
+    isMobile
+      ? '100%'
+      : isTablet
+        ? '48.5%'
+        : '31.5%'
 
   const [favorites, setFavorites] =
     useState<any[]>([])
@@ -101,7 +105,13 @@ export default function Home() {
         await supabase
           .from('properties')
           .select('*')
-          .in('status', ['published', 'sold'])
+          .in(
+            'status',
+            [
+              'published',
+              'sold',
+            ]
+          )
           .order('id', {
             ascending: false,
           })
@@ -183,29 +193,31 @@ export default function Home() {
       selectedCategory,
     ])
 
-
-const favoriteProperties =
-  useMemo(() => {
-    const favoriteIds =
-      favorites.map(
-        fav => fav.property_id
-      )
-
-    return properties.filter(
-      property =>
-        favoriteIds.includes(
-          property.id
+  const favoriteProperties =
+    useMemo(() => {
+      const favoriteIds =
+        favorites.map(
+          (fav) =>
+            fav.property_id
         )
-    )
-  }, [favorites, properties])
 
-return (
+      return properties.filter(
+        (property) =>
+          favoriteIds.includes(
+            property.id
+          )
+      )
+    }, [
+      favorites,
+      properties,
+    ])
 
- 
+  return (
     <View
       style={{
         flex: 1,
-        backgroundColor: '#F4F1EB',
+        backgroundColor:
+          '#F4F1EB',
       }}
     >
       {session?.user && (
@@ -213,54 +225,127 @@ return (
           style={{
             position: 'absolute',
             zIndex: 50,
-            top: Platform.OS === 'web' ? 18 : 54,
-            right: isMobile ? 14 : 28,
+
+            top:
+              Platform.OS === 'web'
+                ? 18
+                : 54,
+
+            right:
+              isMobile
+                ? 14
+                : 28,
+
             flexDirection: 'row',
+
             gap: 8,
           }}
         >
           <Pressable
-            onPress={() => router.push('/dashboard')}
+            onPress={() =>
+              router.push(
+                '/dashboard'
+              )
+            }
             style={{
               minHeight: 44,
-              paddingHorizontal: isMobile ? 13 : 18,
+
+              paddingHorizontal:
+                isMobile
+                  ? 13
+                  : 18,
+
               borderRadius: 22,
-              backgroundColor: 'rgba(255,253,252,0.94)',
+
+              backgroundColor:
+                'rgba(255,253,252,0.94)',
+
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.75)',
-              alignItems: 'center',
-              justifyContent: 'center',
+
+              borderColor:
+                'rgba(255,255,255,0.75)',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
               ...Shadows.luxury,
             }}
           >
-            <Text style={{ color: '#2E4639', fontSize: 13, fontWeight: '900' }}>
-              {isMobile ? 'Hirdetéseim' : 'Saját hirdetéseim'}
+            <Text
+              style={{
+                color:
+                  '#2E4639',
+
+                fontSize: 13,
+
+                fontWeight:
+                  '900',
+              }}
+            >
+              {isMobile
+                ? 'Hirdetéseim'
+                : 'Saját hirdetéseim'}
             </Text>
           </Pressable>
+
           <Pressable
-            onPress={() => router.push('/inquiries')}
+            onPress={() =>
+              router.push(
+                '/inquiries'
+              )
+            }
             style={{
               minHeight: 44,
-              paddingHorizontal: isMobile ? 13 : 18,
+
+              paddingHorizontal:
+                isMobile
+                  ? 13
+                  : 18,
+
               borderRadius: 22,
-              backgroundColor: '#2E4639',
+
+              backgroundColor:
+                '#2E4639',
+
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.18)',
-              alignItems: 'center',
-              justifyContent: 'center',
+
+              borderColor:
+                'rgba(255,255,255,0.18)',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
               ...Shadows.luxury,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '900' }}>
+            <Text
+              style={{
+                color:
+                  '#FFFFFF',
+
+                fontSize: 13,
+
+                fontWeight:
+                  '900',
+              }}
+            >
               Érdeklődések
             </Text>
           </Pressable>
         </View>
       )}
+
       <ScrollView
         style={{
           flex: 1,
-          backgroundColor: '#F4F1EB',
+          backgroundColor:
+            '#F4F1EB',
         }}
         contentContainerStyle={{
           paddingBottom: 180,
@@ -271,107 +356,168 @@ return (
         }
       >
         {/* HERO */}
+
         <View
-  style={{
-    height: isMobile ? 520 : 680,
+          style={{
+            height:
+              isMobile
+                ? 520
+                : 680,
 
-    borderBottomLeftRadius:
-      Radius.xl,
+            borderBottomLeftRadius:
+              Radius.xl,
 
-    borderBottomRightRadius:
-      Radius.xl,
+            borderBottomRightRadius:
+              Radius.xl,
 
-    overflow: 'hidden',
-  }}
->
-        
+            overflow: 'hidden',
+          }}
+        >
           <Image
-            
-  source={require('../../assets/images/realvia-home-sunrise.png')}
-  contentFit="cover"
-  style={{
-    width: '100%',
-    height: '100%',
-  }}
-/>
-         
-
-          <View
+            source={require('../../assets/images/realvia-home-sunrise.png')}
+            contentFit="cover"
             style={{
-              position: 'absolute',
-
               width: '100%',
               height: '100%',
-
-              backgroundColor: 'rgba(25,38,31,0.34)',
             }}
           />
 
           <View
             style={{
-              position: 'absolute',
+              position:
+                'absolute',
 
               width: '100%',
               height: '100%',
 
-              justifyContent: 'center',
+              backgroundColor:
+                'rgba(25,38,31,0.34)',
+            }}
+          />
+
+          <View
+            style={{
+              position:
+                'absolute',
+
+              width: '100%',
+              height: '100%',
+
+              justifyContent:
+                'center',
+
               paddingTop:
-                Platform.OS === 'web'
+                Platform.OS ===
+                'web'
                   ? 0
                   : 40,
 
-              paddingHorizontal: pagePadding,
+              paddingHorizontal:
+                pagePadding,
             }}
           >
             <View
-  style={{
-   width: '100%',
-    maxWidth: isMobile ? '100%' : 1440,
-    alignSelf: 'center',
-  }}
->
-  <Animated.View
-    entering={FadeInDown.springify()}
-  >
-    <Text
-      style={{
-        color: 'white',
-        fontSize: isMobile ? 42 : 72,
-        lineHeight: isMobile ? 47 : 78,
-        fontWeight: '900',
-        letterSpacing: isMobile ? -2 : -4,
-        maxWidth: isMobile ? '100%' : 760,
-      }}
-    >
-      {hu.home.heroTitle}
-    </Text>
+              style={{
+                width: '100%',
 
-    <Text
-      style={{
-        color: '#D1D5DB',
-        fontSize: isMobile ? 16 : 22,
-        marginTop: isMobile ? 18 : 28,
-        maxWidth: 560,
-        lineHeight: isMobile ? 24 : 34,
-      }}
-    >
-      {hu.home.heroSubtitle}
-    </Text>
-  </Animated.View>
+                maxWidth:
+                  isMobile
+                    ? '100%'
+                    : 1440,
 
-  
+                alignSelf:
+                  'center',
+              }}
+            >
+              <Animated.View
+                entering={
+                  FadeInDown.springify()
+                }
+              >
+                <Text
+                  style={{
+                    color: 'white',
+
+                    fontSize:
+                      isMobile
+                        ? 42
+                        : 72,
+
+                    lineHeight:
+                      isMobile
+                        ? 47
+                        : 78,
+
+                    fontWeight:
+                      '900',
+
+                    letterSpacing:
+                      isMobile
+                        ? -2
+                        : -4,
+
+                    maxWidth:
+                      isMobile
+                        ? '100%'
+                        : 760,
+                  }}
+                >
+                  {
+                    hu.home
+                      .heroTitle
+                  }
+                </Text>
+
+                <Text
+                  style={{
+                    color:
+                      '#D1D5DB',
+
+                    fontSize:
+                      isMobile
+                        ? 16
+                        : 22,
+
+                    marginTop:
+                      isMobile
+                        ? 18
+                        : 28,
+
+                    maxWidth:
+                      560,
+
+                    lineHeight:
+                      isMobile
+                        ? 24
+                        : 34,
+                  }}
+                >
+                  {
+                    hu.home
+                      .heroSubtitle
+                  }
+                </Text>
+              </Animated.View>
+
               <Animated.View
                 entering={FadeInDown.delay(
                   250
                 ).springify()}
                 style={{
-                  marginTop: isMobile ? 28 : 42,
-                  maxWidth: 520,
+                  marginTop:
+                    isMobile
+                      ? 28
+                      : 42,
+
+                  maxWidth:
+                    520,
                 }}
               >
                 <SearchBar
                   value={search}
-                  onChange={setSearch}
+                  onChange={
+                    setSearch
+                  }
                 />
               </Animated.View>
             </View>
@@ -379,62 +525,85 @@ return (
         </View>
 
         {/* CONTENT */}
-     
-<View
-  style={{
-    width: '100%',
-    maxWidth: 1440,
-    alignSelf: 'center',
-    marginTop: isMobile ? 28 : 42,
-    paddingHorizontal: pagePadding,
-  }}
->
-  <View
-    style={{
-      maxWidth: '100%',
-      overflow: 'hidden',
-    }}
-  >
 
-      <CategoryTabs
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
-        </View>
+        <View
+          style={{
+            width: '100%',
+            maxWidth: 1440,
+            alignSelf: 'center',
+
+            marginTop:
+              isMobile
+                ? 28
+                : 42,
+
+            paddingHorizontal:
+              pagePadding,
+          }}
+        >
+          <View
+            style={{
+              maxWidth:
+                '100%',
+
+              overflow:
+                'hidden',
+            }}
+          >
+            <CategoryTabs
+              categories={
+                categories
+              }
+              selectedCategory={
+                selectedCategory
+              }
+              onSelect={
+                setSelectedCategory
+              }
+            />
+          </View>
 
           {/* SECTION HEADER */}
+
           <View
             style={{
               marginTop: 42,
               marginBottom: 28,
 
-              flexDirection: 'row',
+              flexDirection:
+                'row',
+
               flexWrap: 'wrap',
+
               gap: 12,
 
               justifyContent:
                 'space-between',
 
-              alignItems: isMobile
-                ? 'flex-start'
-                : 'center',
+              alignItems:
+                isMobile
+                  ? 'flex-start'
+                  : 'center',
             }}
           >
             <View>
               <Text
                 style={{
-                  color: '#1D2923',
+                  color:
+                    '#1D2923',
 
-                  fontSize: isMobile
-                    ? 30
-                    : 42,
+                  fontSize:
+                    isMobile
+                      ? 30
+                      : 42,
 
-                  fontWeight: '900',
+                  fontWeight:
+                    '900',
 
-                  letterSpacing: isMobile
-                    ? -1
-                    : -2,
+                  letterSpacing:
+                    isMobile
+                      ? -1
+                      : -2,
                 }}
               >
                 {
@@ -445,24 +614,30 @@ return (
 
               <Text
                 style={{
-                  color: '#6E7872',
+                  color:
+                    '#6E7872',
 
                   marginTop: 8,
 
                   fontSize: 16,
                 }}
               >
-                {hu.home.handpicked}
+                {
+                  hu.home
+                    .handpicked
+                }
               </Text>
             </View>
 
             <Text
               style={{
-                  color: '#8B6338',
+                color:
+                  '#8B6338',
 
                 fontSize: 16,
 
-                fontWeight: '700',
+                fontWeight:
+                  '700',
               }}
             >
               {
@@ -473,9 +648,11 @@ return (
           </View>
 
           {/* GRID */}
+
           <View
             style={{
-              flexDirection: 'row',
+              flexDirection:
+                'row',
 
               flexWrap: 'wrap',
 
@@ -483,19 +660,25 @@ return (
                 'space-between',
 
               rowGap: 28,
+
               columnGap: '2%',
             }}
           >
             {loading ? (
               <>
-                {[0, 1, 2].map((item) => (
-                  <View
-                    key={item}
-                    style={{ width: cardWidth }}
-                  >
-                    <PropertyCardSkeleton />
-                  </View>
-                ))}
+                {[0, 1, 2].map(
+                  (item) => (
+                    <View
+                      key={item}
+                      style={{
+                        width:
+                          cardWidth,
+                      }}
+                    >
+                      <PropertyCardSkeleton />
+                    </View>
+                  )
+                )}
               </>
             ) : (
               filteredProperties.map(
@@ -504,13 +687,17 @@ return (
                   index
                 ) => (
                   <Animated.View
-                    key={property.id}
+                    key={
+                      property.id
+                    }
                     entering={FadeInDown.delay(
                       300 +
-                        index * 120
+                        index *
+                          120
                     ).springify()}
                     style={{
-                      width: cardWidth,
+                      width:
+                        cardWidth,
                     }}
                   >
                     <PropertyCard
@@ -526,9 +713,12 @@ return (
                       location={
                         property.location
                       }
-                      status={property.status}
+                      status={
+                        property.status
+                      }
                       images={
-                        property.gallery
+                        property
+                          .gallery
                           ?.length
                           ? property.gallery
                           : [
@@ -543,141 +733,238 @@ return (
           </View>
 
           {/* FAVORITES */}
-          {/* FAVORITES */}
-<View
-  style={{
-    marginTop: 72,
-  }}
->
-  <Text
-    style={{
-      color: '#1D2923',
-      fontSize: 38,
-      lineHeight: isMobile ? 38 : 46,
-      fontWeight: '900',
-      letterSpacing: -2,
-      marginBottom: 24,
-    }}
-  >
-    {hu.home.favorites}
-  </Text>
 
-  {favoriteProperties.length === 0 ? (
-    <View
-      style={{
-        backgroundColor: '#FFFDFC',
-        borderRadius: Radius.lg,
-        padding: 32,
-        borderWidth: 1,
-        borderColor: '#E3DED5',
-      }}
-    >
-      <Text
-        style={{
-          color: '#66716A',
-          fontSize: 17,
-          lineHeight: 28,
-        }}
-      >
-        {hu.favorites.empty}
-      </Text>
-    </View>
-  ) : (
-    <View
-      style={{
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 24,
-      }}
-    >
-      {favoriteProperties.map((property, index) => (
-        <Animated.View
-          key={property.id}
-          entering={FadeInDown.delay(
-            200 + index * 100
-          ).springify()}
-          style={{
-            width: cardWidth,
-            maxWidth: '100%',
-          }}
-        >
-          <PropertyCard
-            id={String(property.id)}
-            title={property.title}
-            price={property.price}
-            location={property.location}
-            status={property.status}
-            images={
-              property.gallery?.length
-                ? property.gallery
-                : [property.image]
-            }
-          />
-        </Animated.View>
-      ))}
-    </View>
-  )}
-</View>
-              
-              
-            
-        
+          <View
+            style={{
+              marginTop: 72,
+            }}
+          >
+            <Text
+              style={{
+                color:
+                  '#1D2923',
+
+                fontSize: 38,
+
+                lineHeight:
+                  isMobile
+                    ? 38
+                    : 46,
+
+                fontWeight:
+                  '900',
+
+                letterSpacing:
+                  -2,
+
+                marginBottom:
+                  24,
+              }}
+            >
+              {
+                hu.home
+                  .favorites
+              }
+            </Text>
+
+            {favoriteProperties.length ===
+            0 ? (
+              <View
+                style={{
+                  backgroundColor:
+                    '#FFFDFC',
+
+                  borderRadius:
+                    Radius.lg,
+
+                  padding: 32,
+
+                  borderWidth:
+                    1,
+
+                  borderColor:
+                    '#E3DED5',
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      '#66716A',
+
+                    fontSize:
+                      17,
+
+                    lineHeight:
+                      28,
+                  }}
+                >
+                  {
+                    hu.favorites
+                      .empty
+                  }
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={{
+                  flexDirection:
+                    'row',
+
+                  flexWrap:
+                    'wrap',
+
+                  justifyContent:
+                    'center',
+
+                  gap: 24,
+                }}
+              >
+                {favoriteProperties.map(
+                  (
+                    property,
+                    index
+                  ) => (
+                    <Animated.View
+                      key={
+                        property.id
+                      }
+                      entering={FadeInDown.delay(
+                        200 +
+                          index *
+                            100
+                      ).springify()}
+                      style={{
+                        width:
+                          cardWidth,
+
+                        maxWidth:
+                          '100%',
+                      }}
+                    >
+                      <PropertyCard
+                        id={String(
+                          property.id
+                        )}
+                        title={
+                          property.title
+                        }
+                        price={
+                          property.price
+                        }
+                        location={
+                          property.location
+                        }
+                        status={
+                          property.status
+                        }
+                        images={
+                          property
+                            .gallery
+                            ?.length
+                            ? property.gallery
+                            : [
+                                property.image,
+                              ]
+                        }
+                      />
+                    </Animated.View>
+                  )
+                )}
+              </View>
+            )}
+          </View>
 
           {/* AUTH ACTION */}
+
           <Pressable
-            onPress={session?.user ? handleLogout : () => router.push('/login')}
+            onPress={
+              session?.user
+                ? handleLogout
+                : () =>
+                    router.push(
+                      '/login'
+                    )
+            }
             style={{
               marginTop: 72,
 
-              backgroundColor: '#FFFDFC',
+              backgroundColor:
+                '#FFFDFC',
 
               borderRadius:
                 Radius.full,
 
-              paddingVertical: 22,
+              paddingVertical:
+                22,
 
-              alignItems: 'center',
+              alignItems:
+                'center',
 
               borderWidth: 1,
 
-              borderColor: '#D9D4CC',
+              borderColor:
+                '#D9D4CC',
 
               ...Shadows.luxury,
             }}
           >
             <Text
               style={{
-                color: '#455149',
+                color:
+                  '#455149',
 
                 fontSize: 17,
 
-                fontWeight: '800',
+                fontWeight:
+                  '800',
               }}
             >
-              {session?.user ? hu.home.logout : 'Belépés / regisztráció'}
+              {session?.user
+                ? hu.home.logout
+                : 'Belépés / regisztráció'}
             </Text>
           </Pressable>
         </View>
       </ScrollView>
 
       {/* FLOATING UPLOAD BUTTON */}
+
       <Pressable
         onPress={() =>
-          router.push(session?.user ? '/upload' : '/login')
+          router.push(
+            session?.user
+              ? '/upload'
+              : '/login'
+          )
         }
         style={{
           position: 'absolute',
 
-          right: isMobile ? 16 : 28,
-          bottom: isMobile ? 108 : 34,
+          right:
+            isMobile
+              ? 16
+              : 28,
 
-          backgroundColor: '#2E4639',
+          bottom:
+            isMobile
+              ? 153
+              : 34,
 
-          paddingHorizontal: isMobile ? 20 : 28,
-          paddingVertical: isMobile ? 15 : 18,
+          backgroundColor:
+            '#2E4639',
 
-          borderRadius: Radius.full,
+          paddingHorizontal:
+            isMobile
+              ? 20
+              : 28,
+
+          paddingVertical:
+            isMobile
+              ? 15
+              : 18,
+
+          borderRadius:
+            Radius.full,
 
           borderWidth: 1,
 
@@ -689,14 +976,18 @@ return (
       >
         <Text
           style={{
-            color: '#FFFFFF',
+            color:
+              '#FFFFFF',
 
             fontSize: 15,
 
-            fontWeight: '900',
+            fontWeight:
+              '900',
           }}
         >
-          {session?.user ? '+ Új ingatlan' : 'Hirdetés feladása'}
+          {session?.user
+            ? '+ Új ingatlan'
+            : 'Hirdetés feladása'}
         </Text>
       </Pressable>
     </View>
