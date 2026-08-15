@@ -30,7 +30,7 @@ const emptyForm = {
 export default function BuyersScreen() {
   useProtectedRoute()
   const { session } = useAuth()
-  const params = useLocalSearchParams<{ inquiryId?: string }>()
+  const params = useLocalSearchParams<{ inquiryId?: string; propertyId?: string }>()
   const { width } = useWindowDimensions()
   const mobile = width < 760
   const [buyers, setBuyers] = useState<Buyer[]>([])
@@ -88,6 +88,21 @@ export default function BuyersScreen() {
   useFocusEffect(useCallback(() => { load() }, [load]))
 
   const propertyMap = useMemo(() => new Map(properties.map((item) => [Number(item.id), item])), [properties])
+
+  const selectedPropertyId = params.propertyId ? Number(params.propertyId) : null
+  const selectedProperty = selectedPropertyId ? propertyMap.get(selectedPropertyId) : undefined
+
+  const visibleBuyers = useMemo(() => {
+    if (!selectedPropertyId) return buyers
+
+    const buyerIds = new Set(
+      matches
+        .filter((match) => Number(match.property_id) === selectedPropertyId)
+        .map((match) => Number(match.buyer_profile_id))
+    )
+
+    return buyers.filter((buyer) => buyerIds.has(Number(buyer.id)))
+  }, [buyers, matches, selectedPropertyId])
 
   async function saveBuyer() {
     if (!session?.user?.id || !form.customer_name.trim() || !form.locations.trim()) {
@@ -160,15 +175,28 @@ export default function BuyersScreen() {
         <View style={[styles.header, mobile && styles.stack]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>VEVŐI IGÉNYEK</Text>
-            <Text style={[styles.title, mobile && styles.titleMobile]}>Vevők és találatok</Text>
-            <Text style={styles.subtitle}>Rögzítsd, mit keres az ügyfél. A Realvia automatikusan rangsorolja a megfelelő ingatlanokat.</Text>
+            <Text style={[styles.title, mobile && styles.titleMobile]}>
+              {selectedProperty ? 'Vevőtalálatok az ingatlanhoz' : 'Vevők és találatok'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {selectedProperty
+                ? `${selectedProperty.title} · ${selectedProperty.location}`
+                : 'Rögzítsd, mit keres az ügyfél. A Realvia automatikusan rangsorolja a megfelelő ingatlanokat.'}
+            </Text>
           </View>
-          <Pressable onPress={() => { setForm(emptyForm); setShowForm(!showForm) }} style={styles.primary}><Plus size={18} color="#fff" /><Text style={styles.primaryText}>Új vevőprofil</Text></Pressable>
+          {selectedPropertyId ? (
+            <Pressable onPress={() => router.replace('/buyers' as any)} style={styles.primary}>
+              <Users size={18} color="#fff" />
+              <Text style={styles.primaryText}>Összes vevőprofil</Text>
+            </Pressable>
+          ) : (
+            <Pressable onPress={() => { setForm(emptyForm); setShowForm(!showForm) }} style={styles.primary}><Plus size={18} color="#fff" /><Text style={styles.primaryText}>Új vevőprofil</Text></Pressable>
+          )}
         </View>
 
         {!!errorText && <Text style={styles.error}>{errorText}</Text>}
 
-        {showForm && (
+        {showForm && !selectedPropertyId && (
           <View style={styles.formCard}>
             <View style={styles.sectionHeader}><View style={styles.iconCircle}><UserRound size={21} color="#8B6338" /></View><View><Text style={styles.sectionTitle}>Mit keres az ügyfél?</Text><Text style={styles.hint}>A pontosabb igény jobb találatokat ad.</Text></View></View>
             <View style={[styles.row, mobile && styles.stack]}>
@@ -195,12 +223,23 @@ export default function BuyersScreen() {
           </View>
         )}
 
-        {loading ? <ActivityIndicator style={{ marginTop: 70 }} size="large" color="#8B6338" /> : buyers.length === 0 ? (
-          <View style={styles.empty}><Users size={34} color="#9B7141" /><Text style={styles.emptyTitle}>Még nincs vevőprofil</Text><Text style={styles.hint}>Hozd létre az elsőt, vagy nyiss meg egy érdeklődést és készíts belőle profilt.</Text></View>
+        {loading ? <ActivityIndicator style={{ marginTop: 70 }} size="large" color="#8B6338" /> : visibleBuyers.length === 0 ? (
+          <View style={styles.empty}>
+            <Users size={34} color="#9B7141" />
+            <Text style={styles.emptyTitle}>{selectedPropertyId ? 'Ehhez az ingatlanhoz nincs vevőtalálat' : 'Még nincs vevőprofil'}</Text>
+            <Text style={styles.hint}>
+              {selectedPropertyId
+                ? 'Jelenleg egyetlen aktív vevőprofil sem illeszkedik ehhez az ingatlanhoz.'
+                : 'Hozd létre az elsőt, vagy nyiss meg egy érdeklődést és készíts belőle profilt.'}
+            </Text>
+          </View>
         ) : (
           <View style={styles.list}>
-            {buyers.map((buyer) => {
-              const buyerMatches = matches.filter((match) => match.buyer_profile_id === buyer.id)
+            {visibleBuyers.map((buyer) => {
+              const buyerMatches = matches.filter((match) =>
+                match.buyer_profile_id === buyer.id &&
+                (!selectedPropertyId || Number(match.property_id) === selectedPropertyId)
+              )
               return <View key={buyer.id} style={styles.buyerCard}>
                 <View style={[styles.buyerHeader, mobile && styles.stack]}>
                   <View style={{ flex: 1 }}><View style={styles.nameRow}><Text style={styles.buyerName}>{buyer.customer_name}</Text><View style={[styles.status, buyer.status === 'paused' && styles.paused]}><Text style={styles.statusText}>{buyer.status === 'paused' ? 'Szüneteltetve' : 'Aktív kereső'}</Text></View></View><Text style={styles.buyerMeta}>{buyer.wanted_locations.join(', ')}{buyer.property_types.length ? ` · ${buyer.property_types.join(', ')}` : ''}{buyer.max_price ? ` · max. ${Number(buyer.max_price).toLocaleString('hu-HU')} Ft` : ''}</Text></View>

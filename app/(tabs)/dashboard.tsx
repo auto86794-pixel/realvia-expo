@@ -36,6 +36,7 @@ export default function Dashboard() {
   const mobile = width < 760
   const [properties, setProperties] = useState<Property[]>([])
   const [unreadInquiries, setUnreadInquiries] = useState(0)
+  const [propertyMatches, setPropertyMatches] = useState<Record<string, { total: number; outstanding: number }>>({})
   const [loading, setLoading] = useState(true)
   const [storage, setStorage] = useState({ megabytes: 0, files: 0 })
 
@@ -57,6 +58,34 @@ export default function Dashboard() {
         .eq('owner_id', session.user.id)
         .is('read_at', null)
       if (!unreadError) setUnreadInquiries((unreadData || []).length)
+
+      const { data: matchData, error: matchError } = await supabase
+        .from('property_matches')
+        .select('property_id,score')
+        .eq('owner_id', session.user.id)
+
+      if (!matchError) {
+        const summary: Record<string, { total: number; outstanding: number }> = {}
+
+        for (const match of matchData || []) {
+          const key = String(match.property_id)
+
+          if (!summary[key]) {
+            summary[key] = { total: 0, outstanding: 0 }
+          }
+
+          summary[key].total += 1
+
+          if (Number(match.score) >= 90) {
+            summary[key].outstanding += 1
+          }
+        }
+
+        setPropertyMatches(summary)
+      } else {
+        console.log('Property matches unavailable:', matchError)
+        setPropertyMatches({})
+      }
 
       try {
         setStorage(await getBlobUsage())
@@ -168,6 +197,22 @@ export default function Dashboard() {
                   <Text style={styles.cardTitle}>{property.title}</Text>
                   <Text style={styles.location}>{property.location}</Text>
                   <Text style={styles.price}>{Number(property.price).toLocaleString('hu-HU')} Ft</Text>
+                  {!!propertyMatches[String(property.id)]?.total && (
+                    <Pressable
+                      onPress={() => router.push(`/buyers?propertyId=${property.id}` as any)}
+                      style={styles.matchButton}
+                    >
+                      <Users size={15} color="#2E4639" />
+                      <Text style={styles.matchButtonText}>
+                        {propertyMatches[String(property.id)].total} vevőtalálat
+                      </Text>
+                      {propertyMatches[String(property.id)].outstanding > 0 && (
+                        <Text style={styles.matchOutstanding}>
+                          · {propertyMatches[String(property.id)].outstanding} kiemelkedő
+                        </Text>
+                      )}
+                    </Pressable>
+                  )}
                 </View>
                 <View style={[styles.actions, mobile && styles.actionsMobile]}>
                   <Pressable onPress={() => router.push(`/property/${property.id}`)} style={styles.iconButton}><Eye size={18} color="#455149" /></Pressable>
@@ -251,6 +296,9 @@ const styles = StyleSheet.create({
   cardTitle: { color: '#1D2923', fontSize: 20, fontWeight: '800', marginTop: 11 },
   location: { color: '#7A827D', marginTop: 5 },
   price: { color: '#2E4639', fontSize: 19, fontWeight: '800', marginTop: 14 },
+  matchButton: { alignSelf: 'flex-start', minHeight: 34, marginTop: 10, paddingHorizontal: 11, borderRadius: 10, backgroundColor: '#E8EEE9', flexDirection: 'row', alignItems: 'center', gap: 6 },
+  matchButtonText: { color: '#2E4639', fontSize: 12, fontWeight: '900' },
+  matchOutstanding: { color: '#9B7141', fontSize: 12, fontWeight: '900' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 8 },
   actionsMobile: { padding: 0, justifyContent: 'flex-end' },
   iconButton: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: '#DDD8D0', alignItems: 'center', justifyContent: 'center' },
