@@ -18,10 +18,14 @@ export default function Welcome() {
   const { width, height } = useWindowDimensions()
   const { signOut } = useAuth()
 
-  const mobile = width < 768 || height > width * 1.25
+  const mobile =
+    width < 768 || height > width * 1.25
 
-  const [guestLoading, setGuestLoading] = useState(false)
-  const [guestError, setGuestError] = useState('')
+  const [guestLoading, setGuestLoading] =
+    useState(false)
+
+  const [guestError, setGuestError] =
+    useState('')
 
   async function browseAsGuest() {
     try {
@@ -32,10 +36,13 @@ export default function Welcome() {
 
       router.replace('/(tabs)')
     } catch (error) {
-      console.error('Guest sign-out failed:', error)
+      console.error(
+        'Guest sign-out failed:',
+        error
+      )
 
       setGuestError(
-        'A vendég mód indítása nem sikerült. Próbáld újra, vagy nyisd meg az oldalt privát ablakban.'
+        'A böngészés indítása nem sikerült. Próbáld újra, vagy nyisd meg az oldalt privát ablakban.'
       )
     } finally {
       setGuestLoading(false)
@@ -43,7 +50,14 @@ export default function Welcome() {
   }
 
   return (
-    <View style={[styles.background, { minHeight: height }]}>
+    <View
+      style={[
+        styles.background,
+        { minHeight: height },
+      ]}
+    >
+      {/* DESKTOP HÁTTÉR */}
+
       <Image
         source={require('../../assets/images/realvia-welcome-family-light.png')}
         contentFit="cover"
@@ -53,6 +67,8 @@ export default function Welcome() {
           mobile && styles.hiddenImage,
         ]}
       />
+
+      {/* MOBIL HÁTTÉR */}
 
       <Image
         source={require('../../assets/images/realvia-welcome-family-mobile.png')}
@@ -70,15 +86,19 @@ export default function Welcome() {
             ? [
                 'rgba(255,252,245,0)',
                 'rgba(249,241,226,0.04)',
-                'rgba(239,225,202,0.72)',
+                'rgba(239,225,202,0.76)',
               ]
             : [
                 'rgba(255,252,245,0.02)',
                 'rgba(255,248,236,0.10)',
-                'rgba(239,225,202,0.48)',
+                'rgba(239,225,202,0.50)',
               ]
         }
-        locations={[0, mobile ? 0.55 : 0.48, 1]}
+        locations={[
+          0,
+          mobile ? 0.55 : 0.48,
+          1,
+        ]}
         style={[
           styles.overlay,
           mobile && styles.overlayMobile,
@@ -92,6 +112,8 @@ export default function Welcome() {
             mobile && styles.panelMobile,
           ]}
         >
+          {/* LOGÓJEL */}
+
           <View
             style={[
               styles.mark,
@@ -101,12 +123,15 @@ export default function Welcome() {
             <Text
               style={[
                 styles.markText,
-                mobile && styles.markTextMobile,
+                mobile &&
+                  styles.markTextMobile,
               ]}
             >
               R
             </Text>
           </View>
+
+          {/* MÁRKA */}
 
           <Text
             style={[
@@ -117,13 +142,16 @@ export default function Welcome() {
             REALVIA
           </Text>
 
+          {/* FŐ ÜZENET */}
+
           <Text
             style={[
               styles.kicker,
               mobile && styles.kickerMobile,
             ]}
           >
-            EGY LÉPÉSSEL KÖZELEBB AZ OTTHONODHOZ
+            EGY LÉPÉSSEL KÖZELEBB AZ
+            OTTHONODHOZ
           </Text>
 
           <View
@@ -133,15 +161,31 @@ export default function Welcome() {
             ]}
           />
 
+          {/* ÉRZELMI / FUNKCIONÁLIS ÜZENET */}
+
           <Text
             style={[
               styles.description,
-              mobile && styles.descriptionMobile,
+              mobile &&
+                styles.descriptionMobile,
             ]}
           >
-            Fedezd fel a hozzád illő otthont, vagy mutasd
-            meg saját ingatlanodat.
+            Fedezd fel azt a helyet, ahol a
+            következő történeted kezdődhet.
           </Text>
+
+          <Text
+            style={[
+              styles.subDescription,
+              mobile &&
+                styles.subDescriptionMobile,
+            ]}
+          >
+            Keress otthont, vagy mutasd meg
+            saját ingatlanodat.
+          </Text>
+
+          {/* FŐ MŰVELETEK */}
 
           <View
             style={[
@@ -149,50 +193,86 @@ export default function Welcome() {
               mobile && styles.actionsMobile,
             ]}
           >
-            <Pressable
-              onPress={() => router.push('/login')}
-              style={[
-                styles.primary,
-                mobile && styles.buttonMobile,
-              ]}
-            >
-              <Text style={styles.primaryText}>
-                BELÉPÉS
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push('/register')}
-              style={[
-                styles.secondary,
-                mobile && styles.secondaryMobile,
-                mobile && styles.buttonMobile,
-              ]}
-            >
-              <Text style={styles.secondaryText}>
-                REGISZTRÁCIÓ
-              </Text>
-            </Pressable>
+            {/* ELSŐDLEGES: BÖNGÉSZÉS */}
 
             <Pressable
               onPress={browseAsGuest}
               disabled={guestLoading}
-              style={styles.guest}
+              style={({ pressed }) => [
+                styles.primary,
+                mobile && styles.buttonMobile,
+                pressed &&
+                  !guestLoading &&
+                  styles.primaryPressed,
+                guestLoading &&
+                  styles.buttonDisabled,
+              ]}
             >
               {guestLoading ? (
                 <ActivityIndicator
                   size="small"
-                  color="#65736B"
+                  color="#FFFFFF"
                 />
               ) : (
-                <Text style={styles.guestText}>
-                  Böngészés vendégként →
+                <Text
+                  style={styles.primaryText}
+                >
+                  INGATLANOK BÖNGÉSZÉSE
                 </Text>
               )}
             </Pressable>
 
+            {/* MÁSODLAGOS: HIRDETÉS */}
+
+            <Pressable
+              onPress={() =>
+                router.push('/register')
+              }
+              style={({ pressed }) => [
+                styles.secondary,
+                mobile &&
+                  styles.secondaryMobile,
+                mobile && styles.buttonMobile,
+                pressed &&
+                  styles.secondaryPressed,
+              ]}
+            >
+              <Text
+                style={styles.secondaryText}
+              >
+                INGATLANT HIRDETEK
+              </Text>
+            </Pressable>
+
+            {/* BELÉPÉS */}
+
+            <View style={styles.loginRow}>
+              <Text style={styles.loginHint}>
+                Már van fiókod?
+              </Text>
+
+              <Pressable
+                onPress={() =>
+                  router.push('/login')
+                }
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  pressed &&
+                    styles.loginButtonPressed,
+                ]}
+              >
+                <Text
+                  style={styles.loginText}
+                >
+                  Belépés →
+                </Text>
+              </Pressable>
+            </View>
+
             {!!guestError && (
-              <Text style={styles.guestError}>
+              <Text
+                style={styles.guestError}
+              >
                 {guestError}
               </Text>
             )}
@@ -225,8 +305,14 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    paddingHorizontal: Platform.OS === 'web' ? '7%' : 20,
-    paddingVertical: Platform.OS === 'web' ? 42 : 28,
+    paddingHorizontal:
+      Platform.OS === 'web'
+        ? '7%'
+        : 20,
+    paddingVertical:
+      Platform.OS === 'web'
+        ? 42
+        : 28,
   },
 
   overlayMobile: {
@@ -254,7 +340,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.72)',
+    borderColor:
+      'rgba(255,255,255,0.72)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -271,7 +358,8 @@ const styles = StyleSheet.create({
       Platform.OS === 'web'
         ? 'Georgia, serif'
         : 'serif',
-    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowColor:
+      'rgba(0,0,0,0.55)',
     textShadowOffset: {
       width: 0,
       height: 2,
@@ -293,7 +381,8 @@ const styles = StyleSheet.create({
       Platform.OS === 'web'
         ? 'Georgia, serif'
         : 'serif',
-    textShadowColor: 'rgba(0,0,0,0.68)',
+    textShadowColor:
+      'rgba(0,0,0,0.68)',
     textShadowOffset: {
       width: 0,
       height: 3,
@@ -316,7 +405,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.8,
     textAlign: 'center',
     marginTop: 8,
-    textShadowColor: 'rgba(0,0,0,0.72)',
+    textShadowColor:
+      'rgba(0,0,0,0.72)',
     textShadowOffset: {
       width: 0,
       height: 2,
@@ -335,7 +425,8 @@ const styles = StyleSheet.create({
   rule: {
     width: 48,
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    backgroundColor:
+      'rgba(255,255,255,0.75)',
     marginVertical: 14,
     shadowColor: '#000000',
     shadowOpacity: 0.3,
@@ -347,13 +438,14 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color: '#183F30',
-    fontSize: 17,
-    lineHeight: 25,
-    fontWeight: '700',
+    color: '#173D2F',
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '800',
     textAlign: 'center',
-    maxWidth: 400,
-    textShadowColor: 'rgba(255,255,255,0.36)',
+    maxWidth: 410,
+    textShadowColor:
+      'rgba(255,255,255,0.40)',
     textShadowOffset: {
       width: 0,
       height: 1,
@@ -362,11 +454,26 @@ const styles = StyleSheet.create({
   },
 
   descriptionMobile: {
-    color: '#173D2F',
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '800',
     maxWidth: 350,
+  },
+
+  subDescription: {
+    color: '#53655B',
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '600',
+    textAlign: 'center',
+    maxWidth: 380,
+    marginTop: 5,
+  },
+
+  subDescriptionMobile: {
+    color: '#4A5E53',
+    fontSize: 13,
+    lineHeight: 19,
+    maxWidth: 340,
   },
 
   actions: {
@@ -386,6 +493,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E4639',
     alignItems: 'center',
     justifyContent: 'center',
+
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        boxShadow:
+          '0 10px 28px rgba(31,55,43,0.20)',
+      } as any,
+      default: {},
+    }),
+  },
+
+  primaryPressed: {
+    opacity: 0.9,
+    transform: [
+      {
+        scale: 0.995,
+      },
+    ],
+  },
+
+  buttonDisabled: {
+    opacity: 0.72,
   },
 
   buttonMobile: {
@@ -395,9 +524,9 @@ const styles = StyleSheet.create({
 
   primaryText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 1.35,
   },
 
   secondary: {
@@ -405,14 +534,27 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#BCA98E',
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    backgroundColor:
+      'rgba(255,255,255,0.48)',
     alignItems: 'center',
     justifyContent: 'center',
+
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      } as any,
+      default: {},
+    }),
   },
 
   secondaryMobile: {
-    backgroundColor: 'rgba(111,82,52,0.13)',
+    backgroundColor:
+      'rgba(111,82,52,0.13)',
     borderColor: '#A98257',
+  },
+
+  secondaryPressed: {
+    opacity: 0.82,
   },
 
   secondaryText: {
@@ -422,16 +564,41 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
 
-  guest: {
+  loginRow: {
+    minHeight: 34,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 2,
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 2,
   },
 
-  guestText: {
-    color: '#65736B',
-    fontSize: 14,
-    fontWeight: '600',
+  loginHint: {
+    color: '#66746C',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+
+  loginButton: {
+    paddingHorizontal: 3,
+    paddingVertical: 6,
+
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      } as any,
+      default: {},
+    }),
+  },
+
+  loginButtonPressed: {
+    opacity: 0.65,
+  },
+
+  loginText: {
+    color: '#29483A',
+    fontSize: 13,
+    fontWeight: '800',
   },
 
   guestError: {
