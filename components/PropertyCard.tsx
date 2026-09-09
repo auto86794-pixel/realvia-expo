@@ -8,7 +8,7 @@ import {
 
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Link } from 'expo-router'
+import { router } from 'expo-router'
 
 import Animated, {
   useAnimatedStyle,
@@ -64,16 +64,15 @@ export default function PropertyCard({
   const formattedPrice = formatPropertyPrice(price)
 
   return (
-    <Link
-      href={{
-        pathname: '/property/[id]',
-        params: { id: propertyId },
-      }}
-      asChild
-    >
-      <AnimatedPressable
-        accessibilityRole="link"
-        accessibilityLabel={`${title}, ${location}, ${formattedPrice}`}
+    <AnimatedPressable
+      accessibilityRole="link"
+      accessibilityLabel={`${title}, ${location}, ${formattedPrice}`}
+      onPress={() =>
+        router.push({
+          pathname: '/property/[id]',
+          params: { id: propertyId },
+        })
+      }
       onPressIn={() => {
         scale.value = withSpring(0.985, {
           damping: 16,
@@ -267,7 +266,6 @@ export default function PropertyCard({
           </View>
         </View>
       </View>
-      </AnimatedPressable>
-    </Link>
+    </AnimatedPressable>
   )
 }
