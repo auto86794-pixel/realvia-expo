@@ -34,9 +34,15 @@ import {
 } from 'react-native'
 
 import InquiryModal from '@/components/InquiryModal'
+import SeoHead from '@/components/SeoHead'
 import { useAuth } from '@/src/providers/AuthProvider'
 import { deletePropertyWithImages } from '@/src/services/blob'
 import { supabase } from '@/src/services/supabase'
+import {
+  formatPropertyPrice,
+  plainPropertyText,
+  seoDescription,
+} from '@/utils/property-format'
 
 type Property = {
   id: number
@@ -435,8 +441,51 @@ export default function PropertyDetail() {
     )
   }
 
+  const formattedPrice = formatPropertyPrice(property.price)
+  const cleanTitle = plainPropertyText(property.title)
+  const cleanDescription = plainPropertyText(property.description)
+  const canonicalPath = `/property/${property.id}`
+  const metaDescription = seoDescription(
+    property.description,
+    `${cleanTitle}, ${property.location}. ${formattedPrice}.`
+  )
+  const numericPrice = Number(property.price)
+  const priceInForints =
+    numericPrice > 0 && numericPrice < 10_000
+      ? numericPrice * 1_000_000
+      : numericPrice
+
+  const propertyJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: cleanTitle,
+    description: metaDescription,
+    url: `https://www.realvia.hu${canonicalPath}`,
+    image: images,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'HUF',
+      price: priceInForints,
+      availability: sold
+        ? 'https://schema.org/SoldOut'
+        : 'https://schema.org/InStock',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: property.location,
+      addressCountry: 'HU',
+    },
+  }
+
   return (
     <>
+      <SeoHead
+        title={`${cleanTitle} – ${property.location}`}
+        description={metaDescription}
+        path={canonicalPath}
+        image={images[0]}
+        jsonLd={propertyJsonLd}
+      />
       <ScrollView
         style={styles.page}
         contentContainerStyle={
@@ -528,6 +577,7 @@ export default function PropertyDetail() {
                     ],
                   }}
                   contentFit="cover"
+                  accessibilityLabel={`${cleanTitle} – ${property.location}, ${activeImage + 1}. kép`}
                   style={
                     styles.heroImage
                   }
@@ -640,6 +690,7 @@ export default function PropertyDetail() {
                               uri,
                             }}
                             contentFit="cover"
+                            accessibilityLabel={`${cleanTitle} – ${property.location}, ${i + 2}. kép`}
                             style={
                               styles.sideImage
                             }
@@ -677,6 +728,7 @@ export default function PropertyDetail() {
                     <Image
                       source={{ uri }}
                       contentFit="cover"
+                      accessibilityLabel={`${cleanTitle} – ${property.location}, ${i + 1}. kép`}
                       style={
                         styles.thumb
                       }
@@ -707,13 +759,15 @@ export default function PropertyDetail() {
               </Text>
 
               <Text
+                accessibilityRole="header"
+                aria-level={1}
                 style={[
                   styles.title,
                   !desktop &&
                     styles.titleMobile,
                 ]}
               >
-                {property.title}
+                {cleanTitle}
               </Text>
 
               <View
@@ -735,16 +789,7 @@ export default function PropertyDetail() {
                 </Text>
               </View>
 
-              <Text
-                style={styles.price}
-              >
-                {Number(
-                  property.price
-                ).toLocaleString(
-                  'hu-HU'
-                )}{' '}
-                Ft
-              </Text>
+              <Text style={styles.price}>{formattedPrice}</Text>
 
               <View
                 style={[
@@ -817,6 +862,8 @@ export default function PropertyDetail() {
                 style={styles.section}
               >
                 <Text
+                  accessibilityRole="header"
+                  aria-level={2}
                   style={
                     styles.sectionTitle
                   }
@@ -829,7 +876,7 @@ export default function PropertyDetail() {
                     styles.description
                   }
                 >
-                  {property.description ||
+                  {cleanDescription ||
                     'A hirdető még nem adott meg részletes leírást.'}
                 </Text>
               </View>
@@ -838,6 +885,8 @@ export default function PropertyDetail() {
                 style={styles.section}
               >
                 <Text
+                  accessibilityRole="header"
+                  aria-level={2}
                   style={
                     styles.sectionTitle
                   }

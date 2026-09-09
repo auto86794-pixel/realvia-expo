@@ -29,6 +29,7 @@ import SearchBar from '@/components/home/SearchBar'
 
 import PropertyCard from '@/components/PropertyCard'
 import PropertyCardSkeleton from '@/components/PropertyCardSkeleton'
+import SeoHead from '@/components/SeoHead'
 
 import { supabase } from '../../src/services/supabase'
 
@@ -213,7 +214,20 @@ export default function Home() {
     ])
 
   return (
-    <View
+    <>
+      <SeoHead
+        title="Eladó ingatlanok Debrecenben és Hajdú-Biharban | Realvia"
+        description="Válogatott eladó lakások, családi házak és prémium ingatlanok Debrecenben és Hajdú-Biharban. Böngészd a Realvia aktuális kínálatát."
+        path="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'RealEstateAgent',
+          name: 'Realvia',
+          url: 'https://www.realvia.hu/',
+          areaServed: ['Debrecen', 'Hajdú-Bihar vármegye'],
+        }}
+      />
+      <View
       style={{
         flex: 1,
         backgroundColor:
@@ -435,6 +449,8 @@ export default function Home() {
                 }
               >
                 <Text
+                  accessibilityRole="header"
+                  aria-level={1}
                   style={{
                     color: 'white',
 
@@ -590,6 +606,8 @@ export default function Home() {
           >
             <View>
               <Text
+                accessibilityRole="header"
+                aria-level={2}
                 style={{
                   color:
                     '#1D2923',
@@ -742,6 +760,8 @@ export default function Home() {
             }}
           >
             <Text
+              accessibilityRole="header"
+              aria-level={2}
               style={{
                 color:
                   '#1D2923',
@@ -992,6 +1012,7 @@ export default function Home() {
             : 'Hirdetés feladása'}
         </Text>
       </Pressable>
-    </View>
+      </View>
+    </>
   )
 }

@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /inquiries
+Disallow: /upload
+Disallow: /create
+Disallow: /buyers
+Disallow: /property/edit/
+Disallow: /login
+Disallow: /register
+Disallow: /modal
+Disallow: /_sitemap
+
+Sitemap: https://www.realvia.hu/sitemap.xml

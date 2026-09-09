@@ -10,7 +10,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build": "expo export --platform web",
-    "build:web": "expo export --platform web",
+    "build:web": "expo export --platform web && node scripts/copy-seo-files.mjs",
     "lint": "expo lint"
   },
   "dependencies": {

@@ -8,7 +8,7 @@ import {
 
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import { router } from 'expo-router'
+import { Link } from 'expo-router'
 
 import Animated, {
   useAnimatedStyle,
@@ -23,6 +23,7 @@ import {
 } from '@/constants/theme'
 
 import { hu } from '@/constants/translations'
+import { formatPropertyPrice } from '@/utils/property-format'
 
 type Props = {
   id: string | number
@@ -60,30 +61,19 @@ export default function PropertyCard({
     transform: [{ scale: imageScale.value }],
   }))
 
-  const formattedPrice = (() => {
-    const value = Number(price)
-
-    if (isNaN(value)) {
-      return price
-    }
-
-    if (value >= 1000000) {
-      return `${(value / 1000000)
-        .toFixed(1)
-        .replace('.', ',')} M Ft`
-    }
-
-    return `${value.toLocaleString('hu-HU')} Ft`
-  })()
+  const formattedPrice = formatPropertyPrice(price)
 
   return (
-    <AnimatedPressable
-      onPress={() =>
-        router.push({
-          pathname: '/property/[id]',
-          params: { id: propertyId },
-        })
-      }
+    <Link
+      href={{
+        pathname: '/property/[id]',
+        params: { id: propertyId },
+      }}
+      asChild
+    >
+      <AnimatedPressable
+        accessibilityRole="link"
+        accessibilityLabel={`${title}, ${location}, ${formattedPrice}`}
       onPressIn={() => {
         scale.value = withSpring(0.985, {
           damping: 16,
@@ -152,6 +142,7 @@ export default function PropertyCard({
           transition={400}
           cachePolicy="memory-disk"
           contentFit="cover"
+          accessibilityLabel={`${title} – ${location}`}
           style={{
             width: '100%',
             height: '100%',
@@ -276,6 +267,7 @@ export default function PropertyCard({
           </View>
         </View>
       </View>
-    </AnimatedPressable>
+      </AnimatedPressable>
+    </Link>
   )
 }
