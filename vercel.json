@@ -32,8 +32,8 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|robots\\.txt$|sitemap\\.xml$|favicon\\.ico$).*)",
-      "destination": "/index.html"
+      "source": "/(.*)",
+      "destination": "/"
     }
   ],
   "functions": {
