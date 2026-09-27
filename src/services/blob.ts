@@ -131,11 +131,22 @@ export async function deletePropertyWithImages(propertyId: string | number) {
   return blobManagementRequest({ action: 'delete-property', propertyId })
 }
 
-export async function syncPropertyImages(
+export async function cleanupUploadedImages(images: string[]) {
+  if (!images.length) return { deletedImages: 0 }
+  return blobManagementRequest({ action: 'delete-uploaded-images', images })
+}
+
+export async function updatePropertyWithImages(
   propertyId: string | number,
+  property: Record<string, unknown>,
   images: string[]
 ) {
-  return blobManagementRequest({ action: 'sync-property-images', propertyId, images })
+  return blobManagementRequest({
+    action: 'update-property',
+    propertyId,
+    property,
+    images,
+  })
 }
 
 export async function getBlobUsage() {

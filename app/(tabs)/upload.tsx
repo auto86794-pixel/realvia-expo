@@ -16,7 +16,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { ArrowLeft, Camera, Check, Home, MapPin, X } from 'lucide-react-native'
 
-import { uploadPropertyImage } from '@/src/services/blob'
+import { cleanupUploadedImages, uploadPropertyImage } from '@/src/services/blob'
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
 import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
@@ -106,6 +106,7 @@ export default function UploadScreen() {
   }
 
   async function save(status: 'draft' | 'published') {
+    if (saving || uploadingImages) return
     setFormMessage('')
     const validationError =
       status === 'published'
@@ -156,7 +157,16 @@ export default function UploadScreen() {
         router.replace('/dashboard')
       }
     } catch (error) {
-      console.log(error)
+      console.error('Property create failed:', error)
+      // Ha az adatbázis-mentés elbukik, a már feltöltött képek ne maradjanak
+      // gazdátlanul a Blob tárhelyen. A takarítás hibája nem írja felül az
+      // eredeti mentési hibát.
+      try {
+        await cleanupUploadedImages(images)
+        setImages([])
+      } catch (cleanupError) {
+        console.error('Orphan image cleanup failed:', cleanupError)
+      }
       setFormMessage(
         error instanceof Error
           ? error.message

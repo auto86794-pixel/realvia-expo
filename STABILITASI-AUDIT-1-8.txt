@@ -1,0 +1,42 @@
+REALVIA – STABILITÁSI AUDIT 1–8
+
+1. Adatbázis és hibakezelés
+- Publikus lekérdezések státusz-szűrése megmaradt.
+- Szerkesztésnél az adatmezők és a képlista most egyetlen szerveroldali UPDATE műveletben mentődnek.
+- A régi képek Blob-takarítása best-effort, nem fordítja hibásra a már sikeres DB-mentést.
+
+2. Publikus / admin jogosultságok
+- Szerveroldali módosítás JWT ellenőrzéssel és owner_id feltétellel történik.
+- Publikus ingatlanoldal csak published/sold rekordot kér le.
+
+3. Routing / nem létező ingatlan
+- Hibás vagy nem numerikus property ID nem indít DB-lekérdezést.
+- Nem létező/nem publikus ingatlan kliensoldalon noindex,nofollow meta jelzést kap.
+- Az Expo SPA/Vercel architektúra miatt valódi HTTP 404 dinamikus ismeretlen property URL-re teljes SSR/route-váltás nélkül nem vezethető be biztonságosan; ezt most nem bolygattuk.
+
+4. Képek
+- Sikertelen új hirdetés mentés után a felhasználó saját, már feltöltött Blob képei takaríthatók.
+- A takarító végpont csak a hitelesített user saját properties/<userId>/ útvonalát törölheti.
+- 10 képes limit és 4 MB szerveroldali feltöltési limit megmaradt.
+
+5. Adatmentés
+- Mentés közbeni újabb kattintás ellen guard került az új hirdetésre, szerkesztésre és érdeklődésre.
+- Szerkesztésnél megszűnt a korábbi kétlépcsős DB update + külön képszinkron részleges mentési kockázata.
+
+6. Vercel / Expo konfiguráció
+- A működő Expo SPA felépítést nem cseréltük le kockázatosan.
+- A SEO build és Production DB-alapú sitemap logika változatlanul megmaradt.
+
+7. Régi / duplikált kód
+- Törölve: lib/supabase.ts (nem használt, régi Supabase kliens).
+- Törölve: src/services/inquiry.ts (nem használt régi Supabase Edge Function hívás).
+- Törölve a már nem használt syncPropertyImages kliens helper.
+
+8. Biztonság
+- A régi, forrásba írt Supabase anon kulcsot tartalmazó nem használt fájl eltávolítva.
+- Aktív kliens továbbra is csak EXPO_PUBLIC Neon Auth/Data API URL-eket használ.
+- DATABASE_URL csak szerver/build oldalon használatos.
+- Blob módosítások JWT-ellenőrzöttek és tulajdonoshoz kötöttek.
+
+MEGJEGYZÉS
+A csomagban nincs node_modules, ezért ebben a környezetben az Expo build nem futtatható (expo: not found). A projektet a saját gépen npm run build:web paranccsal kell ellenőrizni, ugyanúgy mint az előző FIX csomagokat.

@@ -146,12 +146,16 @@ export default function PropertyDetail() {
     async function load() {
       try {
         setLoading(true)
+        setProperty(null)
+
+        const propertyId = Array.isArray(id) ? id[0] : id
+        if (!propertyId || !/^\d+$/.test(String(propertyId))) return
 
         const { data, error } =
           await supabase
             .from('properties')
             .select('*')
-            .eq('id', id)
+            .eq('id', propertyId)
             .in('status', ['published', 'sold'])
             .single()
 
@@ -420,7 +424,14 @@ export default function PropertyDetail() {
 
   if (!property) {
     return (
-      <View style={styles.loading}>
+      <>
+        <SeoHead
+          title="Ingatlan nem található"
+          description="A keresett Realvia ingatlan nem található vagy már nem publikus."
+          path={`/property/${Array.isArray(id) ? id[0] : id || ''}`}
+          noIndex
+        />
+        <View style={styles.loading}>
         <Text
           style={styles.notFound}
         >
@@ -438,7 +449,8 @@ export default function PropertyDetail() {
             Vissza a főoldalra
           </Text>
         </Pressable>
-      </View>
+        </View>
+      </>
     )
   }
 

@@ -416,6 +416,115 @@ export default async function handler(
     }
 
     // --------------------------------
+    // GAZDÁTLAN, SAJÁT FELTÖLTÉSEK TAKARÍTÁSA
+    // --------------------------------
+
+    if (action === 'delete-uploaded-images') {
+      const images = Array.isArray(request.body?.images)
+        ? request.body.images.filter((item: unknown): item is string => typeof item === 'string')
+        : []
+
+      const ownedPrefix = `properties/${userId}/`
+      const safeUrls = images.filter((value: string) => {
+        if (!isManagedBlobUrl(value)) return false
+        try {
+          const pathname = decodeURIComponent(new URL(value).pathname).replace(/^\//, '')
+          return pathname.startsWith(ownedPrefix)
+        } catch {
+          return false
+        }
+      })
+
+      if (safeUrls.length) await del(Array.from(new Set(safeUrls)))
+      response.status(200).json({ deletedImages: safeUrls.length })
+      return
+    }
+
+    // --------------------------------
+    // INGATLAN + KÉPLISTA EGYETLEN DB-MENTÉSBEN
+    // --------------------------------
+
+    if (action === 'update-property') {
+      const property = request.body?.property || {}
+      const images = Array.isArray(request.body?.images)
+        ? request.body.images.filter((item: unknown): item is string => typeof item === 'string')
+        : []
+      const allowedStatuses = new Set(['published', 'sold', 'draft', 'inactive'])
+
+      if (!images.length || images.length > 10 || images.some((url: string) => !isManagedBlobUrl(url))) {
+        response.status(400).json({ error: '1–10 érvényes Blob-kép szükséges.' })
+        return
+      }
+      if (!String(property.title || '').trim() || !String(property.location || '').trim()) {
+        response.status(400).json({ error: 'A cím és a helyszín kötelező.' })
+        return
+      }
+      if (!(Number(property.price) > 0) || !(Number(property.area) > 0)) {
+        response.status(400).json({ error: 'Az ár és az alapterület legyen nullánál nagyobb.' })
+        return
+      }
+      if (!allowedStatuses.has(String(property.status))) {
+        response.status(400).json({ error: 'Érvénytelen hirdetésállapot.' })
+        return
+      }
+
+      const current = await sql`
+        select image, gallery
+        from public.properties
+        where id = ${String(propertyId)}::bigint and owner_id = ${userId}
+        limit 1
+      `
+      if (!current.length) {
+        response.status(404).json({ error: 'Az ingatlan nem található vagy nem a sajátod.' })
+        return
+      }
+
+      const gallery = toPostgresTextArray(images)
+      const updated = await sql`
+        update public.properties
+        set
+          title = ${String(property.title).trim()},
+          location = ${String(property.location).trim()},
+          price = ${Number(property.price)},
+          description = ${String(property.description || '').trim()},
+          category = ${String(property.category || '').trim()},
+          listing_type = ${String(property.listing_type || 'Eladó')},
+          bedrooms = ${Number(property.bedrooms) || 0},
+          bathrooms = ${Number(property.bathrooms) || 0},
+          area = ${Number(property.area)},
+          parking = ${Number(property.parking) || 0},
+          status = ${String(property.status)},
+          image = ${images[0]},
+          gallery = ${gallery}::text[]
+        where id = ${String(propertyId)}::bigint and owner_id = ${userId}
+        returning id
+      `
+
+      if (!updated.length) {
+        response.status(404).json({ error: 'Az ingatlan nem található vagy nem a sajátod.' })
+        return
+      }
+
+      const keep = new Set(images)
+      const removed = propertyUrls(current[0])
+        .filter((url) => !keep.has(url))
+        .filter(isManagedBlobUrl)
+
+      // A DB-mentés már sikeres. A régi fájlok takarítása best-effort:
+      // ennek hibája nem teheti "sikertelenné" a már elmentett hirdetést.
+      if (removed.length) {
+        try {
+          await del(removed)
+        } catch (cleanupError) {
+          console.error('Old property image cleanup failed:', cleanupError)
+        }
+      }
+
+      response.status(200).json({ updated: true, deletedImages: removed.length })
+      return
+    }
+
+    // --------------------------------
     // ISMERETLEN MŰVELET
     // --------------------------------
 

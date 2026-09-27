@@ -19,7 +19,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { supabase } from '@/src/services/supabase'
 import { useAuth } from '@/src/providers/AuthProvider'
 import { useProtectedRoute } from '@/src/hooks/useProtectedRoute'
-import { syncPropertyImages, uploadPropertyImage } from '@/src/services/blob'
+import { updatePropertyWithImages, uploadPropertyImage } from '@/src/services/blob'
 
 const statuses = [
   { value: 'published', label: 'Publikus', help: 'Mindenki láthatja' },
@@ -119,6 +119,7 @@ export default function EditProperty() {
   }
 
   async function save() {
+    if (saving || uploadingImages) return
     setSaveError('')
 
     if (!title.trim() || !location.trim() || Number(price) <= 0 || Number(area) <= 0) {
@@ -129,32 +130,37 @@ export default function EditProperty() {
       Alert.alert('Hiányzó kép', 'A hirdetéshez legalább egy kép szükséges.')
       return
     }
+    if (!session?.user?.id) {
+      Alert.alert('Belépés szükséges', 'A mentéshez jelentkezz be újra.')
+      return
+    }
+
     try {
       setSaving(true)
-      const { error } = await supabase.from('properties').update({
-        title: title.trim(),
-        location: location.trim(),
-        price: Number(price),
-        description: description.trim(),
-        category: category.trim(),
-        listing_type: listingType,
-        bedrooms: Number(bedrooms) || 0,
-        bathrooms: Number(bathrooms) || 0,
-        area: Number(area),
-        parking: Number(parking) || 0,
-        status,
-      }).eq('id', id).eq('owner_id', session?.user?.id)
-      if (error) throw error
-      await syncPropertyImages(String(id), images)
+      await updatePropertyWithImages(
+        String(id),
+        {
+          title: title.trim(),
+          location: location.trim(),
+          price: Number(price),
+          description: description.trim(),
+          category: category.trim(),
+          listing_type: listingType,
+          bedrooms: Number(bedrooms) || 0,
+          bathrooms: Number(bathrooms) || 0,
+          area: Number(area),
+          parking: Number(parking) || 0,
+          status,
+        },
+        images
+      )
       Alert.alert('Mentve', 'A hirdetés módosításai sikeresen elmentve.', [{ text: 'Rendben', onPress: () => router.replace('/dashboard') }])
+      if (Platform.OS === 'web') router.replace('/dashboard')
     } catch (error) {
       console.error('Property update failed:', error)
-      setSaveError(
-        status === 'sold'
-          ? 'Az „Eladva” állapotot az adatbázis még nem engedélyezi. Futtasd le a mellékelt Neon SQL-frissítést.'
-          : 'A módosításokat nem sikerült elmenteni. Próbáld újra.'
-      )
-      Alert.alert('Mentési hiba', 'A módosításokat nem sikerült elmenteni.')
+      const message = error instanceof Error ? error.message : 'A módosításokat nem sikerült elmenteni.'
+      setSaveError(message)
+      Alert.alert('Mentési hiba', message)
     } finally {
       setSaving(false)
     }

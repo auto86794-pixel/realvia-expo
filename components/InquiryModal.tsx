@@ -74,6 +74,7 @@ export default function InquiryModal({
   }
 
   async function submitInquiry() {
+    if (loading) return
     setErrorText('')
     const cleanName = name.trim()
     const cleanEmail = email.trim().toLowerCase()
