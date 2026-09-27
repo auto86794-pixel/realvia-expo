@@ -1,0 +1,17 @@
+REALVIA.HU – GOOGLE / SEO JAVÍTÁS
+
+Elkészült:
+- téves Next.js app/sitemap.ts eltávolítva
+- sitemap generálás egységesítve a build scriptben
+- sitemap a published + sold ingatlanokat veszi fel
+- lastmod mező támogatás az ingatlan URL-eknél
+- buildkor egyedi /property/{id}.html SEO belépési fájl készül minden publikus ingatlanhoz
+- egyedi title, description, canonical, Open Graph és RealEstateListing JSON-LD kerül a statikus HTML-be
+- publikus ingatlan adatlekérés published/sold státuszra korlátozva
+- robots.txt megmaradt és a belső/admin útvonalakat tiltja
+- .env és node_modules nincs a javított csomagban
+
+ELLENŐRZÉS:
+A SEO build script szintaktikai ellenőrzése rendben.
+A teljes npm build ebben a környezetben nem futott le, mert a node_modules telepítése időkorlátba ütközött.
+Helyben: npm install (ha szükséges), majd npm run build:web.

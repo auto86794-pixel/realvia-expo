@@ -152,6 +152,7 @@ export default function PropertyDetail() {
             .from('properties')
             .select('*')
             .eq('id', id)
+            .in('status', ['published', 'sold'])
             .single()
 
         if (error) {
