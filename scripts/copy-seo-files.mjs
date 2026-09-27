@@ -6,7 +6,7 @@ import {
 } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createClient } from '@neondatabase/neon-js'
+import { neon } from '@neondatabase/serverless'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const dist = resolve(root, 'dist')
@@ -15,8 +15,6 @@ const siteUrl = 'https://www.realvia.hu'
 mkdirSync(dist, { recursive: true })
 copyFileSync(resolve(root, 'public', 'robots.txt'), resolve(dist, 'robots.txt'))
 copyFileSync(resolve(root, 'assets', 'images', 'realvia-home-sunrise.png'), resolve(dist, 'og-image.png'))
-
-const fallbackSitemap = readFileSync(resolve(root, 'public', 'sitemap.xml'), 'utf8')
 
 function escapeXml(value = '') {
   return String(value)
@@ -55,27 +53,37 @@ function priceInForints(price) {
 }
 
 async function loadPublicProperties() {
-  const authUrl = process.env.EXPO_PUBLIC_NEON_AUTH_URL
-  const dataApiUrl = process.env.EXPO_PUBLIC_NEON_DATA_API_URL
+  // A Vercel/Neon integráció a Realvia projektben ezeket a szerveroldali
+  // connection string neveket használja. A DATABASE_URL a jelenlegi fő érték.
+  const databaseUrl =
+    process.env.DATABASE_URL ||
+    process.env.DATABASE_POSTGRES_URL ||
+    process.env.POSTGRES_URL
 
-  if (!authUrl || !dataApiUrl) {
-    console.warn('SEO: Neon build variables are unavailable. Homepage sitemap fallback will be used.')
-    return []
+  if (!databaseUrl) {
+    throw new Error(
+      'SEO: nincs adatbázis connection string. Elvárt: DATABASE_URL (vagy DATABASE_POSTGRES_URL / POSTGRES_URL).'
+    )
   }
 
-  const client = createClient({
-    auth: { url: authUrl, allowAnonymous: true },
-    dataApi: { url: dataApiUrl },
-  })
+  const sql = neon(databaseUrl)
+  const rows = await sql`
+    select
+      id,
+      title,
+      location,
+      description,
+      price,
+      image,
+      gallery,
+      status,
+      updated_at
+    from public.properties
+    where status in ('published', 'sold')
+    order by id desc
+  `
 
-  const { data, error } = await client
-    .from('properties')
-    .select('id,title,location,description,price,image,images,status,updated_at')
-    .in('status', ['published', 'sold'])
-    .order('id', { ascending: false })
-
-  if (error) throw error
-  return data ?? []
+  return Array.from(rows ?? [])
 }
 
 function createSitemap(properties) {
@@ -102,7 +110,18 @@ function propertyHtml(baseHtml, property) {
   const price = formatPrice(property.price)
   const description = seoDescription(property.description, `${title}, ${location}. ${price}.`)
   const canonical = `${siteUrl}/property/${id}`
-  const imageList = Array.isArray(property.images) ? property.images.filter(Boolean) : []
+  const gallery = property.gallery
+  let imageList = []
+  if (Array.isArray(gallery)) {
+    imageList = gallery.filter(Boolean)
+  } else if (typeof gallery === 'string' && gallery.trim()) {
+    try {
+      const parsed = JSON.parse(gallery)
+      imageList = Array.isArray(parsed) ? parsed.filter(Boolean) : []
+    } catch {
+      imageList = []
+    }
+  }
   const image = property.image || imageList[0] || `${siteUrl}/og-image.png`
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -134,14 +153,33 @@ const indexPath = resolve(dist, 'index.html')
 const exportedHtml = readFileSync(indexPath, 'utf8')
 let properties = []
 
-try {
-  properties = await loadPublicProperties()
-  console.log(`SEO: ${properties.length} public property URL(s) loaded.`)
-} catch (error) {
-  console.warn('SEO: property loading failed; homepage-only sitemap fallback will be used.', error)
+const isVercelProduction = process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'production'
+const hasDatabaseUrl = Boolean(
+  process.env.DATABASE_URL ||
+  process.env.DATABASE_POSTGRES_URL ||
+  process.env.POSTGRES_URL
+)
+
+if (!hasDatabaseUrl && !isVercelProduction) {
+  console.log('SEO: local build detected without database credentials; skipping DB-backed property SEO generation.')
+  console.log('SEO: Vercel Production will generate the full sitemap and property landing HTML files from DATABASE_URL.')
+} else {
+  try {
+    properties = await loadPublicProperties()
+    console.log(`SEO: ${properties.length} public property URL(s) loaded from database.`)
+  } catch (error) {
+    if (isVercelProduction) {
+      console.error('SEO: Production property loading failed. Build stopped to prevent publishing an incomplete sitemap.')
+      throw error
+    }
+    console.warn('SEO: local database lookup failed; continuing local build without DB-backed property SEO files.')
+    console.warn(error instanceof Error ? error.message : error)
+    properties = []
+  }
 }
 
-writeFileSync(resolve(dist, 'sitemap.xml'), properties.length ? createSitemap(properties) : fallbackSitemap)
+// Nulla publikus ingatlan önmagában nem hiba: ilyenkor jogosan csak a főoldal szerepel.
+writeFileSync(resolve(dist, 'sitemap.xml'), createSitemap(properties))
 writeFileSync(indexPath, homepageHtml(exportedHtml))
 
 for (const property of properties) {

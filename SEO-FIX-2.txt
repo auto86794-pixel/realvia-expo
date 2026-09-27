@@ -1,0 +1,7 @@
+REALVIA SEO FIX 2
+
+- A sitemap generátor most közvetlenül a meglévő Vercel/Neon DATABASE_URL-t használja.
+- A lekérdezés a tényleges properties.gallery mezőt használja (nem a nem létező images mezőt).
+- A publikus státuszok: published és sold.
+- Adatbázis-hibánál a build szándékosan hibával leáll; többé nem készül csendben hibás, csak főoldalas sitemap.
+- Ha valóban 0 publikus ingatlan van, a csak főoldalas sitemap helyes és a build sikeres.
